@@ -1,0 +1,39 @@
+let HotTopic = (
+    for w in work
+        FILTER w.publication_year >= 2020-5
+        for wc in work_doc
+            FILTER w.id == wc.id 
+            for t in wc.doc.topics
+                collect topic_id = t.id
+                aggregate cnt = count(1)
+                sort cnt desc
+                limit 1
+                return topic_id
+)
+let PapersInHotTopic = (
+    for ht in HotTopic
+         for w in 1..1 inbound concat("topic_v/",to_string(ht)) work_topic_e
+            FILTER w.publication_year >= 2020-5
+            return w.id
+)
+
+let InstCount = (
+    for w_id in PapersInHotTopic
+        for au in 1..1 outbound concat("work_v/",to_string(w_id)) work_author_e
+            for a in author
+                FILTER au.id == a.id
+                collect institution_id = a.institution_id
+                aggregate cnt = count(1)
+                FILTER institution_id != NULL
+                sort cnt desc
+                limit 3
+                return {institution_id,cnt}
+)
+
+for ic in InstCount
+    for i in institution
+        FILTER i.id == ic.institution_id
+        sort ic.cnt desc
+        return {institution_name:i.display_name,paper_cnt: ic.cnt}
+
+ 

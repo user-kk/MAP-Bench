@@ -1,0 +1,56 @@
+/* ---- TopCitedPaper ---- */
+LET TopCitedPaper = (
+    FOR w IN work
+      FILTER w.publication_year >= 2020 - 5   /* 2015 年及以后 */
+      SORT w.cited_by_count DESC
+      LIMIT 1
+      RETURN {work_id: w.id} -- 这里用work_id 4402653441做测试
+)
+
+/* ---- PaperCitationNetwork ---- */
+LET PaperCitationNetwork = (
+    FOR tcp IN TopCitedPaper
+      FOR v IN 1..2 OUTBOUND CONCAT("work_v/", to_string(tcp.work_id)) work_referenced_work_e
+        RETURN distinct {cited_work_id: v.id}
+)
+
+/* ---- PaperVector ---- */
+LET PaperVector = (
+
+    UNION (
+        /* 先把网络里出现的论文向量取出来 */
+    (FOR pcn IN PaperCitationNetwork
+      FOR wv IN work_vec
+        FILTER wv.id == pcn.cited_work_id
+        RETURN {id: wv.id, vec: wv.vec}
+    ),
+    (FOR tcp IN TopCitedPaper
+        FOR wv IN work_vec
+          FILTER wv.id == tcp.work_id
+          RETURN {id: wv.id, vec: wv.vec})
+    )
+)
+
+/* ---- SimilarityScore ---- */
+LET SimilarityScore = (
+    /* 取 Top1 论文向量 */
+    LET topVec = (FOR pv IN PaperVector FILTER pv.id == TopCitedPaper[0].work_id RETURN pv.vec)[0]
+
+    FOR pcn IN PaperCitationNetwork
+      FOR pv1 IN PaperVector
+        FILTER pv1.id == pcn.cited_work_id
+        LET similarity_score = L2_DISTANCE(topVec, pv1.vec)
+        SORT similarity_score ASC
+        RETURN {cited_work_id: pcn.cited_work_id, similarity_score}
+)
+
+/* ---- 最终结果 ---- */
+FOR ss IN SimilarityScore
+  LIMIT 10
+  FOR w IN work
+    FILTER w.id == ss.cited_work_id
+    RETURN {
+      title: w.title,
+      cited_by_count: w.cited_by_count,
+      similarity_score: ss.similarity_score
+    }

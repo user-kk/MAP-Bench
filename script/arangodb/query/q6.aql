@@ -1,0 +1,40 @@
+/* ---- ids：2018-2023 且摘要含 "database" ---- */
+let current_paper_id = 4385803459
+LET ids = (
+    FOR w IN work
+      FILTER w.publication_year >= 2018 && w.publication_year <= 2023
+      FOR wc IN work_doc 
+        FILTER wc.id == w.id and CONTAINS(wc.doc.abstract, "database")
+        RETURN {work_id: w.id}
+)
+
+/* ---- ids2：与当前论文向量最相似的 100 篇 不包含自己 ---- */
+LET ids2 = (
+    LET curVec = FIRST(FOR v IN work_vec FILTER v.id == current_paper_id RETURN v.vec)
+    FOR row IN ids
+      FILTER row.work_id != current_paper_id
+      LET p1_vec = FIRST(FOR v IN work_vec FILTER v.id == row.work_id RETURN v.vec)
+      SORT L2_DISTANCE(p1_vec, curVec) ASC
+      LIMIT 100
+      RETURN {work_id: row.work_id}
+)
+
+/* ---- 最终组装 bib 对象 ---- */
+FOR i IN ids2
+    For p in work
+        for wc in work_doc
+            FILTER i.work_id == p.id and p.id == wc.id
+  RETURN {
+      author: wc.doc.authorships[*].author.display_name,
+      title:               p.title,
+      publication_date:    p.publication_date,
+      type:                p.type,
+      cited_by_api_url:    p.cited_by_api_url,
+      abstract:            wc.doc.abstract,
+      language:            p.language,
+      volume:              wc.doc.volume,
+      issue:               wc.doc.issue,
+      first_page:          wc.doc.first_page,
+      last_page:           wc.doc.last_page,
+      doi:                 wc.doi
+  }
