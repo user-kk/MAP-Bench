@@ -1,8 +1,12 @@
 WITH TopCitedPaper AS (
--- 第一步： 找出近五年内被引用量最高的论文（ Top 1）
+-- 第一步： 找出近五年内某个领域内被引用量最高的论文（ Top 1）
 SELECT w.id AS work_id
 FROM work w
-WHERE w.publication_year >= 2020 - 5
+WHERE w.publication_year >= 2020 - 5 and exists (
+    select 1
+    from work_doc wc unwind jsonb_array_elements(wc.doc->'topics') as topic
+    where w.id = wc.id and topic->>'display_name' = 'Gene Therapy Techniques and Applications'
+)
 ORDER BY w.cited_by_count DESC
 LIMIT 1
 ),
