@@ -1,0 +1,22 @@
+LET CrossDisciplinaryPapers = (
+  FOR w IN work
+    FILTER w.cited_by_count >= 0
+    FILTER w.type == 'article'
+    FILTER w.publication_year >= 2020
+    for wc in work_doc
+        FILTER w.id == wc.id
+        for t in wc.doc.topics
+            FILTER t.display_name in ['Economic Implications of Climate Change Policies','Economic Impact of Environmental Policies and Resources']
+            collect id = wc.id ,authorships = wc.doc.authorships
+            aggregate cnt = count(1)
+            FILTER cnt == 2
+            RETURN {id,authorships}
+)
+
+/* ---- 2. 展开 authorships，再按 author.id 聚合 ---- */
+FOR cp IN CrossDisciplinaryPapers
+  FOR auth IN cp.authorships          
+    COLLECT aid = auth.author.id
+    aggregate cnt = count(1)
+    SORT cnt DESC
+    RETURN { author_id: aid, collaborating_cnt: cnt }
