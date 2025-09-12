@@ -1,0 +1,50 @@
+/* 参数绑定 */
+LET a_id = 4377013841        /* 4377013841 */
+LET b_id = 4224436092       /* 4224436092 */
+
+/* ---- t：最短路径节点（不含终点）---- */
+LET t = (
+    FOR v IN OUTBOUND SHORTEST_PATH CONCAT('work_v/', a_id) TO CONCAT('work_v/', b_id) work_referenced_work_e
+        FILTER v.id != a_id and v.id != b_id  /* e.endid != 4224436092 */
+        RETURN {p_id: v.id}
+)
+
+/* ---- PaperDetails：被引量 + authorships 数组 ---- */
+LET PaperDetails = (
+    FOR row IN t
+        for w in work
+            for wc in work_doc
+                FILTER row.p_id == w.id and w.id == wc.id
+                RETURN {
+                    p_id: row.p_id,
+                    paper_cites: w.cited_by_count,
+                    authorships_jsonb: wc.doc.authorships
+                }
+)
+
+/* ---- t2：按影响力公式打分 ---- */
+LET t2 = (
+    FOR pd IN PaperDetails
+        for p in work
+        FILTER pd.p_id == p.id
+
+
+        /* 计算作者平均影响力 */
+        LET avgAuthorCites = AVG(
+            FOR auth IN pd.authorships_jsonb
+               for a in author
+                    FILTER to_number(auth.author.id) == a.id
+                    RETURN a.cited_by_count
+        )
+
+        RETURN {
+            id: pd.p_id,
+            title: p.title,
+            influence_score: pd.paper_cites + (avgAuthorCites != NULL ? avgAuthorCites : 0)
+        }
+)
+
+/* ---- 最终结果 ---- */
+FOR row IN t2
+    SORT row.influence_score DESC
+    RETURN {id: row.id, title: row.title}

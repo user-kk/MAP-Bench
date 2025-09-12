@@ -1,0 +1,31 @@
+/* 参数：目标作者 id */
+LET a_id = "5015704722"
+
+/* ---- t：获取目标作者的所有合作关系记录 ---- */
+LET t = (
+    FOR v, e IN 1..1 ANY CONCAT('author_v/', a_id) author_author_e
+        RETURN {id: v._key, list: e.list}   /* e.list 是合作年份数组 */
+)
+
+/* ---- t2：展开每条合作记录，按年份计数 ---- */
+LET t2 = (
+    FOR row IN t
+        FOR item IN row.list   /* 直接 UNWIND 数组 */
+            COLLECT id = row.id, year = TO_STRING(item.year)   /* 转成字符串与 SQL 一致 */
+            AGGREGATE cnt = COUNT(1)
+            RETURN {id, year, cnt}
+)
+
+
+
+FOR row IN t2
+    COLLECT year = row.year INTO groups = {id:row.id,cnt:row.cnt}
+    let top3_id = (
+        for k in groups
+            sort k.cnt desc
+            limit 3
+            return to_number(k.id)
+    ) 
+    return {year,top3_id}
+
+
