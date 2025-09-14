@@ -1,0 +1,22 @@
+LET target_paper_id = 4395661325
+LET search_term = 'graph neural network'
+
+// 第一步：找到所有摘要中包含关键词的论文 ID
+LET gnn_papers = (
+    FOR wd IN work_doc
+        // 使用 LOWER() 和 LIKE 实现大小写不敏感的模糊匹配
+        FILTER LIKE(wd.doc.abstract, CONCAT('%', search_term, '%')) 
+        RETURN wd.id
+)
+
+// 第二步：获取目标论文的向量
+LET target_paper_vec = DOCUMENT(CONCAT('work_vec/', target_paper_id)).vec 
+
+// 第三步：找到与目标论文向量最相似的10篇论文
+FOR gnn_paper_id IN gnn_papers
+    // 获取每篇候选论文的向量
+    LET candidate_vec = DOCUMENT(CONCAT('work_vec/', gnn_paper_id)).vec 
+    // 计算向量距离，并按距离升序排列，距离越小越相似
+    SORT L2_DISTANCE(candidate_vec, target_paper_vec) ASC
+    LIMIT 10
+    RETURN gnn_paper_id

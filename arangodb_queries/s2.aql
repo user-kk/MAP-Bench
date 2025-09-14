@@ -1,0 +1,14 @@
+LET target_topic_name = 'Chemistry and Applications of Metal-Organic Frameworks'
+
+FOR topic IN topic_v
+    FILTER topic.display_name == target_topic_name
+    
+    FOR paper IN 1..1 INBOUND topic GRAPH 'work_topic_gra'
+        SORT paper.cited_by_count DESC
+        LIMIT 10
+        RETURN {
+            id: paper.id,
+            title: paper.title,
+            cited_by_count: paper.cited_by_count,
+            publication_year: paper.publication_year
+        }
