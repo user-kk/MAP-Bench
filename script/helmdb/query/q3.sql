@@ -25,7 +25,8 @@ GROUP BY a.institution_id
 ORDER BY COUNT(*) DESC,a.institution_id asc
 LIMIT 3
 ) 
+SELECT i.display_name AS institution_name, ic.paper_cnt
 FROM InstCount ic,
 institution i
 WHERE i.id = ic.inst_id
-ORDER BY ic.paper_cnt DESC;
+ORDER BY ic.paper_cnt DESC,i.id asc;

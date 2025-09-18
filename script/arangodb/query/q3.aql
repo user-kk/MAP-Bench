@@ -33,7 +33,7 @@ let InstCount = (
 for ic in InstCount
     for i in institution
         FILTER i.id == ic.institution_id
-        sort ic.cnt desc
+        sort ic.cnt desc,i.id asc
         return {institution_name:i.display_name,paper_cnt: ic.cnt}
 
  
