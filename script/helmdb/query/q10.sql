@@ -1,7 +1,7 @@
 WITH component AS (
 -- 计算作者合作网络中的弱连通分量
 SELECT *
-FROM cpu_wcc('author_author_graph'::regclass::bigint)
+FROM cpu_wcc('author_author_gra'::regclass::bigint)
 AS component(node_id, component_id)
 ),
 ids AS (

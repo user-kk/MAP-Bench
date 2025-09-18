@@ -11,7 +11,7 @@ AuthorWorks AS (
     WHERE a.id = oa.author_id
 ),
 AuthorTopics AS (
-    SELECT DISTINCT t.id AS topic_id,
+    SELECT t.id AS topic_id,
            t.properties->>'display_name' AS display_name
     FROM AuthorWorks aw,
     work_topic_gra MATCH (w: work_v)-[:work_topic_e]->(t: topic_v)

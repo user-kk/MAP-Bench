@@ -1,6 +1,6 @@
 WITH TopAuthors AS (
     SELECT pr.node_id AS author_id
-    FROM cpu_pagerank('author_author_graph'::regclass::bigint, 20, 0.85) 
+    FROM cpu_pagerank('author_author_gra'::regclass::bigint, 20, 0.85) 
          AS pr(node_id, pagerank_score)
     ORDER BY pagerank_score DESC
     LIMIT 50

@@ -1,5 +1,5 @@
 /* 参数：目标作者 id */
-LET a_id = "5015704722"
+LET a_id = "5015704722" //5015704722
 
 /* ---- t：获取目标作者的所有合作关系记录 ---- */
 LET t = (
@@ -22,7 +22,7 @@ FOR row IN t2
     COLLECT year = row.year INTO groups = {id:row.id,cnt:row.cnt}
     let top3_id = (
         for k in groups
-            sort k.cnt desc
+            sort k.cnt desc,to_number(k.id) asc 
             limit 3
             return to_number(k.id)
     ) 

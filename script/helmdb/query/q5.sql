@@ -7,7 +7,7 @@ WHERE w.publication_year >= 2020 - 5 and exists (
     from work_doc wc unwind jsonb_array_elements(wc.doc->'topics') as topic
     where w.id = wc.id and topic->>'display_name' = 'Gene Therapy Techniques and Applications'
 )
-ORDER BY w.cited_by_count DESC
+ORDER BY w.cited_by_count DESC,w.id asc
 LIMIT 1
 ),
 PaperCitationNetwork AS (
@@ -33,11 +33,11 @@ SELECT pcn.cited_work_id, (wv1.vec <-> wv2.vec) AS similarity_score
 FROM PaperCitationNetwork pcn
 JOIN PaperVector wv1 ON wv1.id = pcn.cited_work_id
 JOIN PaperVector wv2 ON wv2.id = (SELECT work_id FROM TopCitedPaper)
-ORDER BY (wv1.vec <-> wv2.vec) ASC
+ORDER BY (wv1.vec <-> wv2.vec) ASC, pcn.cited_work_id ASC
 ) 
 -- 返回贡献度（ 相似度） 最高的论文
 SELECT w.title, w.cited_by_count, ss.similarity_score
 FROM SimilarityScore ss
 JOIN work w ON w.id = ss.cited_work_id
-ORDER BY ss.similarity_score ASC
+ORDER BY ss.similarity_score ASC,ss.cited_work_id ASC
 LIMIT 10;

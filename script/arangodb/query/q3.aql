@@ -6,7 +6,7 @@ let HotTopic = (
             for t in wc.doc.topics
                 collect topic_id = t.id
                 aggregate cnt = count(1)
-                sort cnt desc
+                sort cnt desc,topic_id asc
                 limit 1
                 return topic_id
 )
@@ -21,11 +21,11 @@ let InstCount = (
     for w_id in PapersInHotTopic
         for au in 1..1 outbound concat("work_v/",to_string(w_id)) work_author_e
             for a in author
-                FILTER au.id == a.id
+                FILTER au.id == a.id and a.institution_id != NULL
                 collect institution_id = a.institution_id
                 aggregate cnt = count(1)
                 FILTER institution_id != NULL
-                sort cnt desc
+                sort cnt desc,institution_id asc
                 limit 3
                 return {institution_id,cnt}
 )

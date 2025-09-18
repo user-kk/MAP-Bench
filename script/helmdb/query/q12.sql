@@ -20,4 +20,4 @@ FROM
 WHERE 
     t1.id = p.id AND p.id = wd.id
 ORDER BY 
-    p.cited_by_count DESC
+    p.cited_by_count DESC,p.id asc

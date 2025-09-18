@@ -1,7 +1,5 @@
 LET start_author_id = '5040670721'
-FOR co_author IN 1..1 ANY CONCAT('author_v/', start_author_id) GRAPH 'author_author_gra'
-    SORT co_author.cited_by_count DESC
-    RETURN {
-        display_name: co_author.display_name,
-        cited_by_count: co_author.cited_by_count
-    }
+FOR co_author IN 1..1 OUTBOUND CONCAT('author_v/', start_author_id) GRAPH 'author_author_gra'
+    for a in author
+        FILTER co_author.id == a.id
+        return a

@@ -35,7 +35,7 @@ for cat in CurrentAuthorTopics
         let dis = l2_distance(cat.vec,ct.vec)
         collect cat_id = cat.candidate_id,ct_id = ct.candidate_id
         aggregate avg_dis = avg(dis)
-        sort avg_dis asc
+        sort avg_dis asc,ct_id asc
         limit 3
         return ct_id
 

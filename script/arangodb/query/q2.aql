@@ -1,12 +1,13 @@
 let TopInstitutions = (
     for w in work
         for wc in work_doc
-            FILTER w.id == wc.id and w.publication_year >= 2024-5
+            FILTER w.id == wc.id and w.publication_year >= 2024-5 and wc.doc.authorships != NULL
             for author_ship in wc.doc.authorships
+                filter author_ship.institution.id != NULL
                 collect inst_id = FLOOR(author_ship.institution.id)
                 aggregate papers_cnt = COUNT(w.id)
                 FILTER inst_id != NULL
-                sort papers_cnt DESC
+                sort papers_cnt DESC,inst_id asc
                 limit 3
                 return {inst_id,papers_cnt}
 )
@@ -26,7 +27,7 @@ for k in (
         collect inst_id=it.inst_id into topic_group = it
         let top3 = (
             for tg in topic_group
-                sort tg.freq DESC
+                sort tg.freq DESC,tg.topic_id asc
                 limit 3
                 return {topic_id:tg.topic_id,freq:tg.freq}
         )

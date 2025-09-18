@@ -12,4 +12,6 @@ for p in OverlappingPapers
         FILTER a.publication_year >= 2020 and a.type == 'article'
         collect id = p.id
         aggregate cnt = count(1)
+        sort cnt desc,id asc
+        limit 5
         RETURN {id,cnt}

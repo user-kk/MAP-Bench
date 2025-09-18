@@ -10,7 +10,7 @@ LET t1 = (
 FOR row in t1
     FOR w IN work
         for wc in work_doc
-            FILTER row.id == w.id and w.id == wc.id
+            FILTER row.id == w.id and w.id == wc.id and wc.doc.authorships != NULL
             LET authors = (
                 /* 把 doc.authorships 数组展开，关联 author 集合 */
                 FOR auObj IN wc.doc.authorships
@@ -18,7 +18,7 @@ FOR row in t1
                         FILTER to_number(auObj.author.id) == a.id   
                         RETURN a.display_name
             )
-            SORT w.cited_by_count DESC
+            SORT w.cited_by_count DESC,w.id ASC
             RETURN {
                 title: w.title,
                 authors: authors,  

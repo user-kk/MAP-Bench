@@ -2,42 +2,17 @@ LET start_paper_id = '4395661325'
 
 LET flattened_results = (
   FOR cited_paper IN 1..1 OUTBOUND CONCAT('work_v/', start_paper_id) GRAPH 'work_work_gra'
-    FOR work_info IN work_doc
-        FILTER work_info.id == cited_paper.id
-        LET authors_array = (
-            FOR author_ship IN work_info.doc.authorships
-                RETURN {
-                    id: author_ship.author.id,
-                    name: author_ship.author.display_name
-                }
-        )
-        RETURN {
-            title: cited_paper.title,
-            publication_year: cited_paper.publication_year,
-            authors: authors_array 
-        }
-)
-
-FOR result IN flattened_results
-    SORT result.publication_year DESC
-    LIMIT 10
-    RETURN result
-//或者只看第一个作者
-LET start_paper_id = '4395661325'
-
-LET flattened_results = (
-  FOR cited_paper IN 1..1 OUTBOUND CONCAT('work_v/', start_paper_id) GRAPH 'work_work_gra'
-    FOR work_info IN work_doc
-        FILTER work_info.id == cited_paper.id
-        // 直接访问 authorships 数组的第一个元素 [0]
-        LET first_author = work_info.doc.authorships[0]
-        
-        RETURN {
-            title: cited_paper.title,
-            publication_year: cited_paper.publication_year,
-            first_author_id: first_author.author.id,
-            first_author_name: first_author.author.display_name
-        }
+    for w in work
+      filter cited_paper.id ==w.id
+      FOR work_info IN work_doc
+          FILTER w.id == work_info.id and work_info.doc.authorships != null
+          for author_ship IN work_info.doc.authorships
+          RETURN {
+              title: w.title,
+              publication_year: w.publication_year,
+              author: author_ship.author.id,
+              author_name: author_ship.author.display_name
+          }
 )
 
 FOR result IN flattened_results

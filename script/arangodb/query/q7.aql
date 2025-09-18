@@ -1,8 +1,8 @@
 /* 参数绑定 */
-LET a_id = 4377013841        /* 4377013841 */
-LET b_id = 4224436092       /* 4224436092 */
+LET a_id =  4377013841       /* 4377013841 */
+LET b_id =  4285171441       /* 4224436092 */
 
-/* ---- t：最短路径节点（不含终点）---- */
+/* ---- t：最短路径节点(不含起点终点)---- */
 LET t = (
     FOR v IN OUTBOUND SHORTEST_PATH CONCAT('work_v/', a_id) TO CONCAT('work_v/', b_id) work_referenced_work_e
         FILTER v.id != a_id and v.id != b_id  /* e.endid != 4224436092 */
@@ -14,7 +14,7 @@ LET PaperDetails = (
     FOR row IN t
         for w in work
             for wc in work_doc
-                FILTER row.p_id == w.id and w.id == wc.id
+                FILTER row.p_id == w.id and w.id == wc.id and wc.doc.authorships != NULL
                 RETURN {
                     p_id: row.p_id,
                     paper_cites: w.cited_by_count,
@@ -46,5 +46,5 @@ LET t2 = (
 
 /* ---- 最终结果 ---- */
 FOR row IN t2
-    SORT row.influence_score DESC
+    SORT row.influence_score DESC, row.id ASC
     RETURN {id: row.id, title: row.title}

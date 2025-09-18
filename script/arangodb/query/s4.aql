@@ -16,7 +16,7 @@ LET topics_from_authors = (
             FOR topic_v IN 1..1 OUTBOUND work_v GRAPH 'work_topic_gra'
                 RETURN {
                     id: topic_v.id,
-                    display_name: topic_v.properties.display_name
+                    display_name: topic_v.display_name
                 }
 )
 
