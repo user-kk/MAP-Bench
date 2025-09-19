@@ -15,8 +15,11 @@ client = ArangoClient(hosts='http://127.0.0.1:8529')
 db = client.db('openalex_middle', username='root', password='linux123')
 
 def run_one(aql: str):
-    cursor = db.aql.execute(aql, bind_vars={},
-                            memory_limit=500 * 1024**3, profile=True)
+    cursor = db.aql.execute(aql, 
+                            bind_vars={},
+                            memory_limit=500 * 1024**3, 
+                            profile=True,
+                            cache=False )          # 强制禁用查询结果缓存
     return cursor.statistics()['execution_time'] * 1000
 
 def bench_file(fpath: Path, runs: int):

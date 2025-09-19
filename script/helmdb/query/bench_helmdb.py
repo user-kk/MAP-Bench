@@ -56,6 +56,10 @@ def main():
     conn.autocommit = True
     cur = conn.cursor()
 
+     # ---------- 禁用各类缓存 ----------
+    cur.execute("SET enable_pbe_optimization = off")      # 会话级计划缓存
+    cur.execute("ALTER SYSTEM SET enable_global_plancache = off")      # 全局计划缓存（会话视角立即生效）
+
     csv_rows = []
     try:
         for f in map(Path, args.files):
