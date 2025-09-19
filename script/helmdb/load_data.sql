@@ -118,3 +118,16 @@ copy institution_geo (institution_id, city, geonames_city_id, region, country_co
 FROM '/home/wzh/data/openalex_middle/csv-files/institutions_geo.csv'
 DELIMITER ','
 CSV HEADER;
+
+
+-- work_vec 表
+CREATE INDEX idx_work_vec_l2
+ON work_vec
+USING ivfflat (vec vector_l2_ops)
+WITH (lists = 80);      -- 对应 ArangoDB 的 nLists:80
+
+-- topic_vec 表
+CREATE INDEX idx_topic_vec_l2
+ON topic_vec
+USING ivfflat (vec vector_l2_ops)
+WITH (lists = 80);
