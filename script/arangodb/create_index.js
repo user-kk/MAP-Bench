@@ -1,6 +1,6 @@
 const db = require('@arangodb').db;
 
-/* 1. 给所有集合的 id 建 hash 唯一索引（等值查询用） */
+/* 1. 给所有集合的 id 建 persistent 唯一索引 */
 // 关系
 db.author.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inBackground: true });
 db.work.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inBackground: true });
