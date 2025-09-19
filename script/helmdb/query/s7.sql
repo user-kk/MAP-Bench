@@ -18,5 +18,5 @@ author_counts AS (
 SELECT ac.author_id, a.display_name, ac.pub_count
 FROM author_counts ac
 JOIN author a ON a.id = CAST(ac.author_id AS bigint)
-ORDER BY ac.pub_count DESC, ac.author_id
+ORDER BY ac.pub_count DESC, ac.author_id ASC
 LIMIT 30;
