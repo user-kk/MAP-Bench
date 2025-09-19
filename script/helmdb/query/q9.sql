@@ -19,6 +19,6 @@ FROM
 JOIN 
     work_doc wd ON tp.paper_id = wd.id,
     -- 将 authorships 数组展开成多行
-    jsonb_array_elements(wd.doc->'authorships') AS author_obj
+    jsonb_array_elements(wd.authorships::jsonb) AS author_obj
 JOIN 
-    TopAuthors ta ON (author_obj->'author'->>'id')::bigint = ta.author_id;
+    TopAuthors ta ON (author_obj.author.id)::bigint = ta.author_id;

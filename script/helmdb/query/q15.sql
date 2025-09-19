@@ -4,8 +4,8 @@
 WITH OverlappingPapers AS (
 SELECT wc.id
 FROM work_doc wc
-WHERE doc->'topics' @> '[{"display_name":"Economic Implications of Climate Change Policies"}]'
-  AND doc->'topics' @> '[{"display_name":"Economic Impact of Environmental Policies and Resources"}]'
+WHERE wc.doc.topics::jsonb @> '[{"display_name":"Economic Implications of Climate Change Policies"}]'
+  AND wc.doc.topics::jsonb @> '[{"display_name":"Economic Impact of Environmental Policies and Resources"}]'
 )
 
 select p.id, count(1) as cnt

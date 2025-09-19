@@ -10,7 +10,7 @@ PaperDetails AS (
     SELECT 
         t.p_id, 
         w.cited_by_count AS paper_cites,
-        wd.doc->'authorships' AS authorships_jsonb 
+        wd.authorships::jsonb AS authorships_jsonb 
     FROM t
     JOIN work w ON w.id = t.p_id
     JOIN work_doc wd ON wd.id = t.p_id
@@ -28,7 +28,7 @@ t2 as (
                 jsonb_array_elements(pd.authorships_jsonb) AS author_obj, -- 1. 将 authorships 数组展开
                 author a                                                   -- 2. 关联 author 表
             WHERE 
-                (author_obj->'author'->>'id')::bigint = a.id              -- 3. 从嵌套JSON中提取id进行关联
+                (author_obj.author.id)::bigint = a.id              -- 3. 从嵌套JSON中提取id进行关联
         ), 0)) AS influence_score
     FROM PaperDetails pd
     JOIN work p ON p.id = pd.p_id

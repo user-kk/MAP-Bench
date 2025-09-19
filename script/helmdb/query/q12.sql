@@ -2,10 +2,10 @@ SELECT
     p.title AS title,
     (SELECT json_agg(a.display_name)
         FROM 
-            jsonb_array_elements(wd.doc->'authorships') AS author_obj, 
+            jsonb_array_elements(wd.authorships::jsonb) AS author_obj, 
             author a                                                  
         WHERE 
-            (author_obj->'author'->>'id')::bigint = a.id             
+            (author_obj.author.id)::bigint = a.id             
     ) AS authors, 
     p.publication_year AS year,
     p.cited_by_count AS n_citation

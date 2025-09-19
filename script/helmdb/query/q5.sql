@@ -1,12 +1,10 @@
 WITH TopCitedPaper AS (
 -- 第一步： 找出近五年内某个领域内被引用量最高的论文（ Top 1）
 SELECT w.id AS work_id
-FROM work w
-WHERE w.publication_year >= 2020 - 5 and exists (
-    select 1
-    from work_doc wc unwind jsonb_array_elements(wc.doc->'topics') as topic
-    where w.id = wc.id and topic->>'display_name' = 'Gene Therapy Techniques and Applications'
-)
+FROM work w, work_doc wc 
+WHERE w.publication_year >= 2020 - 5 
+    and w.id = wc.id
+    and wc.topics::jsonb @> '[{"display_name":"Gene Therapy Techniques and Applications"}]' 
 ORDER BY w.cited_by_count DESC,w.id asc
 LIMIT 1
 ),
@@ -28,14 +26,14 @@ FROM work_vec wv
 WHERE wv.id = (SELECT work_id FROM TopCitedPaper)
 ),
 SimilarityScore AS (
--- 计算论文间的主题向量相似度（ 向量相似度计算）
+-- 计算论文间的主题向量相似度（向量相似度计算）
 SELECT pcn.cited_work_id, (wv1.vec <-> wv2.vec) AS similarity_score
 FROM PaperCitationNetwork pcn
 JOIN PaperVector wv1 ON wv1.id = pcn.cited_work_id
 JOIN PaperVector wv2 ON wv2.id = (SELECT work_id FROM TopCitedPaper)
 ORDER BY (wv1.vec <-> wv2.vec) ASC, pcn.cited_work_id ASC
 ) 
--- 返回贡献度（ 相似度） 最高的论文
+-- 返回贡献度（相似度） 最高的论文
 SELECT w.title, w.cited_by_count, ss.similarity_score
 FROM SimilarityScore ss
 JOIN work w ON w.id = ss.cited_work_id
