@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import statistics, csv, argparse
 from pathlib import Path
-from arango import ArangoClient, ArangoError         
+from arango import ArangoClient, ArangoError       
+from arango.http import DefaultHTTPClient  
 
 
 """
@@ -11,7 +12,10 @@ ArangoDB AQL 性能基准脚本
 依赖:  pip install python-arango
 """
 
-client = ArangoClient(hosts='http://127.0.0.1:8529')
+class MyHTTP(DefaultHTTPClient):
+    request_timeout = 3600          
+
+client = ArangoClient(hosts='http://127.0.0.1:8529',http_client=MyHTTP())
 db = client.db('openalex_middle', username='root', password='linux123')
 
 def run_one(aql: str):
