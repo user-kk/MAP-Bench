@@ -24,7 +24,7 @@ LET top_similar_works = (
     // 通过 DOCUMENT 函数获取论文的向量
     LET v = DOCUMENT(CONCAT('work_vec/', candidate.id))
     SORT L2_DISTANCE(v.vec, target_topic_vec) ASC
-    LIMIT 50
+    LIMIT 10
     RETURN candidate
 )
 

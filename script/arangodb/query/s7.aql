@@ -19,7 +19,7 @@ LET author_counts = (
 FOR ac IN author_counts
     LET author_info = DOCUMENT(CONCAT('author/', ac.author_id))
     SORT ac.pub_count DESC,ac.author_id ASC
-    LIMIT 30
+    LIMIT 10
     RETURN {
         author_id: ac.author_id,
         display_name: author_info.display_name,
