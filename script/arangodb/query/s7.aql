@@ -1,0 +1,83 @@
+// 第一步：找到所有满足年份和摘要关键词条件的论文 ID
+LET ai_papers = (
+    FOR w IN work
+        // 高效地获取 work_doc 文档
+        LET wd = DOCUMENT(CONCAT('work_doc/', w.id))
+        FILTER w.publication_year >= 2022 AND w.publication_year <= 2025
+        // 摘要中的关键词搜索
+        FILTER LIKE(LOWER(wd.doc.abstract), '%artificial intelligence%')
+        RETURN w.id
+)
+
+// 第二步：统计每位作者发文数量
+LET author_counts = (
+    FOR paper_id IN ai_papers
+        // 获取论文的作者信息
+        LET wd = DOCUMENT(CONCAT('work_doc/', paper_id))
+        // 遍历 authorships 数组
+        FOR authorship IN wd.doc.authorships
+            // 按照作者ID分组，并收集论文ID
+            COLLECT author_id = authorship.author.id INTO papers_authored = paper_id
+            // 计算每位作者的论文数量
+            LET pub_count = COUNT(papers_authored)
+            RETURN {
+                author_id: author_id,
+                pub_count: pub_count
+            }
+)
+
+// 第三步：连接作者信息并排序，返回结果
+FOR ac IN author_counts
+    // 获取作者的显示名
+    LET author_info = DOCUMENT(CONCAT('author/', ac.author_id))
+    SORT ac.pub_count DESC
+    LIMIT 30
+    RETURN {
+        author_id: ac.author_id,
+        display_name: author_info.display_name,
+        pub_count: ac.pub_count
+    }
+
+
+////////////////
+
+// 第一步：找到所有满足年份和摘要关键词条件的论文 ID
+LET ai_papers = (
+    FOR w IN work
+        // 高效地获取 work_doc 文档
+        LET wd = DOCUMENT(CONCAT('work_doc/', w.id))
+        FILTER w.publication_year >= 2022 AND w.publication_year <= 2025
+        // 摘要中的关键词搜索
+        FILTER LIKE(LOWER(wd.doc.abstract), '%artificial intelligence%')
+        RETURN w.id
+)
+
+// 第二步：统计每位作者发文数量
+LET author_counts = (
+    FOR paper_id IN ai_papers
+      for wd in work_doc
+        filter paper_id == wd.id and wd.doc.authorships != NULL
+
+        // 遍历 authorships 数组
+        FOR authorship IN wd.doc.authorships
+            // 按照作者ID分组，并收集论文ID
+            COLLECT author_id = authorship.author.id 
+            // 计算每位作者的论文数量
+            aggregate pub_count = COUNT(1)
+            RETURN {
+                author_id: author_id,
+                pub_count: pub_count
+            }
+)
+
+// 第三步：连接作者信息并排序，返回结果
+FOR ac IN author_counts
+    // 获取作者的显示名
+    LET author_info = DOCUMENT(CONCAT('author/', ac.author_id))
+    SORT ac.pub_count DESC
+    LIMIT 30
+    RETURN {
+        author_id: ac.author_id,
+        display_name: author_info.display_name,
+        pub_count: ac.pub_count
+    }

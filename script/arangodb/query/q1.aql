@@ -3,7 +3,7 @@ LET Potential = (
     FOR a IN author_v
         FILTER a.display_name == author_name 
         FOR b IN 2..3 OUTBOUND a author_author_e
-            FILTER b.cited_by_count > 0 and b.id != a.id and b.id not in(
+            FILTER to_number(b.cited_by_count) >= 0 and b.id != a.id and b.id not in(
                 FOR v IN 1..1 OUTBOUND a author_author_e
                     return v.id
             )
@@ -35,8 +35,7 @@ for cat in CurrentAuthorTopics
         let dis = l2_distance(cat.vec,ct.vec)
         collect cat_id = cat.candidate_id,ct_id = ct.candidate_id
         aggregate avg_dis = avg(dis)
-        sort avg_dis asc
+        sort avg_dis asc,ct_id asc
         limit 3
-        return {ct.candidate_id}
-
+        return ct_id
 

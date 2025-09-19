@@ -1,0 +1,57 @@
+/* ---- TopCitedPaper ---- */
+LET TopCitedPaper = (
+    FOR w IN work
+        FILTER w.publication_year >= 2020 - 5 
+        for wc in work_doc
+            FILTER w.id == wc.id and 'Gene Therapy Techniques and Applications' in wc.doc.topics[*].display_name 
+            SORT w.cited_by_count DESC, w.id ASC
+            LIMIT 1
+            RETURN {work_id: w.id}  
+)
+
+/* ---- PaperCitationNetwork ---- */
+LET PaperCitationNetwork = (
+    FOR tcp IN TopCitedPaper
+      FOR v IN 1..2 OUTBOUND CONCAT("work_v/", to_string(tcp.work_id)) work_referenced_work_e
+        RETURN distinct {cited_work_id: v.id}
+)
+
+/* ---- PaperVector ---- */
+LET PaperVector = (
+
+    UNION (
+        /* 先把网络里出现的论文向量取出来 */
+    (FOR pcn IN PaperCitationNetwork
+      FOR wv IN work_vec
+        FILTER wv.id == pcn.cited_work_id
+        RETURN {id: wv.id, vec: wv.vec}
+    ),
+    (FOR tcp IN TopCitedPaper
+        FOR wv IN work_vec
+          FILTER wv.id == tcp.work_id
+          RETURN {id: wv.id, vec: wv.vec})
+    )
+)
+
+LET topVec = (FOR pv IN PaperVector FILTER pv.id == TopCitedPaper[0].work_id RETURN pv.vec)[0]
+
+/* ---- SimilarityScore ---- */
+LET SimilarityScore = (
+    FOR pcn IN PaperCitationNetwork
+      FOR pv1 IN PaperVector
+        FILTER pv1.id == pcn.cited_work_id
+        LET similarity_score = L2_DISTANCE(topVec, pv1.vec)
+        SORT similarity_score ASC , pcn.cited_work_id ASC
+        RETURN {cited_work_id: pcn.cited_work_id, similarity_score}
+)
+
+/* ---- 最终结果 ---- */
+FOR ss IN SimilarityScore
+  LIMIT 10
+  FOR w IN work
+    FILTER w.id == ss.cited_work_id
+    RETURN {
+      title: w.title,
+      cited_by_count: w.cited_by_count,
+      similarity_score: ss.similarity_score
+    }

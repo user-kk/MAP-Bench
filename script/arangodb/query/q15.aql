@@ -1,0 +1,17 @@
+LET OverlappingPapers = (
+  FOR wc IN work_doc
+    for topic in wc.doc.topics
+        FILTER topic.display_name in ['Economic Implications of Climate Change Policies','Economic Impact of Environmental Policies and Resources']
+        collect id = wc.id
+        aggregate cnt = count(1)
+        FILTER cnt == 2
+        RETURN {id:id}
+)
+for p in OverlappingPapers
+    for a in 1..1 inbound CONCAT("work_v/",to_string(p.id)) work_referenced_work_e
+        FILTER a.publication_year >= 2020 and a.type == 'article'
+        collect id = p.id
+        aggregate cnt = count(1)
+        sort cnt desc,id asc
+        limit 5
+        RETURN {id,cnt}

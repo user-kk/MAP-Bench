@@ -27,13 +27,13 @@ CREATE GRAPH work_topic_gra(
 );
 
 
-CREATE GRAPH work_author_graph(
+CREATE GRAPH work_author_gra(
     work_v VLABEL, --论文顶点表
     author_v VLABEL, --作者顶点表
     work_author_e ELABEL --论文所属于哪些作者（author_position字段标记为第几作者）
 );
 
-CREATE GRAPH author_author_graph(
+CREATE GRAPH author_author_gra(
     author_v VLABEL, --作者顶点表
     author_author_e ELABEL --作者合作关系
 );

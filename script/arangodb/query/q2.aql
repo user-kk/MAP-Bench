@@ -1,0 +1,44 @@
+let TopInstitutions = (
+    for w in work
+        for wc in work_doc
+            FILTER w.id == wc.id and w.publication_year >= 2024-5 and wc.doc.authorships != NULL
+            for author_ship in wc.doc.authorships
+                filter author_ship.institution.id != NULL
+                collect inst_id = FLOOR(author_ship.institution.id)
+                aggregate papers_cnt = COUNT(w.id)
+                FILTER inst_id != NULL
+                sort papers_cnt DESC,inst_id asc
+                limit 3
+                return {inst_id,papers_cnt}
+)
+let InstFields = (
+    for ti in TopInstitutions
+        for a in author
+            FILTER ti.inst_id == a.institution_id
+            for w in 1..1 inbound concat("author_v/",to_string(a.id)) work_author_e
+                FILTER w.publication_year >= 2024-5
+                for t in 1..1 OUTBOUND w work_topic_e
+                    collect inst_id=ti.inst_id,topic_id = t.id
+                    aggregate freq= COUNT(1)
+                    return {inst_id,topic_id,freq}
+)
+for k in (
+    for it in InstFields
+        collect inst_id=it.inst_id into topic_group = it
+        let top3 = (
+            for tg in topic_group
+                sort tg.freq DESC,tg.topic_id asc
+                limit 3
+                return {topic_id:tg.topic_id,freq:tg.freq}
+        )
+        for t in top3
+            return {inst_id:inst_id,topic_id:t.topic_id,freq:t.freq}
+)
+    for i in institution
+        for t in topic
+            FILTER k.inst_id == i.id  and k.topic_id == t.id
+            return {institution_name:i.display_name,topic:t.display_name,freq:k.freq}
+    
+
+
+

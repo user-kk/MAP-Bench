@@ -1,0 +1,19 @@
+let s_id = 4395661325
+let e_id = 4316345068   // 4316345068  原来为 4321790088
+
+LET startId = CONCAT("work_v/", to_string(s_id))
+LET endId = CONCAT("work_v/", to_string(e_id))
+
+FOR v IN outbound SHORTEST_PATH startId TO endId work_referenced_work_e
+    for w in work
+        FILTER v.id == w.id and v.id != s_id
+        for wc in work_doc
+            FILTER w.id == wc.id
+            sort w.cited_by_count desc, w.id asc
+            return {
+                id:w.id,
+                authors:wc.doc.authorships[*].author.display_name,
+                title:w.title,
+                topics:wc.doc.topics[*].display_name,
+                cited_by_count:w.cited_by_count,
+                }
