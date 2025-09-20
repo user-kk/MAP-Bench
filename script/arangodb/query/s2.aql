@@ -1,12 +1,21 @@
 LET target_topic_name = 'Chemistry and Applications of Metal-Organic Frameworks'
-FOR topic IN topic_v
-    FILTER topic.display_name == target_topic_name
-    FOR paper IN 1..1 INBOUND topic GRAPH 'work_topic_gra'
-        SORT paper.cited_by_count DESC, paper.title ASC
-        LIMIT 10
-        RETURN {
-            id: paper.id,
-            title: paper.title,
-            cited_by_count: paper.cited_by_count,
-            publication_year: paper.publication_year
-        }
+LET all_papers_for_topic = (
+    FOR topic IN topic_v
+        FILTER topic.display_name == target_topic_name
+        FOR paper IN 1..1 INBOUND topic._id GRAPH 'work_topic_gra'
+            FOR w IN work
+                FILTER w.id == paper.id
+
+                RETURN {
+                    id: w.id,
+                    title: w.title,
+                    cited_by_count: w.cited_by_count,
+                    publication_year: w.publication_year,
+                    language: w.language
+                }
+)
+FOR p IN all_papers_for_topic
+    COLLECT id = p.id, title = p.title, cited_by_count = p.cited_by_count, publication_year = p.publication_year, language = p.language
+    SORT cited_by_count DESC, title ASC
+    LIMIT 10
+    RETURN { id, title, cited_by_count, publication_year, language }
