@@ -1,33 +1,25 @@
 LET target_institution_name = 'Universität Hamburg'
-
-// 第一步：找到指定机构的所有作者
-LET authors_in_org = (
+LET topic_paper_pairs = (
     FOR inst IN institution
         FILTER inst.display_name == target_institution_name
         FOR auth IN author
             FILTER auth.institution_id == inst.id
-            RETURN auth.id
+            FOR work_v IN 1..1 INBOUND CONCAT('author_v/', auth.id) GRAPH 'work_author_gra'
+                FOR topic_v IN 1..1 OUTBOUND work_v GRAPH 'work_topic_gra'
+                    LET topic_name = topic_v.display_name
+                    FILTER topic_name != null
+                    RETURN DISTINCT { 
+                        topic_id: topic_v.id,
+                        work_id: work_v.id,
+                        topic_display_name: topic_name
+                    }
 )
-
-// 第二步：通过作者找到所有相关主题
-LET topics_from_authors = (
-    FOR au IN authors_in_org
-        FOR work_v IN 1..1 INBOUND CONCAT('author_v/', au) GRAPH 'work_author_gra'
-            FOR topic_v IN 1..1 OUTBOUND work_v GRAPH 'work_topic_gra'
-                RETURN {
-                    id: topic_v.id,
-                    display_name: topic_v.display_name
-                }
-)
-
-// 第三步：对找到的所有主题进行分组计数和排序
-FOR topic_info IN topics_from_authors
-    COLLECT topic_id = topic_info.id, display_name = topic_info.display_name INTO group
-    LET paper_count = LENGTH(group)
+FOR pair IN topic_paper_pairs
+    COLLECT topic_id = pair.topic_id,display_name = pair.topic_display_name WITH COUNT INTO paper_count
     SORT paper_count DESC
     LIMIT 10
     RETURN {
         topic_id: topic_id,
-        display_name: display_name,
-        paper_count: paper_count
+        paper_count: paper_count,
+        topic_display_name: display_name
     }
