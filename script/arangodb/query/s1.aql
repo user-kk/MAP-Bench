@@ -1,10 +1,12 @@
+//用INBOUND为了对齐helmdb查询，按题意需要用ANY
 LET start_author_id = '5040670721'
-FOR co_author IN 1..1 ANY CONCAT('author_v/', start_author_id) GRAPH 'author_author_gra'
+FOR co_author IN 1..1 INCOUNT CONCAT('author_v/', start_author_id) GRAPH 'author_author_gra'
     FOR authb IN author
         FILTER authb.id == co_author.id
         FOR inst IN institution
             FILTER inst.id == authb.institution_id
             SORT authb.cited_by_count DESC, authb.display_name ASC
+            LIMIT 10
             RETURN {
                 display_name: authb.display_name,
                 cited_by_count: authb.cited_by_count,

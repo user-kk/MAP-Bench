@@ -1,5 +1,5 @@
 WITH candidate_ids AS (
-    SELECT w.id AS work_id,w.title AS work_title,wd.doc->>'anstract' AS work_ab
+    SELECT w.id AS work_id,w.title AS work_title,wd.doc->>'abstract' AS work_ab
     FROM work w
     JOIN work_doc wd ON w.id = wd.id
     WHERE w.publication_year >= 2020

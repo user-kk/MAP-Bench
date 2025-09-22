@@ -1,24 +1,23 @@
 LET ai_papers = (
     FOR w IN work
-        LET wd = DOCUMENT(CONCAT('work_doc/', w.id))
         FILTER w.publication_year >= 2022 AND w.publication_year <= 2025
-        FILTER LIKE(LOWER(wd.doc.abstract), '%artificial intelligence%')
+        LET wd = DOCUMENT(CONCAT('work_doc/', w.id)) 
+        FILTER wd != null AND LIKE(LOWER(wd.doc.abstract), '%artificial intelligence%')
         RETURN w.id
 )
 LET author_counts = (
     FOR paper_id IN ai_papers
         LET wd = DOCUMENT(CONCAT('work_doc/', paper_id))
-        FOR authorship IN wd.doc.authorships
+        FOR authorship IN (wd.doc.authorships OR [])
+            FILTER authorship.author.id != null
             COLLECT author_id = authorship.author.id INTO papers_authored = paper_id
-            LET pub_count = COUNT(papers_authored)
-            RETURN {
-                author_id: author_id,
-                pub_count: pub_count
-            }
+            LET pub_count = LENGTH(UNIQUE(papers_authored))
+            RETURN { author_id, pub_count }
 )
 FOR ac IN author_counts
     LET author_info = DOCUMENT(CONCAT('author/', ac.author_id))
-    SORT ac.pub_count DESC,ac.author_id ASC
+    FILTER author_info != null
+    SORT ac.pub_count DESC, ac.author_id ASC
     LIMIT 10
     RETURN {
         author_id: ac.author_id,
