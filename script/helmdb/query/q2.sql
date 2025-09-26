@@ -4,11 +4,11 @@
 --技术维度：对机构不同领域投入人员、发表文章数量和引用量进行综合排名（连接关系型数据和图型数据，并对其进行过滤）
 WITH TopInstitutions AS (
 
-select (author_ship.institution.id)::float::bigint as inst_id,COUNT(w.id) as papers_cnt
-from work w,work_doc wc unwind jsonb_array_elements(wc.authorships) as author_ship
-where w.id = wc.id and w.publication_year >= 2024-5 and author_ship.institution.id != 'nan'
-GROUP by (author_ship.institution.id)::float::bigint
-order by COUNT(w.id) DESC, (author_ship.institution.id)::float::bigint ASC
+select (author_ship.institution.id)::bigint as inst_id,COUNT(1) as papers_cnt
+from work w,work_doc wc unwind jsonb_array_elements(wc.authorships::jsonb) as author_ship
+where w.id = wc.id and author_ship.institution.id is not NULL and w.publication_year >= 2024-5
+GROUP by (author_ship.institution.id)::bigint
+order by COUNT(1) DESC, (author_ship.institution.id)::bigint ASC
 limit 3
 
 ),
@@ -19,9 +19,10 @@ FROM TopInstitutions ti,
 author a,
 work_author_gra MATCH (a2: author_v)<-[: work_author_e ]-(w1: work_v),
 work_topic_gra MATCH (w2: work_v)-[: work_topic_e]->(t: topic_v)
-WHERE ti.inst_id = a.institution_id AND a.id = a2.id
-AND w1.publication_year >= 2024 - 5
+WHERE ti.inst_id = a.institution_id 
+AND a.id = a2.id
 AND w1.id = w2.id
+AND w1.publication_year >= 2024 - 5
 GROUP by a.institution_id, t.id
 )
 

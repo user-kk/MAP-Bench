@@ -1,6 +1,6 @@
 WITH community AS (
     SELECT *
-    FROM cpu_cdlp('author_author_gra'::regclass::bigint, 20)
+    FROM cpu_cdlp('author_author_gra'::regclass::bigint, 20) AS t(id,community)
 ),
 TopCommunities AS (
     SELECT community
