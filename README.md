@@ -22,6 +22,10 @@ pip install psycopg2-binary python-arango
 
 要求先编译好ldbc插件，修改load_data.sql的数据路径，执行main.sh即可，时间较长，建议挂一晚
 
+### agensgraph+pgvector
+
+要求安装pgvector插件和file_fdw插件(导数据用) ，修改load_data.sql的数据路径，执行main.sh即可，时间较长，建议挂一晚
+
 ## 跑查询
 
 ### arangodb
