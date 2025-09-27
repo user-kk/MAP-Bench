@@ -3,7 +3,7 @@ LET Potential = (
     FOR a IN author_v
         FILTER a.display_name == author_name 
         FOR b IN 2..3 OUTBOUND a author_author_e
-            FILTER to_number(b.cited_by_count) >= 0 and b.id != a.id and b.id not in(
+            FILTER to_number(b.cited_by_count) >= 2000 and b.id != a.id and b.id not in(
                 FOR v IN 1..1 OUTBOUND a author_author_e
                     return v.id
             )
@@ -14,7 +14,8 @@ let CandidateTopics = (
         for p in Potential
             for w1 in 1..1 inbound concat("author_v/",to_string(p)) work_author_e
                 for t in 1..1 OUTBOUND w1 work_topic_e
-                    return distinct{candidate_id:p,topic_id:t.id})
+                    return distinct{candidate_id:p,topic_id:t.id}
+    )
         for tv1 in topic_vec
             FILTER tmp1.topic_id == tv1.id
             return {candidate_id:tmp1.candidate_id,vec:tv1.vec}
