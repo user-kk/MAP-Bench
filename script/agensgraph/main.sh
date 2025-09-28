@@ -8,7 +8,7 @@ export PGPASSWORD='linux123'
 # 配置
 port=5555
 user=agensgraph
-database=openalex_mini
+database=openalex_middle
 psql_path=/usr/local/agensgraph/bin/psql
 
 

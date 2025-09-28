@@ -11,13 +11,13 @@
 \set csv_topic       :prefix '/csv-files/topics.csv'
 \set csv_inst        :prefix '/csv-files/institutions.csv'
 \set csv_geo         :prefix '/csv-files/institutions_geo.csv'
-\set v_author        :prefix '/graph/vertices/author_v.csv'
-\set v_work          :prefix '/graph/vertices/work_v.csv'
-\set v_topic         :prefix '/graph/vertices/topic_v.csv'
-\set e_author_author :prefix '/graph/edges/author_author_e.csv'
-\set e_work_author   :prefix '/graph/edges/work_author_e.csv'
-\set e_work_ref      :prefix '/graph/edges/work_referenced_work_e.csv'
-\set e_work_topic    :prefix '/graph/edges/work_topic_e.csv'
+\set v_author        :prefix '/graph_vertices/authors_v.csv'
+\set v_work          :prefix '/graph_vertices/works_v.csv'
+\set v_topic         :prefix '/graph_vertices/topics_v.csv'
+\set e_author_author :prefix '/graph_edges/authors_authors_e.csv'
+\set e_work_author   :prefix '/graph_edges/works_authors_e.csv'
+\set e_work_ref      :prefix '/graph_edges/works_referenced_works_e.csv'
+\set e_work_topic    :prefix '/graph_edges/works_topics_e.csv'  
 
 /* ======================
    3. 图顶点表导入
