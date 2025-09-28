@@ -3,17 +3,25 @@ let e_id = 4316345068   // 4316345068  原来为 4321790088
 
 LET startId = CONCAT("work_v/", to_string(s_id))
 LET endId = CONCAT("work_v/", to_string(e_id))
+let topic_info = (
+    for tv in topic_vec
+        filter tv.id == 10039
+        return tv
+)
 
 FOR v IN outbound SHORTEST_PATH startId TO endId work_referenced_work_e
     for w in work
         FILTER v.id == w.id and v.id != s_id
         for wc in work_doc
             FILTER w.id == wc.id
-            sort w.cited_by_count desc, w.id asc
-            return {
-                id:w.id,
-                authors:wc.doc.authorships[*].author.display_name,
-                title:w.title,
-                topics:wc.doc.topics[*].display_name,
-                cited_by_count:w.cited_by_count,
-                }
+                for wv in work_vec
+                    filter wc.id == wv.id
+                sort l2_distance(wv.vec,topic_info[0].vec) ,w.cited_by_count desc, w.id asc
+                limit 3
+                return {
+                    id:w.id,
+                    authors:wc.doc.authorships[*].author.display_name,
+                    title:w.title,
+                    topics:wc.doc.topics[*].display_name,
+                    cited_by_count:w.cited_by_count,
+                    }

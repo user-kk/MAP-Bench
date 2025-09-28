@@ -1,21 +1,20 @@
-LET target_topic_name = 'Chemistry and Applications of Metal-Organic Frameworks'
-LET all_papers_for_topic = (
-    FOR topic IN topic_v
-        FILTER topic.display_name == target_topic_name
-        FOR paper IN 1..1 INBOUND topic._id GRAPH 'work_topic_gra'
-            FOR w IN work
-                FILTER w.id == paper.id
-
-                RETURN {
-                    id: w.id,
-                    title: w.title,
-                    cited_by_count: w.cited_by_count,
-                    publication_year: w.publication_year,
-                    language: w.language
-                }
+let topic_info = (
+    for t in topic
+        for tv in topic_vec
+            FILTER t.id == tv.id and t.display_name == 'Chemistry and Applications of Metal-Organic Frameworks'
+            return {id:t.id,vec:tv.vec}
 )
-FOR p IN all_papers_for_topic
-    COLLECT id = p.id, title = p.title, cited_by_count = p.cited_by_count, publication_year = p.publication_year, language = p.language
-    SORT cited_by_count DESC, title ASC
-    LIMIT 10
-    RETURN { id, title, cited_by_count, publication_year, language }
+let related = (
+    for ti in topic_info
+        for w,e in 1..1 INBOUND concat("topic_v/",to_string(ti.id)) work_topic_e
+            for wv in work_vec
+                FILTER w.id == wv.id
+                let topic_score = sqrt(TO_NUMBER(e.score) / l2_distance(wv.vec,ti.vec))
+                sort topic_score DESC,w.id ASC
+                limit 10
+                return {id:w.id,topic_score:topic_score}
+)
+for r in related
+    for w in work
+        FILTER r.id == w.id
+        return {title:w.title,cited_by_count:w.cited_by_count,topic_score:r.topic_score}

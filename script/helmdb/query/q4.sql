@@ -20,5 +20,6 @@ SELECT w.id, w.title,
 ) as topics,
  w.cited_by_count 
 FROM PathNodes f
-JOIN work w ON w.id = f.w_id
-ORDER BY w.cited_by_count DESC,w.id asc;
+JOIN work w ON w.id = f.w_id join work_vec wv on w.id = wv.id
+ORDER BY wv.vec <-> (select vec from topic_vec tv where tv.id = 10039) ASC ,w.cited_by_count DESC,w.id asc
+limit 3;

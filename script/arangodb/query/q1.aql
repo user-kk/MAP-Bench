@@ -2,41 +2,35 @@ LET author_name = 'Zupei Liu'
 LET Potential = (
     FOR a IN author_v
         FILTER a.display_name == author_name 
-        FOR b IN 2..3 OUTBOUND a author_author_e
-            FILTER to_number(b.cited_by_count) >= 2000 and b.id != a.id and b.id not in(
+        FOR b IN 2..4 OUTBOUND a author_author_e
+            FILTER to_number(b.cited_by_count) >= 10000 and b.id != a.id and b.id not in(
                 FOR v IN 1..1 OUTBOUND a author_author_e
                     return v.id
             )
             return distinct b.id
 )
-let CandidateTopics = (
-   for tmp1 in (
-        for p in Potential
-            for w1 in 1..1 inbound concat("author_v/",to_string(p)) work_author_e
-                for t in 1..1 OUTBOUND w1 work_topic_e
-                    return distinct{candidate_id:p,topic_id:t.id}
-    )
-        for tv1 in topic_vec
-            FILTER tmp1.topic_id == tv1.id
-            return {candidate_id:tmp1.candidate_id,vec:tv1.vec}
+let topic_info = (
+  for t in topic
+    for tv in topic_vec
+      filter t.display_name == 'RNA Methylation and Modification in Gene Expression' 
+        and t.id == tv.id
+      limit 1
+    return {id:t.id,vec:tv.vec}
+  
 )
-let CurrentAuthorTopics = (
-    for tmp2 in (
-        FOR a IN author_v
-            FILTER a.display_name == author_name 
-            for w1 in 1..1 inbound concat("author_v/",to_string(a.id)) work_author_e
-                for t in 1..1 OUTBOUND w1 work_topic_e
-                    return distinct{candidate_id:a.id,topic_id:t.id})
-        for tv2 in topic_vec
-            FILTER tmp2.topic_id == tv2.id
-            return {candidate_id:tmp2.candidate_id,vec:tv2.vec}
+let CandidateWork = (
+    for p in Potential
+        for w in 1..1 inbound concat("author_v/",to_string(p)) work_author_e
+            for wd in work_doc
+                FILTER w.id == wd.id and topic_info[0].id in wd.doc.topics[*].id
+                return {aid:p,wid:w.id}
 )
-for cat in CurrentAuthorTopics
-    for ct in CandidateTopics
-        let dis = l2_distance(cat.vec,ct.vec)
-        collect cat_id = cat.candidate_id,ct_id = ct.candidate_id
-        aggregate avg_dis = avg(dis)
-        sort avg_dis asc,ct_id asc
-        limit 3
-        return ct_id
 
+for cw in CandidateWork
+    for wv in work_vec
+        filter cw.wid == wv.id 
+        collect author_id  = cw.aid
+        aggregate avg_dis = avg(l2_distance(wv.vec,topic_info[0].vec))
+        sort avg_dis asc, author_id asc
+        limit 3
+        return {author_id,avg_dis}
