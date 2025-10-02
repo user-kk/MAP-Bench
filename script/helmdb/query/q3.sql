@@ -20,7 +20,7 @@ FROM PapersInHotTopic pht,work_author_gra MATCH (au: author_v)<-[: work_author_e
 author a
 WHERE w.id = pht.work_id
 AND a.id = au.id
-AND a.institution_id not is NULL
+AND a.institution_id is not NULL
 GROUP BY a.institution_id
 ORDER BY COUNT(*) DESC,a.institution_id asc
 LIMIT 3
