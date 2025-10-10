@@ -7,14 +7,14 @@ GROUP BY (t->>'id')::bigint
 ORDER BY count(1) DESC,(t->>'id')::bigint asc
 LIMIT 1
 ),
-PapersInHotTopic AS (
+AuthorsInHotTopic AS (
 MATCH (au: author_v)<-[: work_author_e]-(w: work_v)-[: work_topic_e]->(t: topic_v)
 WHERE t.id = (select to_jsonb(topic_id) from HotTopic) and w.publication_year >= 2020 - 5
-return au.id as a_id
+return DISTINCT au.id as a_id,w.id as w_id
 ),
 InstCount AS (
 SELECT a.institution_id::bigint AS inst_id, COUNT(1) AS paper_cnt
-FROM PapersInHotTopic pht join author a ON pht.a_id::bigint = a.id
+FROM AuthorsInHotTopic aht join author a ON aht.a_id::bigint = a.id
 WHERE a.institution_id is not NULL
 GROUP BY a.institution_id
 ORDER BY COUNT(1) DESC,a.institution_id asc
