@@ -18,6 +18,7 @@ let InstFields = (
             for w in 1..1 inbound concat("author_v/",to_string(a.id)) work_author_e
                 FILTER w.publication_year >= 2024-5
                 for t in 1..1 OUTBOUND w work_topic_e
+                    filter t != NULL
                     collect inst_id=ti.inst_id,topic_id = t.id
                     aggregate freq= COUNT(1)
                     return {inst_id,topic_id,freq}

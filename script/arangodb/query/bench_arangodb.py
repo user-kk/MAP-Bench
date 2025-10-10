@@ -44,21 +44,26 @@ def main():
     parser.add_argument('files', nargs='+', help='.aql files')
     args = parser.parse_args()
 
-    rows = []
+    # ****** 1. 提前建好文件并写表头 ******
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    with args.out.open('w', newline='') as cf:
+        csv.writer(cf).writerow(
+            ['file', 'median_ms'] + [f'run{i+1}_ms' for i in range(args.runs)]
+        )
+
     try:
         for f in map(Path, args.files):
             times = bench_file(f, args.runs)
             median = statistics.median(times)
-            rows.append([f.name, median] + times)
+            # ****** 2. 每跑完一条立即追加 ******
+            with args.out.open('a', newline='') as cf:
+                csv.writer(cf).writerow([f.name, median] + times)
             print(f'{f.name}: median {median:.3f} ms')
-    except Exception as e:                 # 任意异常（ArangoError、IO、…）
-        print(f'\n[ERROR] {e}  ——  已跑结果先落盘')
-    finally:                               # 无论成功/异常都写 CSV
-        if rows:                           # 有数据才写
-            write_csv(args.out, rows, args.runs)
-            print(f'结果已写入 {args.out}')
-        else:
-            print('无任何成功结果，CSV 未生成')
+    except Exception as e:
+        print(f'\n[ERROR] {e}  ——  已跑结果已实时写入')
+        raise
+    finally:
+        print(f'结果实时写入 {args.out}')
 
 if __name__ == '__main__':
     main()
