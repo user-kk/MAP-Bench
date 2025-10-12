@@ -35,3 +35,7 @@ pip install psycopg2-binary python-arango
 ### helmdb
 
 修改bench_helmdb.py中的DB_CONF配置信息，按注释执行即可，会输出中位数时间和每次运行时间到csv文件中
+
+### agensgraph 2.16.0 + pgvector 0.6.2
+
+修改bench_agensgraph.py中的DB_CONF配置信息，按注释执行即可，会输出中位数时间和每次运行时间到csv文件中

@@ -5,7 +5,7 @@ WITH ai_papers AS (
     UNWIND json_array_elements((wd.doc->'topics')::json) AS t
     WHERE w.publication_year >= 2022 
       AND w.publication_year <= 2025
-      AND wd.doc->>'abstract' ILIKE '%Artificial Intelligence%'
+      AND  wd.doc->'abstract_inverted_index' ?& array['artificial','intelligence']
 ),
 author_counts AS (
     SELECT a_doc->'author'->>'id' AS author_id,

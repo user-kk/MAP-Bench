@@ -4,7 +4,9 @@ LET ids = (
     FOR w IN work
       FILTER w.publication_year >= 2018 && w.publication_year <= 2023
       FOR wc IN work_doc 
-        FILTER wc.id == w.id and CONTAINS(wc.doc.abstract, "multi-model database")
+        FILTER wc.id == w.id 
+            and has(wc.doc.abstract_inverted_index,'multi-model')
+            and has(wc.doc.abstract_inverted_index,'database')
         RETURN {work_id: w.id}
 )
 

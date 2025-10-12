@@ -1,7 +1,7 @@
 WITH gnn_papers AS (
     SELECT wd.id AS work_id
     FROM work_doc wd
-    WHERE wd.doc->>'abstract' ILIKE '%graph neural network%'
+    WHERE doc->'abstract_inverted_index' ?& array['graph','neural','network']
 )
 SELECT gp.work_id
 FROM gnn_papers gp

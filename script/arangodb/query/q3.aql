@@ -10,21 +10,19 @@ let HotTopic = (
                 limit 1
                 return topic_id
 )
-let PapersInHotTopic = (
+let AuthorsInHotTopic = (
     for ht in HotTopic
          for w in 1..1 inbound concat("topic_v/",to_string(ht)) work_topic_e
             FILTER w.publication_year >= 2020-5
-            return w.id
+            for au in 1..1 outbound concat("work_v/",to_string(w.id)) work_author_e
+            return distinct{a_id:au.id,w_id:w.id}
 )
-
 let InstCount = (
-    for w_id in PapersInHotTopic
-        for au in 1..1 outbound concat("work_v/",to_string(w_id)) work_author_e
+    for aht in AuthorsInHotTopic
             for a in author
-                FILTER au.id == a.id and a.institution_id != NULL
+                FILTER aht.a_id == a.id and a.institution_id != NULL
                 collect institution_id = a.institution_id
                 aggregate cnt = count(1)
-                FILTER institution_id != NULL
                 sort cnt desc,institution_id asc
                 limit 3
                 return {institution_id,cnt}

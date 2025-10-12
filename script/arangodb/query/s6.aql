@@ -1,13 +1,15 @@
 LET target_paper_id = 4395661325
-LET search_term = 'graph neural network'
 LET gnn_papers = (
     FOR wd IN work_doc
-        FILTER LIKE(lower(wd.doc.abstract), CONCAT('%', search_term, '%')) 
+        FILTER has(wd.doc.abstract_inverted_index,'graph') 
+            and has(wd.doc.abstract_inverted_index,'neural') 
+            and has(wd.doc.abstract_inverted_index,'network') 
         RETURN wd.id
 )
 LET target_paper_vec = DOCUMENT(CONCAT('work_vec/', target_paper_id)).vec 
 FOR gnn_paper_id IN gnn_papers
-    LET candidate_vec = DOCUMENT(CONCAT('work_vec/', gnn_paper_id)).vec 
-    SORT L2_DISTANCE(candidate_vec, target_paper_vec) ASC, gnn_paper_id ASC
-    LIMIT 10
-    RETURN gnn_paper_id
+    for candidate_vec in  work_vec
+        filter gnn_paper_id == candidate_vec.id
+        SORT L2_DISTANCE(candidate_vec.vec, target_paper_vec) ASC, gnn_paper_id ASC
+        LIMIT 10
+        RETURN gnn_paper_id
