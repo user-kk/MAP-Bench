@@ -23,7 +23,7 @@ let CandidateWork = (
         for w in 1..1 inbound concat("author_v/",to_string(p)) work_author_e
             for wd in work_doc
                 FILTER w.id == wd.id and topic_info[0].id in wd.doc.topics[*].id
-                return {aid:p,wid:w.id}
+                return distinct{aid:p,wid:w.id}
 )
 
 for cw in CandidateWork
