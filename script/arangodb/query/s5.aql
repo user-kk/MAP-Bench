@@ -1,5 +1,4 @@
 LET target_topic_id = 11016
-LET search_term = 'climate change'
 
 // 第一步：获取目标主题的向量
 LET target_topic_vec = DOCUMENT(CONCAT('topic_vec/', target_topic_id)).vec
@@ -10,7 +9,8 @@ LET candidate_works = (
     for wd in work_doc
         filter w.id == wd.id
         FILTER w.publication_year >= 2020 
-        FILTER LIKE(LOWER(wd.doc.abstract), CONCAT('%', search_term, '%'))
+        FILTER has(wd.doc.abstract_inverted_index,'climate') 
+            and has(wd.doc.abstract_inverted_index,'change') 
         RETURN {
             id: w.id,
             title: w.title,

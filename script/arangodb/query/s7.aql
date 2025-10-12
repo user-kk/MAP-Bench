@@ -3,7 +3,7 @@ LET ai_papers = (
         FILTER w.publication_year >= 2022 AND w.publication_year <= 2025
         for wd in work_doc
             filter w.id == wd.id
-            FILTER wd != null AND LIKE(LOWER(wd.doc.abstract), '%artificial intelligence%')
+            FILTER has(wd.doc.abstract_inverted_index,'artificial') and has(wd.doc.abstract_inverted_index,'intelligence') 
             RETURN w.id
 )
 LET author_counts = (

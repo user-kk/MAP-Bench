@@ -7,7 +7,7 @@ WITH ai_papers AS (
         jsonb_array_elements(wd.doc -> 'topics') AS t 
     WHERE 
         w.publication_year BETWEEN 2022 AND 2025
-        AND wd.doc->>'abstract' ILIKE '%Artificial Intelligence%'
+        AND wd.doc->'abstract_inverted_index' ?& array['artificial','intelligence']
 ),
 author_counts AS (
     SELECT 

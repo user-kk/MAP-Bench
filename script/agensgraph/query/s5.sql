@@ -9,7 +9,7 @@ WITH candidate_ids AS (
         work_doc wd ON w.id = wd.id
     WHERE 
         w.publication_year >= 2020
-        AND wd.doc->>'abstract' ILIKE '%climate change%'
+        AND wd.doc->'abstract_inverted_index' ?& array['climate','change']
 )
 SELECT 
     c.work_id,

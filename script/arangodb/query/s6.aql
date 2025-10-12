@@ -1,8 +1,9 @@
 LET target_paper_id = 4395661325
-LET search_term = 'graph neural network'
 LET gnn_papers = (
     FOR wd IN work_doc
-        FILTER LIKE(lower(wd.doc.abstract), CONCAT('%', search_term, '%')) 
+        FILTER has(wd.doc.abstract_inverted_index,'graph') 
+            and has(wd.doc.abstract_inverted_index,'neural') 
+            and has(wd.doc.abstract_inverted_index,'network') 
         RETURN wd.id
 )
 LET target_paper_vec = DOCUMENT(CONCAT('work_vec/', target_paper_id)).vec 
