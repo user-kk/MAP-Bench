@@ -4,7 +4,7 @@ WITH ids AS (
     FROM work w
     JOIN work_doc wc ON w.id = wc.id
     WHERE w.publication_year >= 2018 AND w.publication_year <= 2023
-      AND wc.abstract LIKE '%multi-model database%'
+      AND wc.doc->'abstract_inverted_index' ?& array['multi-model','database']
 ),
 ids2 AS (
     -- 第二步：计算与给定论文的主题向量相似度，取出相似度最高的 20 篇论文 不包含自己
