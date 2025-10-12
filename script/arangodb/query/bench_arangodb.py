@@ -1,64 +1,69 @@
 #!/usr/bin/env python3
-import statistics, csv, argparse
-from pathlib import Path
-from arango import ArangoClient, ArangoError       
-from arango.http import DefaultHTTPClient  
-
-
 """
-ArangoDB AQL 性能基准脚本
-用法:  python3 bench_arangodb.py q4.aql q5.aql ...  [-n 5] [-o result.csv]
-输出:  终端实时中位数 + 指定 csv
+ArangoDB AQL 性能基准脚本（每单次结果立即落盘 + 实时中位数）
+用法:  python3 bench_arangodb.py q4.aql q5.aql …  [-n 10] [-o result.csv]
+CSV 格式: file,median_ms,run1_ms,run2_ms,…,runN_ms
 依赖:  pip install python-arango
 """
+import argparse
+import csv
+import statistics
+from pathlib import Path
+from arango import ArangoClient
+from arango.http import DefaultHTTPClient
 
 class MyHTTP(DefaultHTTPClient):
-    request_timeout = 3600          
+    REQUEST_TIMEOUT = 3600 * 6
+    request_timeout = 3600 * 6
 
-client = ArangoClient(hosts='http://127.0.0.1:8529',http_client=MyHTTP())
+client = ArangoClient(hosts='http://127.0.0.1:8529', http_client=MyHTTP())
 db = client.db('openalex_middle', username='root', password='linux123')
 
-def run_one(aql: str):
-    cursor = db.aql.execute(aql, 
-                            bind_vars={},
-                            memory_limit=500 * 1024**3, 
-                            profile=True,
-                            cache=False )          # 强制禁用查询结果缓存
+# ---------- 工具 ----------
+def run_one(aql: str) -> float:
+    """跑一次查询，返回 execution_time（毫秒）"""
+    cursor = db.aql.execute(
+        aql, bind_vars={}, memory_limit=500 * 1024 ** 3,
+        profile=True, cache=False
+    )
     return cursor.statistics()['execution_time'] * 1000
 
-def bench_file(fpath: Path, runs: int):
-    aql = fpath.read_text().strip()
-    return [run_one(aql) for _ in range(runs)]
-
-def write_csv(out: Path, rows, runs: int):
+def flush_csv(out: Path, data: dict, runs: int):
+    """
+    data: {file: [r1, r2, …, 已跑次数]}
+    立即重写整个文件（中位数放第二列）
+    """
+    header = ['file', 'median_ms'] + [f'run{i}_ms' for i in range(1, runs + 1)]
+    rows = []
+    for fname, times in data.items():
+        median = statistics.median(times) if times else ''
+        rows.append([fname, f'{median:.3f}' if times else ''] +
+                    [f'{t:.3f}' for t in times] +
+                    [''] * (runs - len(times)))  # 未跑列留空
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open('w', newline='') as cf:
-        w = csv.writer(cf)
-        w.writerow(['file', 'median_ms'] + [f'run{i+1}_ms' for i in range(runs)])
-        w.writerows(rows)
+        csv.writer(cf).writerows([header] + rows)
 
+# ---------- 主流程 ----------
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--runs', type=int, default=5)
+    parser.add_argument('-n', '--rounds', type=int, default=5)
     parser.add_argument('-o', '--out', type=Path, default=Path('result.csv'))
-    parser.add_argument('files', nargs='+', help='.aql files')
+    parser.add_argument('files', nargs='+', help='待测试 .aql 文件')
     args = parser.parse_args()
 
-    # ****** 1. 提前建好文件并写表头 ******
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    with args.out.open('w', newline='') as cf:
-        csv.writer(cf).writerow(
-            ['file', 'median_ms'] + [f'run{i+1}_ms' for i in range(args.runs)]
-        )
+    file_list = [Path(f) for f in args.files]
+    data = {f.name: [] for f in file_list}  # 收集结果
 
     try:
-        for f in map(Path, args.files):
-            times = bench_file(f, args.runs)
-            median = statistics.median(times)
-            # ****** 2. 每跑完一条立即追加 ******
-            with args.out.open('a', newline='') as cf:
-                csv.writer(cf).writerow([f.name, median] + times)
-            print(f'{f.name}: median {median:.3f} ms')
+        for rnd in range(1, args.rounds + 1):
+            for f in file_list:
+                aql = f.read_text().strip()
+                t = run_one(aql)
+                data[f.name].append(t)
+                print(f'R{rnd:02d}  {f.name}: {t:.3f} ms')
+                # 每单次跑完立即落盘
+                flush_csv(args.out, data, args.rounds)
     except Exception as e:
         print(f'\n[ERROR] {e}  ——  已跑结果已实时写入')
         raise
