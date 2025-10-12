@@ -1,4 +1,3 @@
-SET graph_path = academic_net;
 WITH ReferencedPapers AS (
     SELECT
         (work_id_jsonb)::bigint AS ref_work_id,
