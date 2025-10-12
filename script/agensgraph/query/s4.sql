@@ -1,6 +1,4 @@
-SET graph_path = academic_net;
-WITH 
-HamburgAuthorIDs AS (
+WITH HamburgAuthorIDs AS (
     SELECT a.id
     FROM institution i
     JOIN author a ON i.id = a.institution_id

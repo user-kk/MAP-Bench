@@ -4,14 +4,17 @@ WITH reachable AS (
         RETURN p2.id AS id
 )
 SELECT p.title,
-       json_agg(a.display_name) AS authors,
+       (
+        SELECT json_agg(a.display_name)
+        FROM 
+            jsonb_array_elements(wd.doc->'authorships') AS author_obj, 
+            author a                                                  
+        WHERE 
+            (author_obj->'author'->>'id')::bigint = a.id   
+       ) AS authors,
        p.publication_year AS year,
        p.cited_by_count AS n_citation
 FROM reachable        r
 JOIN work             p  ON p.id = r.id::bigint
 JOIN work_doc         wd ON wd.id = p.id
-/* 2. 把 authorship 拆行 → 连 author → 再聚合 */
-JOIN LATERAL jsonb_array_elements(wd.doc->'authorships') AS au ON true
-JOIN author a ON (au->'author'->>'id')::bigint = a.id
-GROUP BY p.id, p.title, p.publication_year, p.cited_by_count
 ORDER BY p.cited_by_count DESC, p.id ASC;
