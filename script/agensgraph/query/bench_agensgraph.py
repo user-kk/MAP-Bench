@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """
 AgensGraph 性能基准脚本（每单次立即落盘 + 实时中位数）
-用法:  python3 bench_agensgraph.py q4.sql q5.sql …  [-n 10] [-o result.csv]
-CSV 格式: file,median_ms,run1_ms,run2_ms,…,runN_ms
-依赖:  pip install psycopg2-binary
+用法:
+    python3 bench_agensgraph.py *.sql -n 10 -o result.csv -x exclude1.sql exclude2.sql
+
+CSV 格式:
+    file,median_ms,run1_ms,run2_ms,...,runN_ms
+
+依赖:
+    pip install psycopg2-binary
 """
 import argparse
 import csv
@@ -47,12 +52,24 @@ def flush_csv(out: Path, data: dict, runs: int):
 # ---------- 主流程 ----------
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--rounds', type=int, default=5)
-    parser.add_argument('-o', '--out', type=Path, default=Path('result.csv'))
+    parser.add_argument('-n', '--rounds', type=int, default=5,
+                        help='每条 SQL 跑几轮（默认 5）')
+    parser.add_argument('-o', '--out', type=Path, default=Path('result.csv'),
+                        help='输出 csv 路径（默认 result.csv）')
+    parser.add_argument('-x', '--exclude', nargs='*', default=[],
+                        help='要排除的 .sql 文件（可一次写多个，空格隔开）')
     parser.add_argument('files', nargs='+', help='待测试 .sql 文件')
     args = parser.parse_args()
 
-    file_list = [Path(f) for f in args.files]
+    # 把排除名单做成绝对路径集合，方便快速判断
+    exclude_set = {Path(f).resolve() for f in args.exclude}
+
+    # 过滤掉被排除的文件
+    file_list = [Path(f) for f in args.files if Path(f).resolve() not in exclude_set]
+    if not file_list:
+        print('所有文件均被排除，无事可做。')
+        return
+
     data = {f.name: [] for f in file_list}
 
     conn = psycopg2.connect(**DB_CONF)
@@ -63,6 +80,7 @@ def main():
     cur.execute("SET plan_cache_mode = force_custom_plan")
 
     try:
+        flush_csv(args.out, data, args.rounds)
         for rnd in range(1, args.rounds + 1):
             for f in file_list:
                 sql = f.read_text().strip()
