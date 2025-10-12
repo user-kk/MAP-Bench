@@ -18,7 +18,7 @@ pip install psycopg2-binary python-arango
 
 在main.sh中填写对应的配置信息，执行即可，时间较长，建议挂一晚，建索引时可能超时，重新单独跑建索引即可
 
-### helmdb 
+### helmdb 最新helmdb-develop分支 [地址](https://gitee.com/whudb/HELMDB) 
 
 要求先编译好ldbc插件，修改load_data.sql的数据路径，修改main.sh的配置信息，执行main.sh即可，时间较长，建议挂一晚
 
@@ -30,12 +30,12 @@ pip install psycopg2-binary python-arango
 
 ### arangodb 3.12.5
 
-修改bench_arangodb.py中的client和db的配置信息，按注释执行即可，会输出中位数时间和每次运行时间到csv文件中
+修改bench_arangodb.py中的client和db的配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
 
-### helmdb
+### helmdb 最新helmdb-develop分支 [地址](https://gitee.com/whudb/HELMDB) 
 
-修改bench_helmdb.py中的DB_CONF配置信息，按注释执行即可，会输出中位数时间和每次运行时间到csv文件中
+修改bench_helmdb.py中的DB_CONF配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
 
 ### agensgraph 2.16.0 + pgvector 0.6.2
 
-修改bench_agensgraph.py中的DB_CONF配置信息，按注释执行即可，会输出中位数时间和每次运行时间到csv文件中
+修改bench_agensgraph.py中的DB_CONF配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中

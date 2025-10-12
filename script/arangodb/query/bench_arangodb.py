@@ -72,6 +72,7 @@ def main():
     data = {f.name: [] for f in file_list}  # 收集结果
 
     try:
+        flush_csv(args.out, data, args.rounds)
         for rnd in range(1, args.rounds + 1):
             for f in file_list:
                 aql = f.read_text().strip()
