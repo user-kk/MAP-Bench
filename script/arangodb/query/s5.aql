@@ -7,25 +7,24 @@ LET target_topic_vec = DOCUMENT(CONCAT('topic_vec/', target_topic_id)).vec
 // 第二步：找到所有满足年份和摘要关键词条件的候选论文
 LET candidate_works = (
   FOR w IN work
-    // 通过 DOCUMENT 函数高效获取对应的 work_doc
-    LET wd = DOCUMENT(CONCAT('work_doc/', w.id))
-    FILTER w.publication_year >= 2020 
-    FILTER LIKE(LOWER(wd.doc.abstract), CONCAT('%', search_term, '%'))
-    RETURN {
-        id: w.id,
-        title: w.title,
-        abstract: wd.doc.abstract
-    }
+    for wd in work_doc
+        filter w.id == wd.id
+        FILTER w.publication_year >= 2020 
+        FILTER LIKE(LOWER(wd.doc.abstract), CONCAT('%', search_term, '%'))
+        RETURN {
+            id: w.id,
+            title: w.title,
+            abstract: wd.doc.abstract
+        }
 )
 
-// 第三步：找到最相似的前50篇论文
 LET top_similar_works = (
   FOR candidate IN candidate_works
-    // 通过 DOCUMENT 函数获取论文的向量
-    LET v = DOCUMENT(CONCAT('work_vec/', candidate.id))
-    SORT L2_DISTANCE(v.vec, target_topic_vec) ASC
-    LIMIT 10
-    RETURN candidate
+    for v in work_vec
+        filter candidate.id == v.id 
+        SORT L2_DISTANCE(v.vec, target_topic_vec) ASC
+        LIMIT 10
+        RETURN candidate
 )
 
 // 第四步：返回最终结果

@@ -1,33 +1,20 @@
-LET target_topic_info = FIRST(
-    FOR t IN topic
-        FILTER t.display_name == 'Chemistry and Applications of Metal-Organic Frameworks'
-        LET topic_vec_doc = DOCUMENT(CONCAT('topic_vec/', t.id))
-        FILTER topic_vec_doc != null
-        RETURN { 
-            topic_v_id: CONCAT('topic_v/', t.id), 
-            vec: topic_vec_doc.vec 
-        }
+let topic_info = (
+    for t in topic
+        for tv in topic_vec
+            FILTER t.id == tv.id and t.display_name == 'Chemistry and Applications of Metal-Organic Frameworks'
+            return {id:t.id,vec:tv.vec}
 )
-FILTER target_topic_info != null
-LET top_related_papers = (
-    FOR paper_v, edge IN 1..1 INBOUND target_topic_info.topic_v_id GRAPH 'work_topic_gra'
-        LET paper_vec_doc = DOCUMENT(CONCAT('work_vec/', paper_v.id))
-        FILTER paper_vec_doc != null AND edge.score != null
-        LET distance = L2_DISTANCE(paper_vec_doc.vec, target_topic_info.vec)
-        FILTER distance > 0 
-        LET topic_score = SQRT(edge.score / distance)
-        SORT topic_score DESC, paper_v.id ASC
-        LIMIT 10
-        RETURN { 
-            work_id: paper_v.id,
-            topic_score: topic_score
-        }
+let related = (
+    for ti in topic_info
+        for w,e in 1..1 INBOUND concat("topic_v/",to_string(ti.id)) work_topic_e
+            for wv in work_vec
+                FILTER w.id == wv.id
+                let topic_score = sqrt(TO_NUMBER(e.score) / l2_distance(wv.vec,ti.vec))
+                sort topic_score DESC,w.id ASC
+                limit 10
+                return {id:w.id,topic_score:topic_score}
 )
-FOR paper IN top_related_papers
-    LET work_details = DOCUMENT(CONCAT('work/', paper.work_id))
-    FILTER work_details != null
-    RETURN {
-        title: work_details.title,
-        cited_by_count: work_details.cited_by_count,
-        topic_score: paper.topic_score
-    }
+for r in related
+    for w in work
+        FILTER r.id == w.id
+        return {title:w.title,cited_by_count:w.cited_by_count,topic_score:r.topic_score}
