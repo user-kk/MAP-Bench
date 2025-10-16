@@ -8,7 +8,7 @@
 当前脚本的依赖如下：
 
 ```bash
-pip install psycopg2-binary python-arango
+pip install psycopg2-binary python-arango duckdb==1.3.2
 ```
 脚本已在Python 3.6.8下进行测试
 
@@ -25,6 +25,23 @@ pip install psycopg2-binary python-arango
 ### agensgraph 2.16.0 + pgvector 0.6.2
 
 要求安装pgvector插件和file_fdw插件(导数据用) ，修改load_data.sql的数据路径，修改main.sh的配置信息，执行main.sh即可，时间较长，建议挂一晚
+
+### duckdb 1.3.2
+
+会自动安装json、vss、duckpgq插件，修改load_data.sql的数据路径，修改main.sh的配置信息，执行main.sh即可，时间较长，建议挂一晚
+
+> duckpgq暂时不支持高版本的duckdb，目前最高只支持1.3.2
+>
+> centos7上使用duckdb可能需要自己编译高版本glibc,如下：
+> ```bash
+>  patchelf --set-interpreter /patch/to/mylibc_2_31/lib/ld-linux-x86-64.so.2 \
+>           --set-rpath /patch/to/mylibc_2_31/lib \
+>           duckdb
+> ```
+>
+> 也可自己编译duckdb+各类插件(因为插件仍依赖高版本glibc)
+>
+> 如果不想自己编译,仓库提供dockerfile来生成镜像 
 
 ## 跑查询
 

@@ -1,0 +1,26 @@
+# 使用官方 CentOS 8 基础镜像
+
+FROM centos:8
+
+# 1. 安装必要工具与 Python 3
+RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-* && \
+    sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-Linux-* && \
+    dnf -y install python39 python39-pip wget unzip && \
+    dnf clean all
+
+# 2. 下载官方 DuckDB 1.3.2 CLI
+COPY duckdb.zip /tmp/duckdb.zip
+RUN unzip /tmp/duckdb.zip -d /tmp && \
+    mv /tmp/duckdb /usr/local/bin/duckdb && \
+    chmod +x /usr/local/bin/duckdb && \
+    rm -f /tmp/duckdb.zip /tmp/duckdb   # 清理无用文件
+
+# 3. 安装 Python 包 duckdb==1.3.2
+RUN python3.9 -m pip install -U pip wheel
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
+    pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn
+
+RUN python3.9 -m pip install duckdb==1.3.2
+
+# 5. 默认启动命令
+CMD ["bash"]
