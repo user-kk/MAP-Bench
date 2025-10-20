@@ -9,7 +9,8 @@ SET client_min_messages = warning;
 
 
 CREATE GRAPH academic_net; 
-SET graph_path = academic_net;
+
+SELECT 'ALTER DATABASE '||quote_ident(current_database())||' SET graph_path TO academic_net;' \gexec
 
 CREATE VLABEL work_v;   
 CREATE VLABEL topic_v;   
