@@ -13,14 +13,11 @@ WITH ReferencedPapers AS (
 SELECT
     r.ref_work_title,
     r.ref_work_publication_year,
-    jsonb_agg(a_doc -> 'author') AS authors
+    jsonb_path_query_array(wd.doc,'$.authorships[*].author') AS authors
 FROM
     ReferencedPapers r
 JOIN
-    work_doc wd ON wd.id = r.ref_work_id,
-    jsonb_array_elements(wd.doc -> 'authorships') AS a_doc
-GROUP BY
-    r.ref_work_id, r.ref_work_title, r.ref_work_publication_year
+    work_doc wd ON wd.id = r.ref_work_id
 ORDER BY
     r.ref_work_publication_year DESC, r.ref_work_title ASC
 LIMIT 10;
