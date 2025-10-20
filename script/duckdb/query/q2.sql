@@ -1,0 +1,55 @@
+
+
+-- 下面两个不能用cte连起来写，会报错INTERNAL Error: Failed to bind column reference "" [8.1] (bindings: {#[16.0]})
+
+-- 1. 近 5 年发文最多的 3 所机构
+CREATE temp table TopInstitutions AS ( 
+    SELECT institution.unnest.id::bigint AS inst_id,
+           count(1) as papers_cnt
+    FROM (
+        -- duckdb不支持跨UNNEST下推，所以手动谓词下推
+            SELECT id
+            FROM work
+            WHERE publication_year >= 2024-5
+    ) w join work_doc wc on w.id = wc.id CROSS join unnest(json_extract(doc,'$.authorships[*].institution')) as institution 
+    WHERE w.id = wc.id
+      AND inst_id is not NULL
+    GROUP BY inst_id
+    ORDER BY papers_cnt DESC, inst_id ASC
+    LIMIT 3
+);
+
+
+-- 2. 这些机构旗下作者近 5 年的论文-主题映射
+with InstFields AS (
+    SELECT a.institution_id  AS inst_id,
+           g.topic_id          AS topic_id,
+           COUNT(*)                AS freq
+    FROM author a join TopInstitutions ti on a.institution_id = ti.inst_id
+    JOIN GRAPH_TABLE (
+        academic_net
+        MATCH (a2:author_v)<-[e1:work_author_e]-(w:work_v)-[e2:work_topic_e]->(t:topic_v)
+        WHERE w.publication_year >= 2024-5
+        COLUMNS (a2.id author_id, t.id topic_id)
+    ) g ON g.author_id = a.id
+    GROUP BY a.institution_id, topic_id
+),
+
+-- 3. 每机构取频次最高的 3 个主题
+Ranked AS (
+    SELECT inst_id,
+           topic_id,
+           freq,
+           row_number() OVER (PARTITION BY inst_id ORDER BY freq DESC, topic_id ASC) AS rank
+    FROM InstFields
+)
+
+-- 4. 最终展示
+SELECT i.display_name      AS institution_name,
+       t.display_name      AS topic,
+       r.freq
+FROM Ranked r
+JOIN institution i ON i.id = r.inst_id
+JOIN topic t       ON t.id = r.topic_id
+WHERE r.rank <= 3
+ORDER BY i.id, r.rank;
