@@ -1,12 +1,8 @@
-WITH Instids AS(
-SELECT id AS id
-FROM institution
-WHERE display_name = 'Universität Hamburg'
-),
-OrgAuthors AS (
+WITH OrgAuthors AS (
 SELECT a.id AS author_id
 FROM author a 
 JOIN Instids i ON a.institution_id = i.id
+where i.display_name = 'Universität Hamburg'
 ),
 AuthorWorks AS (
 SELECT w.id AS work_id

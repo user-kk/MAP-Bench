@@ -11,12 +11,12 @@ TopicPaperPairs AS (
         topic_name_jsonb #>> '{}' AS display_name
     FROM (
         MATCH (a:author_v)<-[:work_author_e]-(w:work_v)-[:work_topic_e]->(t:topic_v)
+        where a.id in (SELECT to_jsonb(id) FROM HamburgAuthorIDs)
         RETURN a.id AS author_id_jsonb,
                w.id AS work_id_jsonb,
                t.id AS topic_id_jsonb,
                t.display_name AS topic_name_jsonb
     ) AS t
-    WHERE (t.author_id_jsonb)::bigint IN (SELECT id FROM HamburgAuthorIDs)
 )
 SELECT 
     topic_id, 
