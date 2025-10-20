@@ -3,27 +3,31 @@ LET ai_papers = (
         FILTER w.publication_year >= 2022 AND w.publication_year <= 2025
         for wd in work_doc
             filter w.id == wd.id
-            FILTER has(wd.doc.abstract_inverted_index,'artificial') and has(wd.doc.abstract_inverted_index,'intelligence') 
-            RETURN w.id
+            FILTER has(wd.doc.abstract_inverted_index,'model') and has(wd.doc.abstract_inverted_index,'ResNet') 
+            for k in wd.doc.topics
+                for t in topic 
+                    filter t.subfield_display_name == 'Artificial Intelligence' and k.id == t.id
+            RETURN DISTINCT w.id
 )
 LET author_counts = (
     FOR paper_id IN ai_papers
         for wd in work_doc
             filter paper_id == wd.id
-            FOR authorship IN (wd.doc.authorships OR [])
+            FOR authorship IN wd.doc.authorships
                 FILTER authorship.author.id != null
                 COLLECT author_id = authorship.author.id INTO papers_authored = paper_id
                 LET pub_count = LENGTH(UNIQUE(papers_authored))
                 RETURN { author_id, pub_count }
 )
 FOR ac IN author_counts
-    for author_info in author
-        filter ac.author_id == author_info.id
-        FILTER author_info != null
-        SORT ac.pub_count DESC, ac.author_id ASC
+    for a in author
+        filter ac.author_id == a.id AND a.works_count != 0 and a.cited_by_count >= 10000
+        let ratio = ac.pub_count/a.works_count
+        SORT ac.pub_count DESC,ratio DESC,ac.author_id ASC
         LIMIT 10
         RETURN {
             author_id: ac.author_id,
-            display_name: author_info.display_name,
-            pub_count: ac.pub_count
+            display_name: a.display_name,
+            pub_count: ac.pub_count,
+            ratio:ratio
         }
