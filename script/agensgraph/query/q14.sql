@@ -1,18 +1,10 @@
-WITH CrossDisciplinaryPapers AS (
-SELECT wc.id,
-wc.doc -> 'authorships' AS authorships
-FROM   work w
-JOIN   work_doc wc ON w.id = wc.id
-WHERE  w.cited_by_count >= 0
-AND  w.type = 'article'
-AND  w.publication_year >= 2020
-AND  wc.doc -> 'topics' @> '[{"display_name":"Economic Implications of Climate Change Policies"}]'
-AND  wc.doc -> 'topics' @> '[{"display_name":"Economic Impact of Environmental Policies and Resources"}]'
-)
-SELECT (authorship -> 'author' ->> 'id')::bigint  AS author_id,
-count(*)                                   AS collaborating_cnt
-FROM   CrossDisciplinaryPapers cp
-JOIN   LATERAL jsonb_array_elements(cp.authorships) AS authorship ON true
-GROUP  BY author_id
-ORDER  BY collaborating_cnt DESC, author_id ASC
-LIMIT  5;
+SELECT a.id, a.display_name as author_name, jsonb_agg(DISTINCT g.title)::text AS titles,count(DISTINCT g.title) as paper_cnt
+FROM (
+        MATCH (au:author_v)<-[e:work_author_e]-(w:work_v)
+        RETURN au.id, w.title
+) g
+JOIN author_doc ad ON ad.id = g.id::bigint
+JOIN author a      ON a.id  = ad.id
+WHERE ad.doc -> 'display_name_alternatives' @> '"Li Hongbo"'
+GROUP BY a.id, a.display_name
+ORDER BY a.id;
