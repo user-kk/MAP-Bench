@@ -1,27 +1,21 @@
-
-
--- 下面两个不能用cte连起来写，会报错INTERNAL Error: Failed to bind column reference "" [8.1] (bindings: {#[16.0]})
-
--- 1. 近 5 年发文最多的 3 所机构
-CREATE temp table TopInstitutions AS ( 
-    SELECT institution.unnest.id::bigint AS inst_id,
+with TopInstitutions AS ( 
+    -- 1. 近 5 年发文最多的 3 所机构
+    SELECT institution.id::bigint AS inst_id,
            count(1) as papers_cnt
-    FROM (
-        -- duckdb不支持跨UNNEST下推，所以手动谓词下推
+    FROM ( -- duckdb不支持跨UNNEST下推，所以手动下推
             SELECT id
             FROM work
             WHERE publication_year >= 2024-5
-    ) w join work_doc wc on w.id = wc.id CROSS join unnest(json_extract(doc,'$.authorships[*].institution')) as institution 
+    ) w join work_doc wc on w.id = wc.id CROSS join unnest(json_extract(doc,'$.authorships[*].institution.id')) as institution(id) 
     WHERE w.id = wc.id
       AND inst_id is not NULL
     GROUP BY inst_id
     ORDER BY papers_cnt DESC, inst_id ASC
     LIMIT 3
-);
-
+),
 
 -- 2. 这些机构旗下作者近 5 年的论文-主题映射
-with InstFields AS (
+InstFields AS (
     SELECT a.institution_id  AS inst_id,
            g.topic_id          AS topic_id,
            COUNT(*)                AS freq
@@ -44,7 +38,7 @@ Ranked AS (
     FROM InstFields
 )
 
--- 4. 最终展示
+
 SELECT i.display_name      AS institution_name,
        t.display_name      AS topic,
        r.freq
@@ -52,4 +46,4 @@ FROM Ranked r
 JOIN institution i ON i.id = r.inst_id
 JOIN topic t       ON t.id = r.topic_id
 WHERE r.rank <= 3
-ORDER BY i.id, r.rank;
+ORDER BY i.id, r.rank

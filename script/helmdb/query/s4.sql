@@ -1,7 +1,7 @@
 WITH OrgAuthors AS (
 SELECT a.id AS author_id
 FROM author a 
-JOIN Instids i ON a.institution_id = i.id
+JOIN institution i ON a.institution_id = i.id
 where i.display_name = 'Universität Hamburg'
 ),
 AuthorWorks AS (

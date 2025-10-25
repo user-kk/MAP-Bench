@@ -10,19 +10,19 @@ WITH ai_papers AS (
         AND wd.doc.abstract_inverted_index.ResNet is not null
         AND exists (
             select 1
-                from unnest(json_extract(wd.doc,'$.topics[*].id')) k join topic t on k.unnest::bigint = t.id
+                from unnest(json_extract(wd.doc,'$.topics[*].id')) k(id) join topic t on k.id::bigint = t.id
                 where t.subfield_display_name = 'Artificial Intelligence' 
         )
 ),
 author_counts AS (
     SELECT 
-        a_doc.unnest::bigint AS author_id,
+        a_doc.author_id::bigint AS author_id,
         COUNT(DISTINCT w.work_id) AS pub_count
     FROM 
         ai_papers w
     JOIN 
         work_doc wd ON w.work_id = wd.id
-    CROSS JOIN unnest(json_extract(wd.doc,'$.authorships[*].author.id')) a_doc
+    CROSS JOIN unnest(json_extract(wd.doc,'$.authorships[*].author.id')) a_doc(author_id)
     GROUP BY 
         author_id
 )
