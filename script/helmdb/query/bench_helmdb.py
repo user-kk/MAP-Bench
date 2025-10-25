@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 openGauss MMSQL 性能基准脚本（每单次立即落盘 + 实时中位数 + 中位数第二列）
 

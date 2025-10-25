@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 AgensGraph 性能基准脚本（每单次立即落盘 + 实时中位数）
 用法:
@@ -8,13 +8,13 @@ CSV 格式:
     file,median_ms,run1_ms,run2_ms,...,runN_ms
 
 依赖:
-    pip install psycopg2-binary
+    pip install "psycopg[binary]"
 """
 import argparse
 import csv
 import re
 import statistics
-import psycopg2
+import psycopg
 from pathlib import Path
 
 TOTAL_RUNTIME_RE = re.compile(r'Execution\s+Time:\s+(\d+(?:\.\d+)?)\s*ms', re.I)
@@ -72,7 +72,7 @@ def main():
 
     data = {f.name: [] for f in file_list}
 
-    conn = psycopg2.connect(**DB_CONF)
+    conn = psycopg.connect(**DB_CONF)
     conn.autocommit = True
     cur = conn.cursor()
     cur.execute("SET graph_path = academic_net")
