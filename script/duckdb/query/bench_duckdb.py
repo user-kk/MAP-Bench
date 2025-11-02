@@ -61,7 +61,11 @@ def main():
     exclude_set = {Path(f).resolve() for f in args.exclude}
 
     # 过滤掉被排除的文件
-    file_list = [Path(f) for f in args.files if Path(f).resolve() not in exclude_set]
+    file_list = sorted(
+        [Path(f) for f in args.files if Path(f).resolve() not in exclude_set],
+        key=lambda p: p.name
+    )
+    
     if not file_list:
         print('所有文件均被排除，无事可做。')
         return

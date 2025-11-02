@@ -30,13 +30,12 @@ DB_CONF = dict(
 
 # ---------- 工具 ----------
 def explain_runtime(cur, sql: str) -> float:
-    """执行 EXPLAIN (ANALYZE...) 并返回总耗时(ms)"""
-    cur.execute(f"EXPLAIN (ANALYZE, BUFFERS, TIMING) {sql}")
-    plan = '\n'.join(row[0] for row in cur.fetchall())
-    m = TOTAL_RUNTIME_RE.search(plan)
-    if not m:
-        raise RuntimeError('Total runtime not found')
-    return float(m.group(1))
+    """返回端到端耗时（毫秒）"""
+    t0 = time.perf_counter()
+    cur.execute(sql)
+    cur.fetchall()
+    t1 = time.perf_counter()
+    return (t1 - t0) * 1000
 
 def flush_csv(out: Path, data: dict, runs: int):
     """实时重写整个 CSV 文件（中位数放第二列）"""
@@ -68,7 +67,11 @@ def main():
     exclude_set = {Path(f).resolve() for f in args.exclude}
 
     # 过滤掉被排除的文件
-    file_list = [Path(f) for f in args.files if Path(f).resolve() not in exclude_set]
+    file_list = sorted(
+        [Path(f) for f in args.files if Path(f).resolve() not in exclude_set],
+        key=lambda p: p.name
+    )
+    
     if not file_list:
         print('所有文件均被排除，无事可做。')
         return

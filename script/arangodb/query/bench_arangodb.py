@@ -8,6 +8,7 @@ CSV 格式: file,median_ms,run1_ms,run2_ms,…,runN_ms
 import argparse
 import csv
 import statistics
+import time
 from pathlib import Path
 from arango import ArangoClient
 from arango.http import DefaultHTTPClient
@@ -23,12 +24,19 @@ db = client.db('openalex_middle', username='root', password='linux123')
 
 # ---------- 工具 ----------
 def run_one(aql: str) -> float:
-    """跑一次查询，返回 execution_time(ms)"""
+    """端到端计时(ms)"""
+    t0 = time.perf_counter()
     cursor = db.aql.execute(
-        aql, bind_vars={}, memory_limit=500 * 1024 ** 3,
-        profile=True, cache=False
+        aql, bind_vars={}, memory_limit=500*1024**3,
+        profile=False,        # 关掉 profile 可减少一点服务器额外开销
+        cache=False,
+        batch_size=None,      # 一次性拿回全部结果
+        stream=False
     )
-    return cursor.statistics()['execution_time'] * 1000
+    # 把结果全部拉完
+    _ = cursor.batch()       
+    t1 = time.perf_counter()
+    return (t1 - t0) * 1000
 
 
 def flush_csv(out: Path, data: dict, runs: int):
@@ -64,7 +72,10 @@ def main():
     exclude_set = {Path(f).resolve() for f in args.exclude}
 
     # 过滤掉被排除的文件
-    file_list = [Path(f) for f in args.files if Path(f).resolve() not in exclude_set]
+    file_list = sorted(
+        [Path(f) for f in args.files if Path(f).resolve() not in exclude_set],
+        key=lambda p: p.name
+    )
     if not file_list:
         print('所有文件均被排除，无事可做。')
         return

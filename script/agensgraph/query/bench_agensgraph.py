@@ -15,6 +15,7 @@ import csv
 import re
 import statistics
 import psycopg
+import time
 from pathlib import Path
 
 TOTAL_RUNTIME_RE = re.compile(r'Execution\s+Time:\s+(\d+(?:\.\d+)?)\s*ms', re.I)
@@ -29,12 +30,12 @@ DB_CONF = dict(
 
 # ---------- 工具 ----------
 def explain_runtime(cur, sql: str) -> float:
-    cur.execute(f"EXPLAIN (ANALYZE, BUFFERS, TIMING) {sql}")
-    plan = '\n'.join(row[0] for row in cur.fetchall())
-    m = TOTAL_RUNTIME_RE.search(plan)
-    if not m:
-        raise RuntimeError('Total runtime not found')
-    return float(m.group(1))
+    """返回端到端耗时（毫秒）"""
+    t0 = time.perf_counter()
+    cur.execute(sql)
+    cur.fetchall()          # 把结果收完
+    t1 = time.perf_counter()
+    return (t1 - t0) * 1000
 
 def flush_csv(out: Path, data: dict, runs: int):
     """实时重写整个文件（中位数第二列）"""
@@ -65,7 +66,11 @@ def main():
     exclude_set = {Path(f).resolve() for f in args.exclude}
 
     # 过滤掉被排除的文件
-    file_list = [Path(f) for f in args.files if Path(f).resolve() not in exclude_set]
+    file_list = sorted(
+        [Path(f) for f in args.files if Path(f).resolve() not in exclude_set],
+        key=lambda p: p.name
+    )
+    
     if not file_list:
         print('所有文件均被排除，无事可做。')
         return
@@ -76,8 +81,18 @@ def main():
     conn.autocommit = True
     cur = conn.cursor()
     cur.execute("SET graph_path = academic_net")
-    cur.execute("SET max_parallel_workers_per_gather = 0")
     cur.execute("SET plan_cache_mode = force_custom_plan")
+
+    # 单线程配置
+    # cur.execute("SET max_parallel_workers_per_gather = 0")
+
+
+    # 多线程配置，还得改conf文件
+    # work_mem = 4 GB  
+    # max_parallel_workers_per_gather = 88   # 物理核数，不再留余量
+    # max_parallel_workers          = 176   # 全局上限照旧
+     
+    cur.execute("SET max_parallel_workers_per_gather = 0")
 
     try:
         flush_csv(args.out, data, args.rounds)
