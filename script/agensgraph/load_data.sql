@@ -2,22 +2,22 @@
 \set prefix      /openalex_middle
 
 -- 2. 拼出每一张表要用的文件路径
-\set doc_work    :prefix '/document/works_doc.csv'
-\set doc_author  :prefix '/document/authors_doc.csv'
-\set vec_work    :prefix '/vector/works_vec.csv'
-\set vec_topic   :prefix '/vector/topics_vec.csv'
-\set csv_author  :prefix '/csv-files/authors.csv'
-\set csv_work    :prefix '/csv-files/works.csv'
-\set csv_topic   :prefix '/csv-files/topics.csv'
-\set csv_inst    :prefix '/csv-files/institutions.csv'
-\set csv_geo     :prefix '/csv-files/institutions_geo.csv'
-\set v_author  :prefix '/graph_vertices/authors_v.csv'
-\set v_work    :prefix '/graph_vertices/works_v.csv'
-\set v_topic   :prefix '/graph_vertices/topics_v.csv'
-\set e_author_author :prefix '/graph_edges/authors_authors_e.csv'
-\set e_work_author   :prefix '/graph_edges/works_authors_e.csv'
-\set e_work_ref      :prefix '/graph_edges/works_referenced_works_e.csv'
-\set e_work_topic    :prefix '/graph_edges/works_topics_e.csv'  
+\set doc_work           :prefix'/document/works_doc.csv'
+\set doc_author         :prefix'/document/authors_doc.csv'
+\set vec_work           :prefix'/vector/works_vec.csv'
+\set vec_topic          :prefix'/vector/topics_vec.csv'
+\set csv_author         :prefix'/csv-files/authors.csv'
+\set csv_work           :prefix'/csv-files/works.csv'
+\set csv_topic          :prefix'/csv-files/topics.csv'
+\set csv_inst           :prefix'/csv-files/institutions.csv'
+\set csv_geo            :prefix'/csv-files/institutions_geo.csv'
+\set v_author           :prefix'/graph_vertices/authors_v.csv'
+\set v_work             :prefix'/graph_vertices/works_v.csv'
+\set v_topic            :prefix'/graph_vertices/topics_v.csv'
+\set e_author_author    :prefix'/graph_edges/authors_authors_e.csv'
+\set e_work_author      :prefix'/graph_edges/works_authors_e.csv'
+\set e_work_ref         :prefix'/graph_edges/works_referenced_works_e.csv'
+\set e_work_topic       :prefix'/graph_edges/works_topics_e.csv'  
 
 -- 3. 导入文档表
 COPY work_doc(id,doi,doc) FROM :'doc_work'   (FORMAT csv, DELIMITER ',', HEADER);
