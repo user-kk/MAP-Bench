@@ -3,4 +3,5 @@
 **/*.zip
 **/*.txt
 .vscode
+script/common/demo
 tmp/

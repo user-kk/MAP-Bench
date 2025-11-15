@@ -12,19 +12,25 @@ order by COUNT(1) DESC, (author_ship.institution.id)::bigint ASC
 limit 3
 
 ),
-InstFields AS (
+InstWorks AS (
 -- 机构发文映射到各个主题， 并统计出现频次
-SELECT a.institution_id as inst_id, t.id as topic_id,count(1) as freq
+SELECT a.institution_id as inst_id,w.id as work_id
 FROM TopInstitutions ti,
 author a,
-work_author_gra MATCH (a2: author_v)<-[: work_author_e ]-(w1: work_v),
-work_topic_gra MATCH (w2: work_v)-[: work_topic_e]->(t: topic_v)
+work_author_gra MATCH (a2: author_v)<-[: work_author_e ]-(w: work_v)
 WHERE ti.inst_id = a.institution_id 
 AND a.id = a2.id
-AND w1.id = w2.id
-AND w1.publication_year >= 2024 - 5
-GROUP by a.institution_id, t.id
+AND w.publication_year >= 2024 - 5
+),
+
+InstFields AS (
+SELECT iw.inst_id as inst_id,t.id as topic_id,count(1) as freq
+FROM InstWorks iw,
+work_topic_gra MATCH (w: work_v)-[: work_topic_e]->(t: topic_v)
+where iw.work_id = w.id
+GROUP by iw.inst_id, t.id
 )
+
 
 SELECT i.display_name AS institution_name, t.display_name as topic, k.freq as freq
 FROM (
@@ -33,4 +39,4 @@ FROM (
 ) k
 JOIN institution i ON i.id = k.inst_id
 JOIN topic t on t.id = k.topic_id
-WHERE k.rank <=3
+WHERE k.rank <= 3
