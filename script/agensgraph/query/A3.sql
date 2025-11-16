@@ -1,4 +1,4 @@
-WITH HamburgAuthorIDs AS (
+WITH AuthorIDs AS (
     SELECT a.id
     FROM institution i
     JOIN author a ON i.id = a.institution_id
@@ -11,7 +11,7 @@ TopicPaperPairs AS (
         topic_name_jsonb #>> '{}' AS display_name
     FROM (
         MATCH (a:author_v)<-[:work_author_e]-(w:work_v)-[:work_topic_e]->(t:topic_v)
-        where a.id in (SELECT to_jsonb(id) FROM HamburgAuthorIDs)
+        where a.id in (SELECT to_jsonb(id) FROM AuthorIDs)
         RETURN a.id AS author_id_jsonb,
                w.id AS work_id_jsonb,
                t.id AS topic_id_jsonb,

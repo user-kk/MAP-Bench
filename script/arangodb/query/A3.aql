@@ -8,14 +8,15 @@ LET topic_paper_pairs = (
                 FOR topic_v IN 1..1 OUTBOUND work_v GRAPH 'work_topic_gra'
                     LET topic_name = topic_v.display_name
                     FILTER topic_name != null
-                    RETURN DISTINCT { 
+                    RETURN { 
                         topic_id: topic_v.id,
                         work_id: work_v.id,
                         topic_display_name: topic_name
                     }
 )
 FOR pair IN topic_paper_pairs
-    COLLECT topic_id = pair.topic_id,display_name = pair.topic_display_name WITH COUNT INTO paper_count
+    COLLECT topic_id = pair.topic_id,display_name = pair.topic_display_name 
+    aggregate paper_count = count_distinct(pair.work_id)
     SORT paper_count DESC
     LIMIT 10
     RETURN {
