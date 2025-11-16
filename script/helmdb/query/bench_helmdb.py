@@ -16,6 +16,7 @@ import csv
 import re
 import statistics
 import psycopg2
+import time
 from pathlib import Path
 
 TOTAL_RUNTIME_RE = re.compile(r'Total\s+runtime:\s+(\d+(?:\.\d+)?)\s*ms', re.I)
@@ -33,7 +34,7 @@ def explain_runtime(cur, sql: str) -> float:
     """返回端到端耗时（毫秒）"""
     t0 = time.perf_counter()
     cur.execute(sql)
-    cur.fetchall()
+    _ = cur.fetchall()
     t1 = time.perf_counter()
     return (t1 - t0) * 1000
 

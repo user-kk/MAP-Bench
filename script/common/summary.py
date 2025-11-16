@@ -5,33 +5,60 @@
 1. 命令行：--db 名称=路径
 2. 脚本内 DEFAULT_DBS 字典
 3. 若以上都没有，则把剩余 positional 参数当成 csv 路径，文件名当数据库名
+
+----------------------------- 使用用例 --------------------------------
+用例 1：完全使用脚本里的默认路径
+    python3 compare.py
+    # 输出：compare_<时间戳>.csv
+
+用例 2：命令行显式指定数据库（推荐）
+    python3 compare.py \
+        --db helmdb=/home/hyh/helmdb.csv \
+        --db duckdb=/home/hyh/duckdb.csv \
+        -o compare_hd.csv
+
+用例 3：遗留兼容模式（直接给 csv 文件）
+    python3 compare.py /tmp/helmdb.csv /tmp/duckdb.csv
+    # 会自动把文件名前缀当数据库名，生成 compare_<时间戳>.csv
+
+用例 4：输出 Markdown 表格
+    python3 compare.py \
+        --db helmdb=./helmdb.csv \
+        --db duckdb=./duckdb.csv \
+        -f markdown -o compare.md
+    # 生成 compare.md，内容可直接渲染为表格
+----------------------------------------------------------------------
 """
-import csv, pathlib, sys, argparse, datetime
+import csv
+import pathlib
+import sys
+import argparse
+import datetime
 from collections import OrderedDict
 
 # -------------------------------------------------
 # 1. 默认配置：数据库名 -> csv 路径（可留空）
 # -------------------------------------------------
-
 ROOT_PATH = '/home/hyh/OpenAlex_mini_new/'
 
 DEFAULT_DBS = OrderedDict([
-    ('agensgraph', ROOT_PATH + 'script/agensgraph/query/out/q1.csv'),
-    ('arangodb',   ROOT_PATH + 'script/arangodb/query/out/q.csv'),
+    ('helmdb',        ROOT_PATH + 'script/helmdb/query/out/2025-11-15_21:55:30.csv'),
+    ('arangodb',      ROOT_PATH + 'script/arangodb/query/out/2025-11-15_21:59:59.csv'),
+    ('agensgraph-sp', ROOT_PATH + 'script/agensgraph/query/out/2025-11-15_21:47:22.csv'),
+    ('duckdb-st',     ROOT_PATH + 'script/duckdb/query/out/2025-11-15_21:48:32.csv'),
 ])
 
 # -------------------------------------------------
 # 工具函数
 # -------------------------------------------------
-
-def load_median(path: pathlib.Path):
-    """返回 dict: 查询名 -> median_ms"""
+def load_median(path: pathlib.Path) -> dict[str, float]:
+    """返回 dict: 查询名 -> median_ms(float)"""
     res = {}
     with path.open(newline='') as f:
         for row in csv.DictReader(f):
             file_raw = row['file'].strip()
-            name = pathlib.Path(file_raw).stem   # 去掉扩展名
-            res[name] = row['median_ms']
+            name = pathlib.Path(file_raw).stem
+            res[name] = float(row['median_ms'])
     return res
 
 # -------------------------------------------------
@@ -42,7 +69,9 @@ def parse_cli():
     p.add_argument('files', nargs='*', help='遗留兼容：直接给 csv 路径')
     p.add_argument('-d', '--db', action='append', default=[],
                    help='显式指定数据库名与路径，格式 名称=路径，可多次使用')
-    p.add_argument('-o', '--output', help='输出 csv 路径；缺省生成 compare_<时间戳>.csv')
+    p.add_argument('-o', '--output', help='输出文件路径；缺省生成 compare_<时间戳>.[csv|md]')
+    p.add_argument('-f', '--format', choices=['csv', 'md', 'markdown'], default='csv',
+                   help='输出格式：csv（默认）或 markdown')
     return p.parse_args()
 
 def build_db_map(args) -> "OrderedDict[str, pathlib.Path]":
@@ -65,7 +94,7 @@ def build_db_map(args) -> "OrderedDict[str, pathlib.Path]":
     # 3. positional 遗留兼容
     for p in map(pathlib.Path, args.files):
         if p.exists():
-            name = p.stem.split('_')[0]  # agensgraph.csv -> agensgraph
+            name = p.stem.split('_')[0]
             db_map.setdefault(name, p)
 
     if not db_map:
@@ -74,24 +103,47 @@ def build_db_map(args) -> "OrderedDict[str, pathlib.Path]":
     return db_map
 
 # -------------------------------------------------
-# 主流程
+# 写入函数
 # -------------------------------------------------
-def main():
-    args = parse_cli()
-    db_map = build_db_map(args)
-    out_path = pathlib.Path(args.output or f"compare_{datetime.datetime.now():%Y%m%d_%H%M%S}.csv")
-
-    # 读取数据
-    data = {name: load_median(p) for name, p in db_map.items()}
-
-    # 所有查询
-    all_queries = sorted({q for d in data.values() for q in d})
-
+def write_csv(db_map, data, all_queries, out_path: pathlib.Path):
     with out_path.open('w', newline='') as f:
         w = csv.writer(f)
         w.writerow(['file'] + [f'{name}_ms' for name in db_map])
         for q in all_queries:
             w.writerow([q] + [data[name].get(q, '') for name in db_map])
+
+def write_markdown(db_map, data, all_queries, out_path: pathlib.Path):
+    headers = ['file'] + [f'{name}_ms' for name in db_map]
+    rows = []
+    for q in all_queries:
+        rows.append([q] + [str(data[name].get(q, '')) for name in db_map])
+    # 组装 GFM 表格
+    lines = ['| ' + ' | '.join(headers) + ' |']
+    lines.append('| ' + ' | '.join(['---'] * len(headers)) + ' |')
+    for r in rows:
+        lines.append('| ' + ' | '.join(r) + ' |')
+    out_path.write_text('\n'.join(lines), encoding='utf-8')
+
+# -------------------------------------------------
+# 主流程
+# -------------------------------------------------
+def main():
+    args = parse_cli()
+    db_map = build_db_map(args)
+
+    # 根据格式自动补扩展名
+    ext = 'md' if args.format in ('md', 'markdown') else 'csv'
+    out_path = pathlib.Path(args.output or f"compare_{datetime.datetime.now():%Y%m%d_%H%M%S}.{ext}")
+
+    # 读取数据
+    data = {name: load_median(p) for name, p in db_map.items()}
+    all_queries = sorted({q for d in data.values() for q in d})
+
+    # 写入
+    if args.format in ('md', 'markdown'):
+        write_markdown(db_map, data, all_queries, out_path)
+    else:
+        write_csv(db_map, data, all_queries, out_path)
 
     print(f'已生成 {out_path.absolute()}')
 
