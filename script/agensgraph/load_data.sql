@@ -45,8 +45,8 @@ COPY institution_geo(institution_id,city,geonames_city_id,region,country_code,co
 FROM :'csv_geo' DELIMITER ',' CSV HEADER;
 
 -- 6. 向量索引
-CREATE INDEX IF NOT EXISTS idx_work_vec_l2  ON work_vec  USING ivfflat (vec vector_l2_ops) WITH (lists=80);
-CREATE INDEX IF NOT EXISTS idx_topic_vec_l2 ON topic_vec USING ivfflat (vec vector_l2_ops) WITH (lists=80);
+CREATE INDEX IF NOT EXISTS idx_work_vec_l2  ON work_vec  USING ivfflat (vec vector_l2_ops) WITH (lists=4096);
+CREATE INDEX IF NOT EXISTS idx_topic_vec_l2 ON topic_vec USING ivfflat (vec vector_l2_ops) WITH (lists=128);
 
 
 

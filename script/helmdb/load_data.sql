@@ -87,10 +87,10 @@ CREATE INDEX topic_vec_id_index ON topic_vec USING btree (id);
 
 -- IVFFLAT 近似索引
 CREATE INDEX idx_work_vec_l2  ON work_vec
-  USING ivfflat (vec vector_l2_ops) WITH (lists = 80);
+  USING ivfflat (vec vector_l2_ops) WITH (lists = 4096);
 
 CREATE INDEX idx_topic_vec_l2 ON topic_vec
-  USING ivfflat (vec vector_l2_ops) WITH (lists = 80);
+  USING ivfflat (vec vector_l2_ops) WITH (lists = 128);
 
 /* ======================
    7. 关系表（属性表）导入
