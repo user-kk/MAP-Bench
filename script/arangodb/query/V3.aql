@@ -1,15 +1,20 @@
-LET target_paper_id = 4395661325
-LET gnn_papers = (
-    FOR wd IN work_doc
-        FILTER has(wd.doc.abstract_inverted_index,'graph') 
-            and has(wd.doc.abstract_inverted_index,'neural') 
-            and has(wd.doc.abstract_inverted_index,'network') 
-        RETURN wd.id
+let target_vec = FIRST(FOR t IN work_vec FILTER t.id == 4321448324 RETURN t.vec)
+
+let ids = (
+    FOR wv IN work_vec
+    LET d = APPROX_NEAR_L2(wv.vec, target_vec)   /* <-- 换成 L2 */
+    SORT d ASC                          /* 越小越相似 */
+    LIMIT 100
+    RETURN {id:wv.id,dis:d}
 )
-LET target_paper_vec = DOCUMENT(CONCAT('work_vec/', target_paper_id)).vec 
-FOR gnn_paper_id IN gnn_papers
-    for candidate_vec in  work_vec
-        filter gnn_paper_id == candidate_vec.id
-        SORT L2_DISTANCE(candidate_vec.vec, target_paper_vec) ASC, gnn_paper_id ASC
-        LIMIT 10
-        RETURN gnn_paper_id
+
+FOR t in ids
+    FILTER t.id != 4321448324
+    FOR w IN work
+        FILTER t.id == w.id and w.publication_year >= 2018 && w.publication_year <= 2023
+        FOR wc IN work_doc 
+            FILTER wc.id == w.id 
+                and has(wc.doc.abstract_inverted_index,'benchmark')
+                and has(wc.doc.abstract_inverted_index,'database')
+            sort t.dis asc
+            RETURN {work_id: wc.id,title:w.title}

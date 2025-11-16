@@ -1,19 +1,13 @@
-WITH gnn_papers AS (
-    SELECT id AS work_id
-    FROM work_doc
-    WHERE doc.abstract_inverted_index.graph is not null
-      and doc.abstract_inverted_index.neural is not null
-      and doc.abstract_inverted_index.network is not null
+WITH ids AS (
+    select id,array_distance(vec,(select vec from work_vec where id = 4321448324))  as dis
+    from work_vec 
+    order by dis asc
+    limit 100
 )
-SELECT
-    gp.work_id
-FROM
-    gnn_papers gp
-JOIN
-    work_vec p1_vec ON gp.work_id = p1_vec.id
-JOIN
-    work_vec p2_vec ON p2_vec.id = 4395661325
-ORDER BY
-    array_distance(p1_vec.vec,p2_vec.vec) ASC,
-    gp.work_id ASC
-LIMIT 10;
+SELECT wc.id AS id,w.title
+FROM ids join work w on ids.id = w.id 
+JOIN work_doc wc ON w.id = wc.id
+WHERE ids.id != 4321448324 AND w.publication_year >= 2018 AND w.publication_year <= 2023
+    AND (wc.doc->'abstract_inverted_index'->'benchmark') is not NULL
+    AND (wc.doc->'abstract_inverted_index'->'database') is not NULL
+order by ids.dis asc
