@@ -1,36 +1,20 @@
-LET target_topic_id = 11016
+let target_vec = FIRST(FOR t IN topic_vec FILTER t.id == 10862 RETURN t.vec)
 
-// 第一步：获取目标主题的向量
-LET target_topic_vec = DOCUMENT(CONCAT('topic_vec/', target_topic_id)).vec
-
-// 第二步：找到所有满足年份和摘要关键词条件的候选论文
-LET candidate_works = (
-  FOR w IN work
-    for wd in work_doc
-        filter w.id == wd.id
-        FILTER w.publication_year >= 2020 
-        FILTER has(wd.doc.abstract_inverted_index,'climate') 
-            and has(wd.doc.abstract_inverted_index,'change') 
-        RETURN {
-            id: w.id,
-            title: w.title,
-            abstract: wd.doc.abstract
-        }
+let tids = (
+    FOR tv IN topic_vec
+    LET d = APPROX_NEAR_L2(tv.vec, target_vec)   
+    SORT d ASC                          
+    LIMIT 5
+    RETURN {id:tv.id,dis:d}
 )
 
-LET top_similar_works = (
-  FOR candidate IN candidate_works
-    for v in work_vec
-        filter candidate.id == v.id 
-        SORT L2_DISTANCE(v.vec, target_topic_vec) ASC
-        LIMIT 10
-        RETURN candidate
-)
-
-// 第四步：返回最终结果
-FOR result IN top_similar_works
-    RETURN {
-        id: result.id,
-        title: result.title,
-        abstract: result.abstract
-    }
+for tid in tids
+    for t in topic
+        FILTER tid.id == t.id and t.works_count > 10000
+        let top3 = (
+            FOR work_v IN 1..1 INBOUND CONCAT('topic_v/',to_string(t.id)) GRAPH 'work_topic_gra'
+                sort work_v.cited_by_count desc,work_v.id asc
+                limit 3
+                return work_v.title
+        )
+        return {display_name:t.display_name,titles:top3}
