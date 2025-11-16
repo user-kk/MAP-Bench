@@ -46,6 +46,8 @@ DEFAULT_DBS = OrderedDict([
     ('arangodb',      ROOT_PATH + 'script/arangodb/query/out/2025-11-15_21:59:59.csv'),
     ('agensgraph-sp', ROOT_PATH + 'script/agensgraph/query/out/2025-11-15_21:47:22.csv'),
     ('duckdb-st',     ROOT_PATH + 'script/duckdb/query/out/2025-11-15_21:48:32.csv'),
+    ('agensgraph-mp',     ROOT_PATH + 'script/agensgraph/query/out/2025-11-16_21:07:00.csv'),
+    ('duckdb-mt',     ROOT_PATH + 'script/duckdb/query/out/2025-11-16_21:14:33.csv'),
 ])
 
 # -------------------------------------------------
@@ -113,15 +115,20 @@ def write_csv(db_map, data, all_queries, out_path: pathlib.Path):
             w.writerow([q] + [data[name].get(q, '') for name in db_map])
 
 def write_markdown(db_map, data, all_queries, out_path: pathlib.Path):
-    headers = ['file'] + [f'{name}_ms' for name in db_map]
+
+    headers = ['query'] + [f'{name}_ms' for name in db_map] + ['note']
+
     rows = []
     for q in all_queries:
-        rows.append([q] + [str(data[name].get(q, '')) for name in db_map])
-    # 组装 GFM 表格
+        row = [q] + [str(data[name].get(q, '')) for name in db_map]
+        row.append('')          # 备注列先留空，可手动填
+        rows.append(row)
+
     lines = ['| ' + ' | '.join(headers) + ' |']
     lines.append('| ' + ' | '.join(['---'] * len(headers)) + ' |')
     for r in rows:
         lines.append('| ' + ' | '.join(r) + ' |')
+
     out_path.write_text('\n'.join(lines), encoding='utf-8')
 
 # -------------------------------------------------
