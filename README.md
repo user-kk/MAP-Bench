@@ -43,6 +43,24 @@ pip install psycopg2-binary==2.9.8 python-arango==7.3.1 duckdb==1.2.2 "psycopg[b
 >
 > 如果不想自己编译,仓库提供dockerfile来生成镜像 
 
+## polystore系统 关系：PostgresSQL 14.20 文档：MongoDB 6.0.26 图：Neo4j 5.24.2 向量：Milvus 2.3.4
+
+在util目录运行如下脚本，使用docker拉取polystore集群
+```bash
+    docker compose up -d
+```
+
+安装如下依赖：
+
+```bash
+    pip install pymongo==4.15.4 psycopg[binary]==3.2.11 neo4j==6.0.3 pymilvus==2.6.3 pandas==2.3.3
+```
+
+执行：
+```bash
+    python script/polystore/load_data.py
+```
+
 ## 跑查询
 
 ### arangodb 3.12.5
