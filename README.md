@@ -74,3 +74,7 @@ pip install psycopg2-binary==2.9.8 python-arango==7.3.1 duckdb==1.2.2 "psycopg[b
 ### agensgraph 2.16.0 + pgvector 0.6.2
 
 修改bench_agensgraph.py中的DB_CONF配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
+
+### duckdb 1.2.2 
+
+修改bench_duckdb.py中的DB_CONF配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
