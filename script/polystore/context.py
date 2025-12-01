@@ -229,8 +229,14 @@ class Context:
 
 # 线程安全单例（可选）
 _ctx = None
-def get_context(host="127.0.0.1") -> Context:
+def get_context(host="127.0.0.1",
+                 pg_port=30000,
+                 mongo_port=30001,
+                 neo4j_port=30003,
+                 milvus_port=30004,
+                 user="root",
+                 pwd="linux123") -> Context:
     global _ctx
     if _ctx is None:
-        _ctx = Context(host)
+        _ctx = Context(host,pg_port,mongo_port,neo4j_port,milvus_port,user,pwd)
     return _ctx
