@@ -43,7 +43,7 @@ def H2(ctx,author_id: int = 5040670721):
     ORDER BY a.cited_by_count DESC, a.display_name ASC
     LIMIT 10
     """
-    df = pd.read_sql(sql, ctx._pg_conn, params=co_ids)   # 仅改连接对象
+    df = pd.read_sql(sql, ctx._pg_conn, params=co_ids)
     return df
 
 

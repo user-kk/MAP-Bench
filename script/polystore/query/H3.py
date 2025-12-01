@@ -34,13 +34,19 @@ def H3(ctx: "Context") -> pd.DataFrame:
     RETURN w.id AS work_id, e.score AS edge_score
     """
     records = ctx.neo4j_session.run(cypher, tid=topic_id)
-    work_edges = [(int(r["work_id"]), float(r["edge_score"])) for r in records]
-    if not work_edges:
+    
+    work_ids = []
+    edge_scores = []
+    for r in records:
+        work_ids.append(int(r["work_id"]))
+        edge_scores.append(float(r["edge_score"]))
+    
+    if not work_ids:
         return pd.DataFrame(columns=["title", "cited_by_count", "topic_score"])
-    work_ids, edge_scores = zip(*work_edges)
+    
 
     # 4. PG：临时表灌入 edge_score
-    with ctx.pg_cursor as cur:
+    with ctx.temp_pg_table('tmp_work_score') as cur:
         cur.execute("""
             CREATE TEMP TABLE tmp_work_score AS
             SELECT work_id::bigint, edge_score::float, 0::float AS l2_distance

@@ -8,9 +8,11 @@ Usage:
     ctx.use("openalex_middle")
 """
 from functools import cached_property
+import os, time, random
 import pymongo, psycopg, neo4j, pymilvus
 from psycopg import sql
 from pymilvus import db as milvus_db, utility, Collection
+from contextlib import contextmanager
 
 class Context:
     def __init__(self, host="127.0.0.1",
@@ -88,7 +90,7 @@ class Context:
         coll.load()          # 幂等，可重复调用
         return coll
 
-    # ---------- 一键建库 ----------
+    # ---------- 建库 ----------
     def create_databases(self, db_list=None):
         if not db_list:
             return
@@ -121,7 +123,7 @@ class Context:
         _ = self._neo4j_driver
         print("Neo4j ==> 使用逻辑标签划分，无需物理建库")
 
-    # ---------- 一键切换 ----------
+    # ---------- 切换 ----------
     def use(self, db_name: str):
         if db_name != 'postgres' :
             # 1. 关闭旧连接
@@ -144,7 +146,7 @@ class Context:
         self._current_db = db_name
         print(f"全局上下文已切换到 >>> {db_name}")
 
-    # ---------- 优雅关闭 ----------
+    # ---------- 关闭 ----------
     def close(self):
         if hasattr(self, "_pg_conn"):
             self._pg_conn.close()
@@ -153,6 +155,76 @@ class Context:
         if hasattr(self, "_neo4j_driver"):
             self._neo4j_driver.close()
         pymilvus.connections.disconnect("default")
+
+    # --------- 会话级临时集合工具 ---------
+    @contextmanager
+    def temp_mongo_collection(self, prefix="tmp_w"):
+        """创建带会话ID的短命集合，退出时自动删除"""
+        session_id = f"{prefix}_{os.getpid()}_{int(time.time()*1e6)}_{random.randint(0,9999)}"
+        tmp_col = self.mongo_db[session_id]
+        try:
+            yield tmp_col
+        finally:
+            tmp_col.drop()
+
+    @contextmanager
+    def temp_neo_nodes(self, label_prefix="tmp"):
+        """
+        用法:
+            with temp_neo_nodes(ctx) as tmp:
+                tmp.create_node({"id": 123}, "MyLabel")
+        退出时自动删除所有带标签的节点
+        """
+        session_id = f"{label_prefix}_{os.getpid()}_{int(time.time()*1e6)}_{random.randint(0,9999)}"
+        tmp_label = f"__{session_id}"          # 双下划线，避免冲突
+        ctx = self
+
+        class _TmpKit:
+            def create_node(self, properties: dict):
+                """创建带 tmp_label 的节点"""
+                ctx.neo4j_session.run(
+                    f"CREATE (n:{tmp_label}) SET n = $props",
+                    props=properties
+                )
+            def batch_create_nodes(ctx, props_list: list[dict]):
+                """一次 UNWIND 创建 1-N 个节点，带同一会话级标签"""
+                session_id = f"__tmp_{os.getpid()}_{int(time.time()*1e6)}"
+                cypher = f"""
+                UNWIND $rows AS row
+                CREATE (n:{tmp_label})
+                SET n = row
+                """
+                ctx.neo4j_session.run(cypher, rows=props_list)
+                return session_id 
+
+            def run(self, cypher: str, **parameters):
+                """直接跑任意 Cypher，里面可安全引用 tmp_label"""
+                return ctx.neo4j_session.run(cypher, **parameters)
+
+        try:
+            yield _TmpKit()
+        finally:
+            # 会话结束：整批删除
+            ctx.neo4j_session.run(f"MATCH (n:{tmp_label}) DETACH DELETE n")
+
+    @contextmanager
+    def temp_pg_table(self, table_name):
+        """
+        用法:
+            with temp_pg_table(ctx, "tmp_table") as cur:
+                cur.execute("CREATE TEMP TABLE tmp_table (...)")
+                ...
+        退出时临时表自动销毁
+        """
+
+        try:
+            yield self.pg_cursor
+        finally:
+            # 会话结束自动 DROP，这里再显式清一次（防御性）
+            try:
+                self.pg_cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
+            except Exception:
+                pass 
 
 
 # 线程安全单例（可选）

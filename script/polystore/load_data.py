@@ -3,7 +3,8 @@
 python load_data.py
 """
 from pathlib import Path
-import os,json,csv,sys,subprocess
+import os,json,csv,sys,subprocess,argparse
+from typing import Set
 from context import get_context
 
 # --------------- 配置 ---------------
@@ -17,6 +18,8 @@ DATA_ROOT = '/openalex_middle'   # 当前主机内 csv 根目录 /tmp/polystore/
 CONTAINER_DATA_ROOT = "/openalex_middle"  # 容器内csv挂载路径
 TMP_ROOT = '/tmp/polystore' # 当前主机内临时文件生成目录
 CONTAINER_TMP_ROOT = '/tmp/polystore' # 容器内临时文件挂载目录
+
+DIM = 128  # 固定向量维度
 
 
 # csv → 表名
@@ -85,112 +88,112 @@ VECTOR_CSV_JSONL = {
 
 # ------------------------------------
 
-# ---------- 1. 建表 DDL ----------
-CREATE_SQL = {
-    'author': """
-        CREATE TABLE IF NOT EXISTS author (
-            id bigint primary key,
-            display_name text,
-            works_count integer,
-            cited_by_count integer,
-            last_known_institution text,
-            works_api_url text,
-            updated_date timestamp without time zone,
-            institution_id bigint
-        );
-    """,
-    'work': """
-        CREATE TABLE IF NOT EXISTS work (
-            id bigint primary key,
-            doi text,
-            title text,
-            display_name text,
-            publication_year integer,
-            publication_date text,
-            type text,
-            cited_by_count integer,
-            is_retracted boolean,
-            is_paratext boolean,
-            cited_by_api_url text,
-            language text
-        );
-    """,
-    'topic': """
-        CREATE TABLE IF NOT EXISTS topic (
-            id bigint primary key,
-            display_name text,
-            subfield_id text,
-            subfield_display_name text,
-            field_id text,
-            field_display_name text,
-            domain_id text,
-            domain_display_name text,
-            description text,
-            keywords text,
-            works_api_url text,
-            wikipedia_id text,
-            works_count integer,
-            cited_by_count integer,
-            updated_date timestamp without time zone
-        );
-    """,
-    'institution': """
-        CREATE TABLE IF NOT EXISTS institution (
-            id bigint primary key,
-            ror text,
-            display_name text,
-            country_code text,
-            type text,
-            homepage_url text,
-            image_url text,
-            image_thumbnail_url text,
-            display_name_acronyms json,
-            display_name_alternatives json,
-            works_count integer,
-            cited_by_count integer,
-            works_api_url text,
-            updated_date timestamp without time zone
-        );
-    """,
-    'institution_geo': """
-        CREATE TABLE IF NOT EXISTS institution_geo (
-            institution_id bigint primary key,
-            city text,
-            geonames_city_id text,
-            region text,
-            country_code text,
-            country text,
-            latitude real,
-            longitude real
-        );
-    """
-}
-
-
-COPY_STMT = {
-    'author':
-        "COPY author(id,display_name,works_count,cited_by_count,last_known_institution,works_api_url,updated_date,institution_id) "
-        "FROM '{path}' WITH (FORMAT csv, HEADER true, NULL '', ENCODING 'utf8')",
-    'work':
-        "COPY work(id,doi,title,display_name,publication_year,publication_date,type,cited_by_count,is_retracted,is_paratext,cited_by_api_url,language) "
-        "FROM '{path}' WITH (FORMAT csv, HEADER true, NULL '', ENCODING 'utf8')",
-    'topic':
-        "COPY topic(id,display_name,subfield_id,subfield_display_name,field_id,field_display_name,domain_id,domain_display_name,description,keywords,works_api_url,wikipedia_id,works_count,cited_by_count,updated_date) "
-        "FROM '{path}' WITH (FORMAT csv, HEADER true, NULL '', ENCODING 'utf8')",
-    'institution':
-        "COPY institution(id,ror,display_name,country_code,type,homepage_url,image_url,image_thumbnail_url,display_name_acronyms,display_name_alternatives,works_count,cited_by_count,works_api_url,updated_date) "
-        "FROM '{path}' WITH (FORMAT csv, HEADER true, NULL '', ENCODING 'utf8')",
-    'institution_geo':
-        "COPY institution_geo(institution_id,city,geonames_city_id,region,country_code,country,latitude,longitude) "
-        "FROM '{path}' WITH (FORMAT csv, HEADER true, NULL '', ENCODING 'utf8')"
-}
-
 def pg_build_and_load(ctx):
     cur = ctx.pg_cursor
     conn = ctx._pg_conn
 
     cur.execute("SET search_path TO public")
     conn.commit()
+    
+    # ---------- 1. 建表 DDL ----------
+    CREATE_SQL = {
+        'author': """
+            CREATE TABLE IF NOT EXISTS author (
+                id bigint primary key,
+                display_name text,
+                works_count integer,
+                cited_by_count integer,
+                last_known_institution text,
+                works_api_url text,
+                updated_date timestamp without time zone,
+                institution_id bigint
+            );
+        """,
+        'work': """
+            CREATE TABLE IF NOT EXISTS work (
+                id bigint primary key,
+                doi text,
+                title text,
+                display_name text,
+                publication_year integer,
+                publication_date text,
+                type text,
+                cited_by_count integer,
+                is_retracted boolean,
+                is_paratext boolean,
+                cited_by_api_url text,
+                language text
+            );
+        """,
+        'topic': """
+            CREATE TABLE IF NOT EXISTS topic (
+                id bigint primary key,
+                display_name text,
+                subfield_id text,
+                subfield_display_name text,
+                field_id text,
+                field_display_name text,
+                domain_id text,
+                domain_display_name text,
+                description text,
+                keywords text,
+                works_api_url text,
+                wikipedia_id text,
+                works_count integer,
+                cited_by_count integer,
+                updated_date timestamp without time zone
+            );
+        """,
+        'institution': """
+            CREATE TABLE IF NOT EXISTS institution (
+                id bigint primary key,
+                ror text,
+                display_name text,
+                country_code text,
+                type text,
+                homepage_url text,
+                image_url text,
+                image_thumbnail_url text,
+                display_name_acronyms json,
+                display_name_alternatives json,
+                works_count integer,
+                cited_by_count integer,
+                works_api_url text,
+                updated_date timestamp without time zone
+            );
+        """,
+        'institution_geo': """
+            CREATE TABLE IF NOT EXISTS institution_geo (
+                institution_id bigint primary key,
+                city text,
+                geonames_city_id text,
+                region text,
+                country_code text,
+                country text,
+                latitude real,
+                longitude real
+            );
+        """
+    }
+
+
+    COPY_STMT = {
+        'author':
+            "COPY author(id,display_name,works_count,cited_by_count,last_known_institution,works_api_url,updated_date,institution_id) "
+            "FROM '{path}' WITH (FORMAT csv, HEADER true, NULL '', ENCODING 'utf8')",
+        'work':
+            "COPY work(id,doi,title,display_name,publication_year,publication_date,type,cited_by_count,is_retracted,is_paratext,cited_by_api_url,language) "
+            "FROM '{path}' WITH (FORMAT csv, HEADER true, NULL '', ENCODING 'utf8')",
+        'topic':
+            "COPY topic(id,display_name,subfield_id,subfield_display_name,field_id,field_display_name,domain_id,domain_display_name,description,keywords,works_api_url,wikipedia_id,works_count,cited_by_count,updated_date) "
+            "FROM '{path}' WITH (FORMAT csv, HEADER true, NULL '', ENCODING 'utf8')",
+        'institution':
+            "COPY institution(id,ror,display_name,country_code,type,homepage_url,image_url,image_thumbnail_url,display_name_acronyms,display_name_alternatives,works_count,cited_by_count,works_api_url,updated_date) "
+            "FROM '{path}' WITH (FORMAT csv, HEADER true, NULL '', ENCODING 'utf8')",
+        'institution_geo':
+            "COPY institution_geo(institution_id,city,geonames_city_id,region,country_code,country,latitude,longitude) "
+            "FROM '{path}' WITH (FORMAT csv, HEADER true, NULL '', ENCODING 'utf8')"
+    }
     
     # 3.1 建表
     for ddl in CREATE_SQL.values():
@@ -533,11 +536,13 @@ def neo4j_import_graph(ctx, force_convert=False,slice_lines=500_000):
         MATCH (a2:author_v {{id: value.end_id}})
         WITH a1, a2, value,
                 [item IN value.list | toInteger(item.year)]   AS years,
-                [item IN value.list | toInteger(item.work_id)] AS work_ids
+                [item IN value.list | toInteger(item.work_id)] AS work_ids,
+                apoc.convert.toJson(value.list)               AS list
         MERGE (a1)-[r:author_author_e]->(a2)
             ON CREATE SET r.cnt = toInteger(value.cnt),
                         r.years = years,
-                        r.work_ids = work_ids',
+                        r.work_ids = work_ids,
+                        r.list = list
         {{batchSize: 10000, parallel: false}}
         )
         '''
@@ -603,12 +608,10 @@ def _csv_vec_to_jsonl(csv_path: str, jsonl_path: str, batch_size=100_000):
 
 def milvus_import_vectors(ctx):
     """
-    导入 128 维向量 CSV 到 Milvus（固定维度）
-    - topics_vec.csv → topic_vec collection (id INT64, vec FLOAT_VECTOR[128])
-    - works_vec.csv  → work_vec collection  (id INT64, doi VARCHAR(256), vec FLOAT_VECTOR[128])
+    导入 向量 CSV 到 Milvus（固定维度）
+    - topics_vec.csv → topic_vec collection (id INT64, vec FLOAT_VECTOR[DIM])
+    - works_vec.csv  → work_vec collection  (id INT64, doi VARCHAR(256), vec FLOAT_VECTOR[DIM])
     """
-    
-    DIM = 128  # 固定向量维度
     
     for collection_name, (csv_path) in VECTOR_CSV_JSONL.items():
         from pymilvus import Collection, CollectionSchema,FieldSchema, DataType, utility
@@ -630,7 +633,7 @@ def milvus_import_vectors(ctx):
 
             schema = CollectionSchema(
                 fields=fields,
-                description=f"OpenAlex {collection_name} (128-dim vectors)"
+                description=f"OpenAlex {collection_name} ({DIM}-dim vectors)"
             )
             collection = Collection(name=collection_name, schema=schema)
 
@@ -667,7 +670,7 @@ def milvus_import_vectors(ctx):
                 if collection_name == "work_vec":
                     batch_doi.append(row.get("doi", ""))
 
-                # 每 20 000 条刷一次（128 维≈ 20k*128*4B ≈ 10 MB）
+                # 每 20 000 条刷一次
                 if len(batch_ids) >= 20_000:
                     data = [batch_ids, batch_vecs] if collection_name != "work_vec" \
                            else [batch_ids, batch_doi, batch_vecs]
@@ -685,12 +688,48 @@ def milvus_import_vectors(ctx):
         collection.flush()          # 落盘
         print(f"✅ {collection_name} 插入完成，累计 {total} 条向量")
 
-if __name__ == '__main__':
+def parse_cli() -> Set[str]:
+    """解析命令行，返回要导入的数据库简称集合。"""
+    parser = argparse.ArgumentParser(
+        description="可选地将数据导入一种或多种下游数据库。"
+    )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "-a", "--all", action="store_true",
+        help="导入所有数据库（默认）"
+    )
+    # 单个开关
+    parser.add_argument("-p", "--pg",      action="store_true", help="导入 PostgreSQL")
+    parser.add_argument("-m", "--mongo",   action="store_true", help="导入 MongoDB")
+    parser.add_argument("-n", "--neo4j",   action="store_true", help="导入 Neo4j")
+    parser.add_argument("-v", "--milvus",  action="store_true", help="导入 Milvus")
+    args = parser.parse_args()
+
+    # 如果什么都没选，默认就是 --all
+    if not any((args.pg, args.mongo, args.neo4j, args.milvus)):
+        args.all = True
+
+    targets = set()
+    if args.all:
+        targets.update(["pg", "mongo", "neo4j", "milvus"])
+    else:
+        if args.pg:     targets.add("pg")
+        if args.mongo:  targets.add("mongo")
+        if args.neo4j:  targets.add("neo4j")
+        if args.milvus: targets.add("milvus")
+    return targets
+
+
+if __name__ == "__main__":
+    targets = parse_cli()
+
     ctx = get_context(HOST)
     ctx.create_databases([DB_NAME])
-    ctx.use(DB_NAME) 
-    pg_build_and_load(ctx)
-    mongo_doc_import(ctx)
-    neo4j_import_graph(ctx)
-    milvus_import_vectors(ctx)
+    ctx.use(DB_NAME)
+
+    if "pg"     in targets:  pg_build_and_load(ctx)
+    if "mongo"  in targets:  mongo_doc_import(ctx)
+    if "neo4j"  in targets:  neo4j_import_graph(ctx)
+    if "milvus" in targets:  milvus_import_vectors(ctx)
+
     ctx.close()
