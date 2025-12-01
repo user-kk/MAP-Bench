@@ -14,7 +14,7 @@ topicWork as (
     ) g on tids.id = g.tid and g.works_count > 10000
 )
 
-select t.display_name,array_agg(tw.title)
+select t.display_name,array_agg(tw.title order by tw.rank)
     from topicWork tw join topic t on tw.id = t.id
     where tw.rank<=3
     group by t.display_name,tw.dis

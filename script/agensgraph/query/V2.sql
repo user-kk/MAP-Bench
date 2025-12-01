@@ -13,7 +13,7 @@ topicWork as (
     ) g join tids on g.tid::bigint = tids.id
 )
 
-select t.display_name,json_agg(tw.title)
+select t.display_name,json_agg(tw.title order by tw.rank) as top_papers_json
     from topicWork tw join topic t on tw.id = t.id
     where tw.rank<=3
     group by t.display_name,tw.dis
