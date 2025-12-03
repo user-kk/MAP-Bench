@@ -105,15 +105,13 @@ def main():
     parser.add_argument('files', nargs='+')
     args = parser.parse_args()
 
-    exclude_set = {Path(f).resolve() for f in args.exclude}
-    file_list = sorted(
-        [Path(f) for f in args.files if Path(f).resolve() not in exclude_set],
-        key=lambda p: p.name,
-    )
+    exclude_set = {Path(f).name for f in args.exclude}          
+    file_list = sorted([Path(f).resolve() for f in args.files
+                    if Path(f).name not in exclude_set],    
+                   key=lambda p: p.name)
     if not file_list:
         print('所有文件均被排除，无事可做。')
         return
-
     data = {f.name: [] for f in file_list}  # 存放结果
 
     # ---------- 第一轮：纯测延迟，定档 ----------

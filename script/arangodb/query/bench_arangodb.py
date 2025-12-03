@@ -68,14 +68,11 @@ def main():
     parser.add_argument('files', nargs='+', help='待测试 .aql 文件')
     args = parser.parse_args()
 
-    # 把排除名单做成绝对路径集合，方便快速判断
-    exclude_set = {Path(f).resolve() for f in args.exclude}
-
-    # 过滤掉被排除的文件
-    file_list = sorted(
-        [Path(f) for f in args.files if Path(f).resolve() not in exclude_set],
-        key=lambda p: p.name
-    )
+    exclude_set = {Path(f).name for f in args.exclude}          
+    file_list = sorted([Path(f).resolve() for f in args.files
+                    if Path(f).name not in exclude_set],    
+                   key=lambda p: p.name)
+    
     if not file_list:
         print('所有文件均被排除，无事可做。')
         return
