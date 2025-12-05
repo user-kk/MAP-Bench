@@ -69,6 +69,8 @@ def _worker(sql: str, db_path: str, res_q: mp.Queue) -> None:
     conn = duckdb.connect(db_path, config={"allow_unsigned_extensions": "true"})
     conn.execute("INSTALL duckpgq FROM community; INSTALL vss;")
     conn.execute("LOAD duckpgq; LOAD vss;")
+    conn.execute("SET threads=1")
+    conn.execute("SET memory_limit='50GB'")
     conn.execute(sql).fetchall()
     conn.close()
 

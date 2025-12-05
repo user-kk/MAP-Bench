@@ -77,6 +77,7 @@ def main():
 
     # 可按需设置 DuckDB 参数
     conn.execute("SET threads=1")
+    conn.execute("SET memory_limit='50GB'")
 
     try:
         flush_csv(args.out, data, args.rounds)

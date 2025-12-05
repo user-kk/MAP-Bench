@@ -9,6 +9,8 @@ from pathlib import Path
 import psycopg
 import psutil
 import threading
+import subprocess
+import socket
 
 DB_CONF = dict(dbname='openalex_middle', user='agensgraph',
                password='linux123', host='127.0.0.1', port=5555)
@@ -71,6 +73,27 @@ def pick_interval(latency_ms: float) -> float:
     # 至少 5 个点
     return min(interval, latency_ms / 5 / 1000)
 
+def restart_agens(host = DB_CONF['host'], port=DB_CONF['port'], max_wait=60):
+    print('♻️  restarting agensgraph …')
+    # 1. systemd 阻塞重启（配置了 NOPASSWD 后不再提示密码）
+    subprocess.run([
+        'sudo', 'systemctl', 'restart', 'agensgraph.service'
+    ], check=True)
+    time.sleep(7) # 给点时间让服务起来
+
+    # 2. 简单探活：连 PostgreSQL 协议端口
+    for _ in range(max_wait):
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                print('✅  agensgraph ready')
+                return
+        except (socket.error, OSError) as e:
+            # 端口还没起来就继续等
+            time.sleep(1)
+
+    # 3. 超时抛异常
+    raise RuntimeError('agensgraph 重启超时')
+
 
 def sample_resource(sql: str, interval: float, conn_params: dict,pid: int = None):
     """
@@ -116,6 +139,7 @@ def main():
     if not file_list:
         print('所有文件均被排除，无事可做。')
         return
+    restart_agens()
 
     # ← 改动：用 list 存第一轮数据，其余仍是 tuple
     data = {f.name: [] for f in file_list}      # 每项存 (peak_cpu, peak_rss, avg_cpu)
@@ -145,8 +169,8 @@ def main():
     # ---------- 第二轮及以后：正式采样资源 ----------
     for rnd in range(2, args.rounds + 2):       # 从 2 开始方便打印
         for f in file_list:
+            restart_agens()
             sql = f.read_text().strip()
-
             _, _, interval = data[f.name][0]
             pc, pr, ac = sample_resource(sql, interval, DB_CONF,args.pid)
             data[f.name].append((pc, pr, ac))   # 覆盖掉之前的 interval

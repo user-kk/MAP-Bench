@@ -26,7 +26,7 @@ class MyHTTP(DefaultHTTPClient):
 
 DB_CONF = dict(hosts='http://127.0.0.1:8529',
                username='root', password='linux123',
-               dbname='openalex_middle')
+               dbname='openalex_middle',ip='127.0.0.1', port=8529)
 
 # -------------------- 采样器 --------------------
 class QuerySampler:
@@ -92,7 +92,7 @@ def find_arangod_pid() -> int:
 
 
 # -------------------- 重启 arangod --------------------
-def restart_arangod(host='127.0.0.1', port=8529, max_wait=60):
+def restart_arangod(host=DB_CONF['ip'], port=DB_CONF['port'], max_wait=60):
     print('♻️  restarting arangod …')
     # --wait 表示 systemd 会阻塞到单元再次进入 active 且 ready
     subprocess.run([

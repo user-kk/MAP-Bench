@@ -12,6 +12,8 @@ import threading
 import psycopg2
 import psutil
 import subprocess
+import sys
+import socket
 from pathlib import Path
 
 DB_CONF = dict(
@@ -76,14 +78,40 @@ def pick_interval(latency_ms: float) -> float:
     return min(interval, latency_ms / 5 / 1000)
 
 
+def restart_helmdb(host = DB_CONF['host'], port=DB_CONF['port'], max_wait=60):
+    print('♻️  restarting openGauss …')
+    # 1. systemd 阻塞重启（配置了 NOPASSWD 后不再提示密码）
+    subprocess.run([
+        'sudo', 'systemctl', 'restart', 'opengauss.service'
+    ], check=True)
+    time.sleep(7) # 给点时间让服务起来
+
+    # 2. 简单探活：连 PostgreSQL 协议端口
+    for _ in range(max_wait):
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                print('✅  openGauss ready')
+                return
+        except (socket.error, OSError) as e:
+            # 端口还没起来就继续等
+            time.sleep(1)
+
+    # 3. 超时抛异常
+    raise RuntimeError('openGauss 重启超时')
+
+def check_output_text(cmd):
+    kwargs = {"text": True} if sys.version_info >= (3, 7) else {"universal_newlines": True}
+    return subprocess.check_output(cmd, **kwargs)
+
 def find_helmdb_pid() -> int:
     try:
-        out = subprocess.check_output(['pgrep', '-x', 'gaussdb','-u','hyh'], text=True)
+        out = check_output_text(['pgrep', '-x', 'gaussdb','-u','hyh'])
         return int(out.strip())
     except subprocess.CalledProcessError:
         raise RuntimeError('pgrep 找不到 helmdb 进程，请手动 -p 指定 PID')
 
 def sample_resource(sql: str, interval: float, conn_params: dict, pid: int = None):
+    interval = 0.1
     """执行 SQL 并采样资源，返回 (peak_cpu%, peak_rss_gb, avg_cpu%)"""
     conn = psycopg2.connect(**conn_params)
     conn.autocommit = True
@@ -126,30 +154,30 @@ def main():
     data = {f.name: [] for f in file_list}
 
     # ---------- 第一轮：仅测延迟，定档 ----------
-    conn = psycopg2.connect(**DB_CONF)
-    conn.autocommit = True
-    cur = conn.cursor()
-    cur.execute("SET enable_pbe_optimization = off")
-    cur.execute("ALTER SYSTEM SET enable_global_plancache = off")
-
-    for f in file_list:
-        sql = f.read_text().strip()
-        t0 = time.perf_counter()
-        cur.execute(sql)
-        cur.fetchall()
-        lat_ms = (time.perf_counter() - t0) * 1000
-        interval = pick_interval(lat_ms)
-        print(f'{f.name} 定档延迟 {lat_ms:.3f} ms → 采样 {interval*1000:.0f} ms')
-        data[f.name].append(('interval', lat_ms, interval))
-    cur.close()
-    conn.close()
+    # conn = psycopg2.connect(**DB_CONF)
+    # conn.autocommit = True
+    # cur = conn.cursor()
+    # cur.execute("SET enable_pbe_optimization = off")
+    # cur.execute("ALTER SYSTEM SET enable_global_plancache = off")
+    # for f in file_list:
+    #     sql = f.read_text().strip()
+    #     t0 = time.perf_counter()
+    #     cur.execute(sql)
+    #     cur.fetchall()
+    #     lat_ms = (time.perf_counter() - t0) * 1000
+    #     interval = pick_interval(lat_ms)
+    #     print(f'{f.name} 定档延迟 {lat_ms:.3f} ms → 采样 {interval*1000:.0f} ms')
+    #     data[f.name].append(('interval', lat_ms, interval))
+    # cur.close()
+    # conn.close()
 
     # ---------- 第二轮及以后：正式采样资源 ----------
     for rnd in range(2, args.rounds + 2):
         for f in file_list:
+            restart_helmdb()
             sql = f.read_text().strip()
-            _, _, interval = data[f.name][0]
-            pc, pr, ac = sample_resource(sql, interval, DB_CONF, args.pid)
+            # _, _, interval = data[f.name][0]
+            pc, pr, ac = sample_resource(sql, 0.1, DB_CONF, args.pid)
             data[f.name].append((pc, pr, ac))
             print(f'R{rnd-1:02d}  {f.name}: '
                   f'peak_cpu={pc:.1f}% peak_rss={pr:.1f}GB avg_cpu={ac:.1f}%')
