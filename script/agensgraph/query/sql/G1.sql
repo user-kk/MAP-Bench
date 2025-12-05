@@ -17,14 +17,14 @@ return DISTINCT cand.id
 ),
 CandidateWork AS (
 -- 第三步： 找出这些候选作者的在这个领域的作品
-SELECT t.aid as aid, wd.id as wid
+SELECT t.aid::bigint as aid, wd.id as wid
 FROM (
     MATCH (au: author_v)<-[: work_author_e]-(w: work_v)
     where au.id in (
         select to_jsonb(p.id) from Potential p
     )
     return au.id as aid,w.id as wid
-) t join work_doc wd on t.wid = wd.id 
+) t join work_doc wd on t.wid::bigint = wd.id 
 where wd.doc->'topics' @> jsonb_build_array(jsonb_build_object('id',(select id from topic_info)))
 )
 -- 第四步： 计算最佳n个候选者

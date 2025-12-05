@@ -3,9 +3,9 @@ SELECT t.id AS id,
 FROM (
     SELECT wc.id AS id
     FROM   work_doc wc
-    WHERE  json_contains(wc.doc->'topics',
+    WHERE  json_contains(wc.doc.topics,
                         '{"display_name":"Economic Implications of Climate Change Policies"}')
-    AND  json_contains(wc.doc->'topics',
+    AND  json_contains(wc.doc.topics,
                         '{"display_name":"Economic Impact of Environmental Policies and Resources"}')
 ) as t join
     GRAPH_TABLE (academic_net
