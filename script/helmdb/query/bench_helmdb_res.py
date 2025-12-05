@@ -152,24 +152,27 @@ def main():
 
     # 用 list 存数据，第一项存 interval 记录
     data = {f.name: [] for f in file_list}
+    restart_helmdb()
+
 
     # ---------- 第一轮：仅测延迟，定档 ----------
-    # conn = psycopg2.connect(**DB_CONF)
-    # conn.autocommit = True
-    # cur = conn.cursor()
-    # cur.execute("SET enable_pbe_optimization = off")
-    # cur.execute("ALTER SYSTEM SET enable_global_plancache = off")
-    # for f in file_list:
-    #     sql = f.read_text().strip()
-    #     t0 = time.perf_counter()
-    #     cur.execute(sql)
-    #     cur.fetchall()
-    #     lat_ms = (time.perf_counter() - t0) * 1000
-    #     interval = pick_interval(lat_ms)
-    #     print(f'{f.name} 定档延迟 {lat_ms:.3f} ms → 采样 {interval*1000:.0f} ms')
-    #     data[f.name].append(('interval', lat_ms, interval))
-    # cur.close()
-    # conn.close()
+    conn = psycopg2.connect(**DB_CONF)
+    conn.autocommit = True
+    cur = conn.cursor()
+    cur.execute("SET enable_pbe_optimization = off")
+    cur.execute("ALTER SYSTEM SET enable_global_plancache = off")
+    for f in file_list:
+        sql = f.read_text().strip()
+        t0 = time.perf_counter()
+        cur.execute(sql)
+        cur.fetchall()
+        lat_ms = (time.perf_counter() - t0) * 1000
+        interval = pick_interval(lat_ms)
+        print(f'{f.name} 定档延迟 {lat_ms:.3f} ms → 采样 {interval*1000:.0f} ms')
+        data[f.name].append(('interval', lat_ms, interval))
+    cur.close()
+    conn.close()
+    exit()
 
     # ---------- 第二轮及以后：正式采样资源 ----------
     for rnd in range(2, args.rounds + 2):
