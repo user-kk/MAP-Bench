@@ -12,12 +12,17 @@ services:
       TZ: Asia/Shanghai
     ports:
       - "30000:5432"
-    volumes:
-      # PG 数据目录
-      - pg_data:/var/lib/postgresql/data
-      # 临时文件、外部只读目录保持原样
-      - /tmp/polystore:/tmp/polystore
-      - /openalex_middle:/openalex_middle
+    command: >
+        postgres
+          -c shared_buffers=4GB
+          -c effective_cache_size=5GB
+          -c maintenance_work_mem=4GB
+          -c max_connections=20
+          -c work_mem=0.5GB          
+    deploy:
+      resources:
+        limits:   { memory: 8GB }
+        reservations: { memory: 8GB }
 
   mongodb:
     image: mongo:6.0
@@ -32,6 +37,13 @@ services:
       - mongo_data:/data/db
       - /tmp/polystore:/tmp/polystore
       - /openalex_middle:/openalex_middle
+    command: >
+      mongod
+        --wiredTigerCacheSizeGB 5
+    deploy:
+      resources:
+        limits:   { memory: 8GB }
+        reservations: { memory: 8GB }
 
   neo4j:
     image: neo4j:5.24
@@ -44,9 +56,9 @@ services:
       NEO4J_apoc_import_file_enabled: "true"
       NEO4J_apoc_import_file_use__neo4j__config: "true"
       NEO4J_dbms_security_procedures_unrestricted: "apoc.*"
-      NEO4J_server_memory_heap_initial__size: 64g
-      NEO4J_server_memory_heap_max__size: 64g
-      NEO4J_server_memory_pagecache_size: 32g
+      NEO4J_server_memory_heap_initial__size: 16g
+      NEO4J_server_memory_heap_max__size: 16g
+      NEO4J_server_memory_pagecache_size: 4g
       NEO4J_dbms_connector_bolt_connection_max_lifetime: 0
       NEO4J_dbms_transaction_timeout: 0
       NEO4JLABS_PLUGINS: '["apoc"]' 
@@ -59,19 +71,10 @@ services:
       - /tmp/polystore:/tmp/polystore
       - /openalex_middle:/openalex_middle
       - /tmp/polystore:/var/lib/neo4j/import
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 40000
-        hard: 40000
     deploy:
       resources:
-        limits:
-          memory: 100g          # 略大于 heap+page
-        reservations:
-          memory: 100g
+        limits:   { memory: 21GB }   # 多给 1 GB 堆外开销
+        reservations: { memory: 21GB }
 
   etcd:
     image: quay.io/coreos/etcd:v3.5.5
@@ -90,6 +93,10 @@ services:
       - "30011:2380"
     volumes:
       - etcd_data:/etcd-data
+    deploy:
+      resources:
+        limits:   { memory: 2GB }
+        reservations: { memory: 2GB }
 
   minio:
     image: minio/minio:RELEASE.2023-03-20T20-16-18Z
@@ -103,6 +110,10 @@ services:
       - "30013:9001"   # Console
     volumes:
       - minio_data:/minio-data
+    deploy:
+      resources:
+        limits:   { memory: 2GB }
+        reservations: { memory: 2GB }
       
     command: minio server /minio-data --console-address ":9001"
 
@@ -118,6 +129,9 @@ services:
       MINIO_ADDRESS: "minio:9000"
       MINIO_ACCESS_KEY: "minioadmin"
       MINIO_SECRET_KEY: "minioadmin"
+      QUERYNODE_CACHE_ENABLED: "true"
+      QUERYNODE_CACHE_MEMORY_LIMIT: 12GB   # 查询缓存
+      DATANODE_INSERTBUFLENINMB: 1024      # 1 GB 写缓存
     volumes:
       - /tmp/polystore:/var/lib/milvus/import
       - milvus_data:/var/lib/milvus
@@ -127,6 +141,11 @@ services:
       - etcd
       - minio
     command: ["milvus", "run", "standalone"]
+    deploy:
+      resources:
+        limits:   { memory: 14GB }
+        reservations: { memory: 14GB }
+
 
 
   attu: # milvus的图形界面
