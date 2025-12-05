@@ -3,7 +3,7 @@
 python load_data.py
 """
 from pathlib import Path
-import os,json,csv,sys,subprocess,argparse
+import os,json,csv,sys,subprocess,argparse,time
 from typing import Set
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.context import get_context
@@ -439,6 +439,8 @@ def neo4j_import_graph(ctx, force_convert=False,slice_lines=500_000):
     for i, query in enumerate(vertex_queries, 1):
         print(f"  执行顶点导入任务 {i}/{len(vertex_queries)} ...")
         session.run(query)
+        
+    start_time = time.time()
     
     print("==> 正在为顶点 id 建立索引...")
     index_queries = [
@@ -448,7 +450,10 @@ def neo4j_import_graph(ctx, force_convert=False,slice_lines=500_000):
     ]
     for idx_query in index_queries:
         session.run(idx_query)
-    print("==> 索引建立完成，开始导入边...")
+        
+    end_time = time.time()  
+    elapsed_time = end_time - start_time
+    print(f"==> 索引建立完成，耗时: {elapsed_time:.2f} 秒，开始导入边...")
 
         # ------- 3.3 边 -------
     def _import_small_edge(jsonl_name, cypher):
@@ -638,18 +643,6 @@ def milvus_import_vectors(ctx):
             )
             collection = Collection(name=collection_name, schema=schema)
 
-            # 创建索引（HNSW）
-            index_params = {
-                "index_type": "HNSW",
-                "metric_type": "L2",
-                "params": {
-                    "M": 32 if collection_name == "work_vec" else 8,
-                    "efConstruction" : 400 if collection_name == "work_vec" else 32
-                }
-            }
-            collection.create_index(field_name="vec", index_params=index_params)
-            print(f"✅ 为 {collection_name} 创建 L2+HNSW 索引 index_params:{index_params}")
-
         # 开始分批插入
         
         print(f"==> 开始插入 {collection_name} ...")
@@ -688,6 +681,23 @@ def milvus_import_vectors(ctx):
 
         collection.flush()          # 落盘
         print(f"✅ {collection_name} 插入完成，累计 {total} 条向量")
+        # 创建索引（HNSW）
+        
+        if not collection.has_index():          # 防止重复建索引
+            start_time = time.time()
+            index_params = {
+                "index_type": "HNSW",
+                "metric_type": "L2",
+                "params": {
+                    "M": 32 if collection_name == "work_vec" else 8,
+                    "efConstruction": 400 if collection_name == "work_vec" else 32
+                }
+            }
+            collection.create_index(field_name="vec", index_params=index_params)
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print(f"✅ 为 {collection_name} 创建 L2+HNSW 索引 index_params:{index_params},耗时 {elapsed_time:.2f} 秒")
+            
 
 def parse_cli() -> Set[str]:
     """解析命令行，返回要导入的数据库简称集合。"""

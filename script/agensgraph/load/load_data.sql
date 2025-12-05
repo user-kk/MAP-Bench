@@ -44,10 +44,6 @@ FROM :'csv_inst' DELIMITER ',' CSV HEADER;
 COPY institution_geo(institution_id,city,geonames_city_id,region,country_code,country,latitude,longitude)
 FROM :'csv_geo' DELIMITER ',' CSV HEADER;
 
--- 6. 向量索引
-CREATE INDEX IF NOT EXISTS topic_vec_hnsw_index on topic_vec using hnsw(vec vector_l2_ops) with (m=8,ef_construction = 32);
-CREATE INDEX IF NOT EXISTS work_vec_hnsw_index on work_vec using hnsw(vec vector_l2_ops) with (m=32,ef_construction = 400);
-
 CREATE EXTENSION IF NOT EXISTS file_fdw;
 CREATE SERVER IF NOT EXISTS csv_server FOREIGN DATA WRAPPER file_fdw;
 
@@ -151,6 +147,3 @@ DROP FOREIGN TABLE IF EXISTS
         work_topic_e_csv;
 DROP SERVER IF EXISTS csv_server CASCADE;
 
-CREATE PROPERTY INDEX idx_author_v_id ON author_v(id);
-CREATE PROPERTY INDEX idx_work_v_id ON work_v(id);
-CREATE PROPERTY INDEX idx_topic_v_id ON topic_v(id);

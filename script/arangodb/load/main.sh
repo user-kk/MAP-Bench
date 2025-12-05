@@ -76,6 +76,8 @@ check_arango_cmds
 
 do_preproc
 
+start=$(date +%s)
+
 # 建表和导数据
 
 arangosh --server.username "$username" --server.password "$password" --server.database "$database" --javascript.execute "$script_dir/create_schema.js"
@@ -113,8 +115,9 @@ arangoimport --overwrite true  --file "$build_dir/works_vector.jsonl" --type jso
 
 echo "向量模型导入完成"
 
+echo "导入数据完成，耗时：$(($(date +%s) - start)) 秒"
 # 建立索引
-
+start=$(date +%s)
 arangosh --server.username "$username" --server.password "$password" --server.database "$database" --server.request-timeout 86400 --javascript.execute "$script_dir/create_index.js"
-
+echo "创建索引完成，耗时：$(($(date +%s) - start)) 秒"
 echo "---all finish---"
