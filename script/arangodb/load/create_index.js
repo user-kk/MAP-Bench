@@ -22,13 +22,13 @@ db.topic_vec.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inB
 /* 2. 给向量集合的 vec 字段建向量索引（维度 128，l2距离，按需改） */
 db.work_vec.ensureIndex({
     type: "vector", fields: ["vec"], params: {
-        dimension: 128, metric: "l2", nLists: 4096
+        dimension: 128, metric: "l2", nLists: 4096, defaultNProbe:50
     },
     inBackground: true
 });
 db.topic_vec.ensureIndex({
     type: "vector", fields: ["vec"], params: {
-        dimension: 128, metric: "l2", nLists: 128
+        dimension: 128, metric: "l2", nLists: 128, defaultNProbe:10
     },
     inBackground: true
 });

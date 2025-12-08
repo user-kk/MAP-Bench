@@ -6,7 +6,15 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
+DO $$
+DECLARE
+    _db text := current_database();
+BEGIN
+    EXECUTE format('ALTER DATABASE %I SET ivfflat.probes = 50', _db);
+END $$;
 
+-- 重载配置，无需重启
+SELECT pg_reload_conf();
 /*
     创建openalex的图模式
     其中的topics和concepts是同样的含义，但concepts逐渐被topics代替
