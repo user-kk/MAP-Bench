@@ -56,7 +56,6 @@ def H1(ctx,name:str = "Li Hongbo"):
 
 # 使用示例
 if __name__ == "__main__":
-    from context import Context
     ctx = Context("127.0.0.1") 
     ctx.use("openalex_middle")
     df = H1(ctx)

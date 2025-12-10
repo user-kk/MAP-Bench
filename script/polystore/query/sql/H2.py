@@ -49,7 +49,6 @@ def H2(ctx,author_id: int = 5040670721):
 
 # 使用示例
 if __name__ == "__main__":
-    from context import Context
     ctx = Context("127.0.0.1")
     ctx.use("openalex_middle")
     print(H2(ctx))
