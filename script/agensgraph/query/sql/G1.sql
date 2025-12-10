@@ -5,15 +5,35 @@ from topic t join topic_vec tv on t.id = tv.id
 where t.display_name = 'RNA Methylation and Modification in Gene Expression'
 limit 1
 ),
-Potential AS (
--- 第二步： 在作者合作图中查找 2～4 跳的候选作者, 并要求一定不是一跳的作者（已经合作过的）和自己
-MATCH (me:author_v)-[:author_author_e*2..4]->(cand:author_v)
-WHERE me.id = (
-    SELECT to_jsonb(au.id)
+authorId AS MATERIALIZED (
+    SELECT to_jsonb(au.id) as id
     FROM author au
     WHERE au.display_name = 'Zupei Liu'
-) AND cand.cited_by_count >= 10000
-return DISTINCT cand.id 
+),
+TmpPotential AS (
+-- 第二步： 在作者合作图中查找 2～4 跳的候选作者, 并要求一定不是一跳的作者（已经合作过的）和自己
+(MATCH (me:author_v)-[:author_author_e]->(:author_v)-[:author_author_e]->(cand:author_v)
+WHERE me.id = (select id from authorId) AND cand.cited_by_count >= 10000
+return DISTINCT cand.id)
+union
+(MATCH (me:author_v)-[:author_author_e]->(:author_v)-[:author_author_e]->(:author_v)-[:author_author_e]->(cand:author_v)
+WHERE me.id =  (select id from authorId) AND cand.cited_by_count >= 10000
+return DISTINCT cand.id)
+union
+(MATCH (me:author_v)-[:author_author_e]->(:author_v)-[:author_author_e]->(:author_v)-[:author_author_e]->(:author_v)-[:author_author_e]->(cand:author_v)
+WHERE me.id =  (select id from authorId) AND cand.cited_by_count >= 10000
+return DISTINCT cand.id)
+),
+Potential AS (
+-- 过滤掉一跳的作者和自己
+SELECT DISTINCT tp.id::bigint as id
+FROM TmpPotential tp
+WHERE tp.id NOT IN (
+    select k.id from
+    (MATCH (me:author_v)-[:author_author_e]->(onehop:author_v)
+    WHERE me.id = (select id from authorId)   
+    return onehop.id) as k(id)
+) AND tp.id <> (select id from authorId)
 ),
 CandidateWork AS (
 -- 第三步： 找出这些候选作者的在这个领域的作品
