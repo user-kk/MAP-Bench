@@ -10,6 +10,17 @@ authorId AS MATERIALIZED (
     FROM author au
     WHERE au.display_name = 'Zupei Liu'
 ),
+-- 正常应该是这么写，但是Agnesgraph VLE算子有问题，运行不出结果
+-- Potential AS (
+-- -- 第二步： 在作者合作图中查找 2～4 跳的候选作者, 并要求一定不是一跳的作者（已经合作过的）和自己
+-- MATCH (me:author_v)-[:author_author_e*2..4]->(cand:author_v)
+-- WHERE me.id = (
+--     SELECT to_jsonb(au.id)
+--     FROM author au
+--     WHERE au.display_name = 'Zupei Liu'
+-- ) AND cand.cited_by_count >= 10000
+-- return DISTINCT cand.id 
+-- ),
 TmpPotential AS (
 -- 第二步： 在作者合作图中查找 2～4 跳的候选作者, 并要求一定不是一跳的作者（已经合作过的）和自己
 (MATCH (me:author_v)-[:author_author_e]->(:author_v)-[:author_author_e]->(cand:author_v)
