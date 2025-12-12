@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """
-DuckDB 资源占用采样脚本（子进程执行 SQL，父进程纯采样，零干扰）
+DuckDB 资源占用采样脚本（修复版）
+- 修复了进程退出后无法读取最终 CPU 时间的 Race Condition
+- 逻辑对齐 Polystore/ArangoDB 脚本
+- 使用 Queue 同步代替 join 同步
+
 用法:
-    python3 bench_duckdb_res.py *.sql -n 5 -o result.csv
+    python3 bench_duckdb_res.py *.sql -n 5 -t 4 -o result.csv
 """
 import argparse
 import csv
 import multiprocessing as mp
-import os
 import statistics
 import threading
 import time
@@ -18,29 +21,159 @@ import psutil
 
 DB_PATH = '/duckdb_data/openalex_middle.db'
 
-# ---------- 资源采样器 ----------
-class QuerySampler:
+SHORT_QUERY_THRESHOLD_MS = 500
+MIN_SAMPLE_INTERVAL = 0.05   # 50ms
+MAX_SAMPLE_INTERVAL = 0.2    # 200ms
+TARGET_SAMPLE_COUNT = 20
+
+
+# -------------------- 工具函数 --------------------
+def pick_interval(latency_ms: float) -> float:
+    ideal = latency_ms / TARGET_SAMPLE_COUNT / 1000
+    return max(MIN_SAMPLE_INTERVAL, min(MAX_SAMPLE_INTERVAL, ideal))
+
+
+# -------------------- 子进程 Worker --------------------
+def _worker(sql: str, db_path: str, threads: int, 
+            ready_event: mp.Event, start_event: mp.Event, 
+            result_queue: mp.Queue) -> None:
+    """
+    子进程：负责执行 SQL
+    """
+    try:
+        # 建立连接、加载扩展
+        conn = duckdb.connect(db_path, config={"allow_unsigned_extensions": "true"})
+        conn.execute("INSTALL duckpgq FROM community; INSTALL vss;")
+        conn.execute("LOAD duckpgq; LOAD vss;")
+        conn.execute(f"SET threads={threads}")
+        conn.execute("SET memory_limit='50GB'")
+        
+        # 通知父进程：连接已建立
+        ready_event.set()
+        
+        # 等待开始信号
+        start_event.wait()
+        
+        # 执行查询并计时
+        t0 = time.perf_counter()
+        conn.execute(sql).fetchall()
+        t1 = time.perf_counter()
+        
+        # 发送耗时结果
+        result_queue.put((t1 - t0) * 1000)
+        
+        conn.close()
+    except Exception as e:
+        result_queue.put(e)
+
+
+# -------------------- 短查询测量 --------------------
+def measure_short_query(sql: str, threads: int) -> tuple:
+    """
+    短查询：cpu_times 差值法 (精确测量)
+    """
+    ready_event = mp.Event()
+    start_event = mp.Event()
+    result_queue = mp.Queue()
+    
+    p = mp.Process(target=_worker, args=(sql, DB_PATH, threads, ready_event, start_event, result_queue))
+    p.start()
+    
+    # 1. 等待连接建立
+    ready_event.wait()
+    
+    proc = psutil.Process(p.pid)
+    
+    # 2. 记录开始状态
+    try:
+        cpu_start = proc.cpu_times()
+        rss_peak = proc.memory_info().rss
+    except psutil.NoSuchProcess:
+        p.kill()
+        return (0, 0, 0, 0, 0, 0)
+    
+    # 3. 开始执行
+    start_event.set()
+    
+    # 4. 等待结果 (阻塞直到 Worker 完成)
+    #    关键点：Queue.get() 返回时，子进程逻辑已跑完，但尚未 join，此时读取资源最准确
+    result = result_queue.get()
+    
+    # 5. 立即读取结束状态 & 计算 CPU 时间
+    total_cpu_time = 0.0
+    try:
+        # 尝试捕获最后时刻的 RSS 峰值
+        rss_peak = max(rss_peak, proc.memory_info().rss)
+        
+        cpu_end = proc.cpu_times()
+        total_cpu_time = (cpu_end.user - cpu_start.user) + (cpu_end.system - cpu_start.system)
+    except psutil.NoSuchProcess:
+        # 极少数情况进程退出极快，可能捕获不到，忽略
+        pass
+    
+    # 6. 回收子进程
+    p.join()
+    
+    if isinstance(result, Exception):
+        print(f"Worker Error: {result}")
+        return (0, 0, 0, 0, 0, 0)
+    
+    latency_ms = result
+    cpu_time_ms = total_cpu_time * 1000
+    cpu_percent = (cpu_time_ms / latency_ms) * 100 if latency_ms > 0 else 0.0
+    peak_rss_gb = rss_peak / (1024 ** 3)
+    
+    return (latency_ms, cpu_time_ms, cpu_percent, peak_rss_gb, cpu_percent, cpu_percent)
+
+
+# -------------------- 长查询采样器 --------------------
+class LongQuerySampler:
+    """长查询采样器"""
     def __init__(self, pid: int, interval: float):
         self.pid = pid
         self.interval = interval
-        self.proc = psutil.Process(pid)
         self.stop_flag = threading.Event()
-        self.cpu_samples, self.rss_samples = [], []
+        self.cpu_samples = []
+        self.rss_samples = []
+        
+        try:
+            self.proc = psutil.Process(pid)
+            self.proc.cpu_percent(interval=None) # init
+            self.cpu_times_last = self.proc.cpu_times()
+        except psutil.NoSuchProcess:
+            self.proc = None
+            
+        self.total_cpu_time = 0.0
+        self.lock = threading.Lock()
+
+    def _collect_cpu_delta(self):
+        if not self.proc: return 0.0
+        try:
+            now = self.proc.cpu_times()
+            delta = (now.user - self.cpu_times_last.user) + (now.system - self.cpu_times_last.system)
+            self.cpu_times_last = now
+            return max(0.0, delta)
+        except psutil.NoSuchProcess:
+            return 0.0
 
     def _loop(self):
-        try:
-            self.proc.cpu_percent(None)  # 丢掉第一次
-        except psutil.NoSuchProcess:
-            return
         while not self.stop_flag.is_set():
             try:
-                cpu = self.proc.cpu_percent(interval=self.interval)
-                rss = self.proc.memory_info().rss / 1024 ** 3
+                if not self.proc: break
+                
+                cpu_pct = self.proc.cpu_percent(interval=None)
+                rss = self.proc.memory_info().rss / (1024 ** 3)
+                
+                delta = self._collect_cpu_delta()
+                with self.lock:
+                    self.total_cpu_time += delta
+                
+                if not self.stop_flag.is_set():
+                    self.cpu_samples.append(cpu_pct)
+                    self.rss_samples.append(rss)
             except psutil.NoSuchProcess:
                 break
-            if not self.stop_flag.is_set():
-                self.cpu_samples.append(cpu)
-                self.rss_samples.append(rss)
+            time.sleep(self.interval)
 
     def __enter__(self):
         self.thread = threading.Thread(target=self._loop, daemon=True)
@@ -50,148 +183,131 @@ class QuerySampler:
     def __exit__(self, *_):
         self.stop_flag.set()
         self.thread.join()
+        # 最后采集一次
+        delta = self._collect_cpu_delta()
+        with self.lock:
+            self.total_cpu_time += delta
 
-    def peak_cpu(self) -> float:
-        return max(self.cpu_samples) if self.cpu_samples else 0.0
-
-    def peak_rss(self) -> float:
-        return max(self.rss_samples) if self.rss_samples else 0.0
-
-    def avg_cpu(self) -> float:
-        return sum(self.cpu_samples) / len(self.cpu_samples) if self.cpu_samples else 0.0
+    def peak_cpu(self): return max(self.cpu_samples, default=0.0)
+    def peak_rss(self): return max(self.rss_samples, default=0.0)
+    def avg_cpu(self): return sum(self.cpu_samples) / len(self.cpu_samples) if self.cpu_samples else 0.0
+    def total_cpu_time_ms(self): 
+        with self.lock: return self.total_cpu_time * 1000
 
 
-# ---------- 子进程工作函数 ----------
-def _worker(sql: str, db_path: str, res_q: mp.Queue) -> None:
+def measure_long_query(sql: str, interval: float, threads: int) -> tuple:
     """
-    在独立进程里跑 SQL，并把实际耗时(ms)写回队列
+    长查询：采样法
     """
-    conn = duckdb.connect(db_path, config={"allow_unsigned_extensions": "true"})
-    conn.execute("INSTALL duckpgq FROM community; INSTALL vss;")
-    conn.execute("LOAD duckpgq; LOAD vss;")
-    conn.execute("SET threads=1")
-    conn.execute("SET memory_limit='50GB'")
-    conn.execute(sql).fetchall()
-    conn.close()
-
-
-# ---------- 采样间隔策略 ----------
-def pick_interval(latency_ms: float) -> float:
-    if latency_ms <= 100:
-        interval = 0.001
-    elif latency_ms <= 10000:
-        interval = 0.01
-    else:
-        interval = 0.1
-    return min(interval, latency_ms / 5 / 1000)
-
-
-# ---------- 采样一次（子进程执行 + 父进程采样） ----------
-def sample_resource(sql: str, interval: float) -> tuple[float, float, float]:
-    res_q = mp.Queue()
-    p = mp.Process(target=_worker, args=(sql, DB_PATH, res_q))
+    ready_event = mp.Event()
+    start_event = mp.Event()
+    result_queue = mp.Queue()
+    
+    p = mp.Process(target=_worker, args=(sql, DB_PATH, threads, ready_event, start_event, result_queue))
     p.start()
-    pid = p.pid 
+    
+    ready_event.wait()
+    
+    with LongQuerySampler(p.pid, interval) as sampler:
+        start_event.set()
+        # 阻塞等待结果 (此时子进程尚未 join，Sampler 仍能采集到最后的数据)
+        result = result_queue.get()
+    
+    p.join()
+    
+    if isinstance(result, Exception):
+        print(f"Worker Error: {result}")
+        return (0, 0, 0, 0, 0, 0)
+    
+    latency_ms = result
+    cpu_time_ms = sampler.total_cpu_time_ms()
+    cpu_percent = (cpu_time_ms / latency_ms) * 100 if latency_ms > 0 else 0.0
+    
+    return (latency_ms, cpu_time_ms, cpu_percent,
+            sampler.peak_rss(), sampler.peak_cpu(), sampler.avg_cpu())
 
-    with QuerySampler(pid, interval) as sampler:
-        p.join()  # 等 SQL 跑完
-    return sampler.peak_cpu(), sampler.peak_rss(), sampler.avg_cpu()
+
+# -------------------- 预热查询 --------------------
+def warmup_query(sql: str, threads: int) -> float:
+    """预热查询，返回延迟(ms)"""
+    ready_event = mp.Event()
+    start_event = mp.Event()
+    result_queue = mp.Queue()
+    
+    p = mp.Process(target=_worker, args=(sql, DB_PATH, threads, ready_event, start_event, result_queue))
+    p.start()
+    ready_event.wait()
+    start_event.set()
+    res = result_queue.get()
+    p.join()
+    
+    if isinstance(res, Exception): return 0.0
+    return res
 
 
-# ---------- 主流程 ----------
+# -------------------- CSV 输出 --------------------
+def flush_csv(out: Path, data: dict, threads: int):
+    header = ['file', 'threads', 'method', 'latency_ms', 'cpu_time_ms', 
+              'cpu_%', 'rss_gb', 'peak_cpu_%', 'avg_cpu_%']
+    rows = []
+    
+    for fname, info in data.items():
+        if not info['samples']:
+            rows.append([fname, threads, info['method']] + ['']*6)
+            continue
+        
+        medians = [statistics.median([s[i] for s in info['samples']]) for i in range(6)]
+        rows.append([fname, threads, info['method']] + [f'{v:.1f}' if i!=3 else f'{v:.2f}' for i,v in enumerate(medians)])
+    
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open('w', newline='') as f:
+        csv.writer(f).writerows([header] + rows)
+
+
+# -------------------- 主流程 --------------------
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='DuckDB 资源采样脚本')
     parser.add_argument('-n', '--rounds', type=int, default=5)
     parser.add_argument('-o', '--out', type=Path, default=Path('result.csv'))
+    parser.add_argument('-t', '--threads', type=int, default=1)
     parser.add_argument('-x', '--exclude', nargs='*', default=[])
     parser.add_argument('files', nargs='+')
     args = parser.parse_args()
 
-    exclude_set = {Path(f).name for f in args.exclude}          
-    file_list = sorted([Path(f).resolve() for f in args.files
-                    if Path(f).name not in exclude_set],    
-                   key=lambda p: p.name)
-    if not file_list:
-        print('所有文件均被排除，无事可做。')
-        return
-    data = {f.name: [] for f in file_list}  # 存放结果
+    exclude = {Path(f).name for f in args.exclude}
+    files = sorted([Path(f).resolve() for f in args.files if Path(f).name not in exclude], key=lambda p: p.name)
+    data = {f.name: {'method': '', 'interval': 0.0, 'samples': []} for f in files}
 
-    # ---------- 第一轮：纯测延迟，定档 ----------
-    for f in file_list:
+    print("="*60 + "\n预热轮\n" + "="*60)
+    for f in files:
         sql = f.read_text().strip()
-        res_q = mp.Queue()
-        p = mp.Process(target=_worker, args=(sql, DB_PATH, res_q))
-        t0 = time.perf_counter()
-        p.start()
-        p.join()
-        lat_ms = (time.perf_counter() - t0) * 1000  # wall-clock
-        interval = pick_interval(lat_ms)
-        print(f'{f.name} 定档延迟 {lat_ms:.3f} ms → 采样 {interval*1000:.0f} ms')
-        data[f.name].append(('interval', lat_ms, interval))
+        try:
+            lat = warmup_query(sql, args.threads)
+            method = "cpu_times" if lat < SHORT_QUERY_THRESHOLD_MS else "sampling"
+            data[f.name].update({'method': method, 'interval': pick_interval(lat)})
+            print(f'{f.name}: {lat:.1f}ms → {method}')
+        except Exception as e:
+            print(f'❌ {f.name}: {e}')
 
-    # ---------- 第 2 … n+1 轮：正式采样 ----------
-    for rnd in range(2, args.rounds + 2):
-        for f in file_list:
+    print("\n" + "="*60 + "\n正式采样\n" + "="*60)
+    for rnd in range(1, args.rounds + 1):
+        print(f"\n----- 第 {rnd} 轮 -----")
+        for f in files:
             sql = f.read_text().strip()
-            _, _, interval = data[f.name][0]
-            pc, pr, ac = sample_resource(sql, interval)
-            data[f.name].append((pc, pr, ac))
-            print(
-                f'R{rnd-1:02d}  {f.name}: '
-                f'peak_cpu={pc:.1f}% peak_rss={pr:.1f}GB avg_cpu={ac:.1f}%'
-            )
-            flush_csv(args.out, data, args.rounds)
+            try:
+                info = data[f.name]
+                if info['method'] == "cpu_times":
+                    res = measure_short_query(sql, args.threads)
+                else:
+                    res = measure_long_query(sql, info['interval'], args.threads)
+                
+                info['samples'].append(res)
+                print(f'{f.name}: lat={res[0]:.1f}ms cpu_time={res[1]:.1f}ms cpu={res[2]:.1f}% rss={res[3]:.2f}GB')
+                flush_csv(args.out, data, args.threads)
+            except Exception as e:
+                print(f'❌ {f.name}: {e}')
 
-    print(f'资源采样完成 → {args.out}')
-
-
-# ---------- CSV 落盘 ----------
-def flush_csv(out: Path, data: dict, runs: int):
-    header = [
-        'file',
-        'first_lat_ms',
-        'sample_interval_ms',
-        'peak_cpu_%',
-        'peak_rss_gb',
-        'avg_cpu_%',
-    ]
-    rows = []
-    for fname, raw in data.items():
-        first_lat, sample_interval = 0.0, 0.0
-        samples = []
-        for r in raw:
-            if isinstance(r, tuple) and len(r) == 3 and r[0] == 'interval':
-                first_lat, sample_interval = r[1], r[2]
-            else:
-                samples.append(r)
-        if not samples:
-            rows.append(
-                [
-                    fname,
-                    f'{first_lat:.3f}',
-                    f'{sample_interval*1000:.0f}',
-                    '',
-                    '',
-                    '',
-                ]
-            )
-            continue
-        pcu = statistics.median([s[0] for s in samples])
-        prss = statistics.median([s[1] for s in samples])
-        acu = statistics.median([s[2] for s in samples])
-        rows.append(
-            [
-                fname,
-                f'{first_lat:.3f}',
-                f'{sample_interval*1000:.0f}',
-                f'{pcu:.1f}',
-                f'{prss:.1f}',
-                f'{acu:.1f}',
-            ]
-        )
-    out.parent.mkdir(parents=True, exist_ok=True)
-    with out.open('w', newline='') as cf:
-        csv.writer(cf).writerows([header] + rows)
+    print(f'\n✅ 完成 → {args.out}')
 
 
 if __name__ == '__main__':
