@@ -94,6 +94,7 @@ services:
       - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd:2380
       - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
       - ETCD_INITIAL_CLUSTER=default=http://etcd:2380
+      - ETCD_DATA_DIR=/etcd-data  
     ports:                                    
       - "30010:2379"
       - "30011:2380"
