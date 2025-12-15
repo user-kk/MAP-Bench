@@ -13,5 +13,5 @@
 ## 查询语句与查询计划信息
 
 ```bash
-/usr/bin/python3 bench_helmdb_info.py sql/*.sql -o "out/info_$(date +%F_%T).csv"
+/usr/bin/python3 bench_helmdb_info.py sql/*.sql -o "out/info_$(date +%F_%T).csv" -x  G4.sql G5.sql G6.sql
 ```

@@ -1,13 +1,13 @@
 ## 端到端延迟
 
 ```bash
-python bench_duckdb.py sql/*.sql -x G1.sql G3.sql -o "out/$(date +%F_%T).csv"
+python bench_duckdb.py sql/*.sql -x G1.sql G3.sql V1.sql -o "out/$(date +%F_%T).csv"
 ```
 
 ## 内存和cpu占用
 
 ```bash
-python bench_duckdb_res.py sql/*.sql -x G1.sql G3.sql -o "out/res_$(date +%F_%T).csv"
+python bench_duckdb_res.py sql/*.sql -x G1.sql G3.sql V1.sql -o "out/res_$(date +%F_%T).csv" -t 1
 ```
 ## 查询语句与查询计划信息
 
