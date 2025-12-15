@@ -67,7 +67,7 @@ def restart_helmdb(host=DB_CONF['host'], port=DB_CONF['port'], max_wait=60):
     # Python 3.6 run 也不支持 capture_output，直接调用即可
     subprocess.check_call(['sudo', 'systemctl', 'restart', 'opengauss.service'])
     
-    time.sleep(7)
+    time.sleep(14)
 
     for _ in range(max_wait):
         try:

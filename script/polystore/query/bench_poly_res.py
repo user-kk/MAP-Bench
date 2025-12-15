@@ -347,7 +347,7 @@ def restart_polystore(compose_file: Path, max_wait=120):
     ports = [DB_CONF['pg_port'], DB_CONF['mongo_port'], 
              DB_CONF['neo4j_port'], DB_CONF['milvus_port']]
     
-    time.sleep(10)
+    time.sleep(60)
     for port in ports:
         for _ in range(max_wait):
             try:
