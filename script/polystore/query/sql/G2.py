@@ -7,7 +7,7 @@ from common.context import Context
 
 def G2(ctx: "Context",
        a_id: int = 4377013841,
-       b_id: int = 4285171441) -> pd.DataFrame:
+       b_id: int = 3155434940) -> pd.DataFrame:
     """
     返回两论文最短路径上中间论文的 ['id', 'title']
     按 influence_score = paper_cites + avg(author_cites) 降序，id 升序

@@ -3,7 +3,7 @@ WITH t AS (
     -- 第一步：计算两篇论文之间的最短路径(不含起点终点)
     SELECT e.endid AS p_id
     FROM work_work_gra MATCH SHORTEST path = (p1: work_v)-[e: work_referenced_work_e] * -> (p2: work_v)
-    WHERE p1.id = 4377013841 AND p2.id = 4285171441 
+    WHERE p1.id = 4377013841 AND p2.id = 3155434940 
 ),
 PaperDetails AS (
     -- 第二步：获取路径论文的被引量和 authorships 数组
@@ -14,7 +14,7 @@ PaperDetails AS (
     FROM t
     JOIN work w ON w.id = t.p_id
     JOIN work_doc wd ON wd.id = t.p_id
-    where t.p_id != 4377013841 and t.p_id != 4285171441
+    where t.p_id != 4377013841 and t.p_id != 3155434940
 ),
 t2 as (
     -- 第三步：根据影响力计算公式计算影响力

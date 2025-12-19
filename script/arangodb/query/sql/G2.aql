@@ -1,6 +1,6 @@
 /* 参数绑定 */
 LET a_id =  4377013841       /* 4377013841 */
-LET b_id =  4285171441       /* 4224436092 */
+LET b_id =  3155434940       /* 4224436092 */
 
 /* ---- t：最短路径节点(不含起点终点)---- */
 LET t = (
@@ -22,29 +22,22 @@ LET PaperDetails = (
                 }
 )
 
-/* ---- t2：按影响力公式打分 ---- */
-LET t2 = (
-    FOR pd IN PaperDetails
-        for p in work
-        FILTER pd.p_id == p.id
+FOR pd IN PaperDetails
+    for p in work
+    FILTER pd.p_id == p.id
 
 
-        /* 计算作者平均影响力 */
-        LET avgAuthorCites = AVG(
-            FOR auth IN pd.authorships_jsonb
-               for a in author
-                    FILTER to_number(auth.author.id) == a.id
-                    RETURN a.cited_by_count
-        )
+    /* 计算作者平均影响力 */
+    LET avgAuthorCites = AVG(
+        FOR auth IN pd.authorships_jsonb
+            for a in author
+                FILTER to_number(auth.author.id) == a.id
+                RETURN a.cited_by_count
+    )
+    let influence_score = pd.paper_cites + (avgAuthorCites != NULL ? avgAuthorCites : 0)
+    SORT influence_score DESC, pd.p_id ASC
 
-        RETURN {
-            id: pd.p_id,
-            title: p.title,
-            influence_score: pd.paper_cites + (avgAuthorCites != NULL ? avgAuthorCites : 0)
-        }
-)
-
-/* ---- 最终结果 ---- */
-FOR row IN t2
-    SORT row.influence_score DESC, row.id ASC
-    RETURN {id: row.id, title: row.title}
+    RETURN {
+        id: pd.p_id,
+        title: p.title,
+    }
