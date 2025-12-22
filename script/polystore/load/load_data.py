@@ -216,6 +216,9 @@ def pg_build_and_load(ctx):
         print(f'==> {csv_file} 导入完成')
 
     conn.commit()
+    
+    # 建立索引
+    cur.execute('CREATE INDEX inst_id_index on author(institution_id);')
     print('==> PostgreSQL 全部导入完成')
 
 def mongo_doc_import(ctx):

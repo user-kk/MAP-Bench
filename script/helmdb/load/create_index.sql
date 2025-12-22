@@ -1,3 +1,4 @@
+CREATE INDEX inst_id_index on author(institution_id);
 -- 顶点表 B-tree 索引
 CREATE INDEX work_v_id_index   ON work_v   USING btree (id);
 CREATE INDEX author_v_id_index ON author_v USING btree (id);

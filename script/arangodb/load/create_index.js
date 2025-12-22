@@ -3,6 +3,7 @@ const db = require('@arangodb').db;
 /* 1. 给所有集合的 id 建 persistent 唯一索引 */
 // 关系
 db.author.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inBackground: true });
+db.author.ensureIndex({ type: "persistent", fields: ["institution_id"], unique: false, inBackground: true });
 db.work.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inBackground: true });
 db.topic.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inBackground: true });
 db.institution.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inBackground: true });

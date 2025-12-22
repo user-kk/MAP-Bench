@@ -6,3 +6,4 @@ CREATE PROPERTY INDEX idx_work_v_id ON work_v(id);
 CREATE PROPERTY INDEX idx_topic_v_id ON topic_v(id);
 
 CREATE INDEX ad_gin_index on author_doc using gin ((doc->'display_name_alternatives'));
+CREATE INDEX inst_id_index on author(institution_id);
