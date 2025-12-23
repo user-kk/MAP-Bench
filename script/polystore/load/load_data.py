@@ -252,6 +252,9 @@ def mongo_doc_import(ctx):
         if coll_name == 'author_doc':
             col.create_index([("doc.display_name_alternatives", 1)])
             print(f'==> 为 {coll_name} 创建索引: doc.display_name_alternatives')
+        if coll_name == 'work_doc':
+            col.create_index([("doc.topics.display_name", 'hashed')])
+            print(f'==> 为 {coll_name} 创建索引: doc.topics.display_name : hashed')
 
 def _csv_vertex_to_jsonl(csv_path: str, jsonl_path: str, batch_size=100_000):
     """转换顶点 CSV 到 JSONL"""

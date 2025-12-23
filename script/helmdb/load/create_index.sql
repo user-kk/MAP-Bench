@@ -1,4 +1,10 @@
 CREATE INDEX inst_id_index on author(institution_id);
+
+-- 报错：
+-- CREATE INDEX ad_gin_index on author_doc using gin ((doc->'display_name_alternatives'));
+CREATE INDEX wd_topic_gin_index on work_doc using gin ((doc->'topics'));
+
+
 -- 顶点表 B-tree 索引
 CREATE INDEX work_v_id_index   ON work_v   USING btree (id);
 CREATE INDEX author_v_id_index ON author_v USING btree (id);

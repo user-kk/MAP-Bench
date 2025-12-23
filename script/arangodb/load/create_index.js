@@ -12,6 +12,7 @@ db.institution_geo.ensureIndex({ type: "persistent", fields: ["institution_id"],
 db.work_doc.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inBackground: true });
 db.author_doc.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inBackground: true });
 db.author_doc.ensureIndex({   type: "hash", fields: ["doc.display_name_alternatives[*]"] });
+db.work_doc.ensureIndex({   type: "hash", fields: ["doc.topics[*].display_name"] });
 // 图 
 db.work_v.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inBackground: true });
 db.topic_v.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inBackground: true });
