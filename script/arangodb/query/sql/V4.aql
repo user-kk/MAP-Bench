@@ -1,13 +1,13 @@
 /* ---- ids：2018-2023 且摘要含 "multi-model database" ---- */
-let current_paper_id = 4379620227
+let current_paper_id = 3183282730
 LET ids = (
-    FOR w IN work
-      FILTER w.publication_year >= 2018 && w.publication_year <= 2023
-      FOR wc IN work_doc 
-        FILTER wc.id == w.id 
-            and has(wc.doc.abstract_inverted_index,'multi-model')
-            and has(wc.doc.abstract_inverted_index,'database')
-        RETURN {work_id: w.id}
+    FOR wc IN work_doc 
+        filter 'Neural Network Fundamentals and Applications' in wc.doc.topics[*].display_name 
+        FOR w IN work
+          FILTER wc.id == w.id and w.publication_year >= 2018 and w.publication_year <= 2023
+                and has(wc.doc.abstract_inverted_index,'network')
+                and has(wc.doc.abstract_inverted_index,'model')
+            RETURN {work_id: w.id}
 )
 
 let curVec = FIRST(

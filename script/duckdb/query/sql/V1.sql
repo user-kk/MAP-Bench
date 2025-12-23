@@ -2,10 +2,10 @@ WITH
 TopCitedPaper AS (
     SELECT w.id AS work_id
     FROM work AS w join work_doc AS wd ON w.id = wd.id
-    WHERE w.publication_year >= 2020 - 5
+    WHERE w.publication_year >= 2023
       AND json_contains(
             json_extract(wd.doc, '$.topics'),
-            json_object('display_name', 'Impact of Climate Change on Human Health')
+            json_object('display_name', 'Graph Neural Network Models and Applications')
           )
     ORDER BY w.cited_by_count DESC, w.id
     LIMIT 1

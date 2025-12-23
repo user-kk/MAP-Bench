@@ -1,11 +1,11 @@
 LET TopCitedPaper = (
-    FOR w IN work
-        FILTER w.publication_year >= 2020 - 5 
-        for wc in work_doc
-            FILTER w.id == wc.id and 'Impact of Climate Change on Human Health' in wc.doc.topics[*].display_name 
-            SORT w.cited_by_count DESC, w.id ASC
-            LIMIT 1
-            RETURN {work_id: w.id}  
+    for wc in work_doc
+        filter 'Graph Neural Network Models and Applications' in wc.doc.topics[*].display_name 
+        FOR w IN work
+            FILTER w.id == wc.id and w.publication_year >= 2023 
+                SORT w.cited_by_count DESC, w.id ASC
+                LIMIT 1
+                RETURN {work_id: w.id}  
 )
 LET PaperCitationNetwork = (
     FOR tcp IN TopCitedPaper

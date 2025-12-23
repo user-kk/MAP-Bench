@@ -2,9 +2,9 @@ WITH TopCitedPaper AS (
 -- 第一步： 找出近五年内某个领域内被引用量最高的论文 (关系文档join + 文档嵌套结构访问 + 文档包含谓词查询)
 SELECT w.id AS work_id
 FROM work w, work_doc wc 
-WHERE w.publication_year >= 2020 - 5 
+WHERE w.publication_year >= 2023
     and w.id = wc.id
-    and wc.doc->'topics' @> '[{"display_name":"Impact of Climate Change on Human Health"}]' 
+    and wc.doc->'topics' @> '[{"display_name":"Graph Neural Network Models and Applications"}]' 
 ORDER BY w.cited_by_count DESC,w.id asc
 LIMIT 1
 ),

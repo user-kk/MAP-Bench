@@ -4,14 +4,18 @@ WITH ids AS (
     FROM work w
     JOIN work_doc wc ON w.id = wc.id
     WHERE w.publication_year >= 2018 AND w.publication_year <= 2023
-      AND (wc.doc->'abstract_inverted_index'->'multi-model') is not null
-      AND (wc.doc->'abstract_inverted_index'->'database') is not null
+      AND json_contains(
+            json_extract(wc.doc, '$.topics'),
+            json_object('display_name', 'Neural Network Fundamentals and Applications')
+          )
+      AND (wc.doc->'abstract_inverted_index'->'network') is not null
+      AND (wc.doc->'abstract_inverted_index'->'model') is not null
 ),
 ids2 AS (
     -- 第二步：计算与给定论文的主题向量相似度，取出相似度最高的 20 篇论文 不包含自己
-    SELECT ids.id,array_distance(p1_vec.vec,(select p2_vec.vec from work_vec p2_vec where p2_vec.id =  4379620227)) as dis
+    SELECT ids.id,array_distance(p1_vec.vec,(select p2_vec.vec from work_vec p2_vec where p2_vec.id =  3183282730)) as dis
     FROM ids join work_vec p1_vec on ids.id = p1_vec.id
-    WHERE  ids.id != 4379620227
+    WHERE  ids.id != 3183282730
     ORDER BY dis ASC,ids.id asc
     LIMIT 20
 )
