@@ -5,60 +5,59 @@ services:
     image: postgres:14
     container_name: postgres
     restart: unless-stopped
-    mem_limit: 8g
-    # 如需额外调优，可把自定义 postgresql.conf 挂进去
-    # command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    mem_limit: ${POSTGRES_MEM_LIMIT:-8g}
     environment:
-      POSTGRES_PASSWORD: linux123   # 相当于 MySQL 的 root 密码
+      POSTGRES_PASSWORD: linux123
       TZ: Asia/Shanghai
     ports:
       - "30000:5432"
     command: >
-        postgres
-          -c shared_buffers=4GB
-          -c effective_cache_size=5GB
-          -c maintenance_work_mem=4GB
-          -c max_connections=20
-          -c work_mem=0.5GB 
+      postgres
+        -c shared_buffers=4GB
+        -c effective_cache_size=5GB
+        -c maintenance_work_mem=4GB
+        -c max_connections=20
+        -c work_mem=0.5GB
     volumes:
       - pg_data:/var/lib/postgresql/data
       - /tmp/polystore:/tmp/polystore
-      - /openalex_middle:/openalex_middle        
+      - /openalex_middle:/openalex_middle
     deploy:
       resources:
-        limits:   { memory: 8GB }
-        reservations: { memory: 8GB }
+        limits:
+          memory: ${POSTGRES_MEM_LIMIT:-8GB}
+        reservations:
+          memory: ${POSTGRES_MEM_LIMIT:-8GB}
 
   mongodb:
     image: mongo:6.0
     container_name: mongodb
     restart: unless-stopped
-    mem_limit: 8g
+    mem_limit: ${MONGODB_MEM_LIMIT:-8g}
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: linux123   
+      MONGO_INITDB_ROOT_PASSWORD: linux123
     ports:
       - "30001:27017"
     volumes:
       - mongo_data:/data/db
       - /tmp/polystore:/tmp/polystore
       - /openalex_middle:/openalex_middle
-    command: >
-      mongod
-        --wiredTigerCacheSizeGB 5
+    command: mongod --wiredTigerCacheSizeGB 5
     deploy:
       resources:
-        limits:   { memory: 8GB }
-        reservations: { memory: 8GB }
+        limits:
+          memory: ${MONGODB_MEM_LIMIT:-8GB}
+        reservations:
+          memory: ${MONGODB_MEM_LIMIT:-8GB}
 
   neo4j:
     image: neo4j:5.24
     container_name: neo4j
     restart: unless-stopped
-    mem_limit: 21g
+    mem_limit: ${NEO4J_MEM_LIMIT:-21g}
     environment:
       NEO4J_AUTH: neo4j/linux123
-      # 启用 APOC
       NEO4J_apoc_export_file_enabled: "true"
       NEO4J_apoc_import_file_enabled: "true"
       NEO4J_apoc_import_file_use__neo4j__config: "true"
@@ -67,7 +66,7 @@ services:
       NEO4J_server_memory_heap_max__size: 16g
       NEO4J_server_memory_pagecache_size: 4g
       NEO4J_dbms_transaction_timeout: 0
-      NEO4JLABS_PLUGINS: '["apoc"]' 
+      NEO4JLABS_PLUGINS: '["apoc"]'
     ports:
       - "30002:7474"
       - "30003:7687"
@@ -79,8 +78,10 @@ services:
       - /tmp/polystore:/var/lib/neo4j/import
     deploy:
       resources:
-        limits:   { memory: 21GB }   # 多给 1 GB 堆外开销
-        reservations: { memory: 21GB }
+        limits:
+          memory: ${NEO4J_MEM_LIMIT:-21GB}
+        reservations:
+          memory: ${NEO4J_MEM_LIMIT:-21GB}
 
   etcd:
     image: quay.io/coreos/etcd:v3.5.5
@@ -94,16 +95,18 @@ services:
       - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd:2380
       - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
       - ETCD_INITIAL_CLUSTER=default=http://etcd:2380
-      - ETCD_DATA_DIR=/etcd-data  
-    ports:                                    
+      - ETCD_DATA_DIR=/etcd-data
+    ports:
       - "30010:2379"
       - "30011:2380"
     volumes:
       - etcd_data:/etcd-data
     deploy:
       resources:
-        limits:   { memory: 2GB }
-        reservations: { memory: 2GB }
+        limits:
+          memory: ${ETCD_MEM_LIMIT:-2GB}
+        reservations:
+          memory: ${ETCD_MEM_LIMIT:-2GB}
 
   minio:
     image: minio/minio:RELEASE.2023-03-20T20-16-18Z
@@ -112,34 +115,32 @@ services:
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
-    ports:                                    
-      - "30012:9000"   # API
-      - "30013:9001"   # Console
+    ports:
+      - "30012:9000"
+      - "30013:9001"
     volumes:
       - minio_data:/minio-data
+    command: minio server /minio-data --console-address ":9001"
     deploy:
       resources:
-        limits:   { memory: 2GB }
-        reservations: { memory: 2GB }
-      
-    command: minio server /minio-data --console-address ":9001"
+        limits:
+          memory: ${MINIO_MEM_LIMIT:-2GB}
+        reservations:
+          memory: ${MINIO_MEM_LIMIT:-2GB}
 
   milvus:
     image: milvusdb/milvus:v2.3.4
     container_name: milvus
     restart: unless-stopped
-    mem_limit: 14g
+    mem_limit: ${MILVUS_MEM_LIMIT:-14g}
     ports:
       - "30004:19530"
       - "30005:9091"
     environment:
-      ETCD_ENDPOINTS: "etcd:2379"       
+      ETCD_ENDPOINTS: "etcd:2379"
       MINIO_ADDRESS: "minio:9000"
       MINIO_ACCESS_KEY: "minioadmin"
       MINIO_SECRET_KEY: "minioadmin"
-      # QUERYNODE_CACHE_ENABLED: "true"
-      # QUERYNODE_CACHE_MEMORY_LIMIT: 12GB   # 查询缓存
-      # DATANODE_INSERTBUFLENINMB: 1024      # 1 GB 写缓存
     volumes:
       - /tmp/polystore:/var/lib/milvus/import
       - milvus_data:/var/lib/milvus
@@ -151,12 +152,12 @@ services:
     command: ["milvus", "run", "standalone"]
     deploy:
       resources:
-        limits:   { memory: 14GB }
-        reservations: { memory: 14GB }
+        limits:
+          memory: ${MILVUS_MEM_LIMIT:-14GB}
+        reservations:
+          memory: ${MILVUS_MEM_LIMIT:-14GB}
 
-
-
-  attu: # milvus的图形界面
+  attu:
     image: zilliz/attu:v2.3.8
     container_name: attu
     restart: unless-stopped
@@ -168,9 +169,10 @@ services:
       - milvus
     deploy:
       resources:
-        limits:   { memory: 2GB }
-        reservations: { memory: 2GB }
-      
+        limits:
+          memory: ${ATTU_MEM_LIMIT:-2GB}
+        reservations:
+          memory: ${ATTU_MEM_LIMIT:-2GB}
 
 volumes:
   pg_data:

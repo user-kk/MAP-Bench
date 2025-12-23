@@ -17,6 +17,8 @@ def csv_to_jsonl(csv_path,
     jsonl_path = jsonl_path or csv_path.with_suffix(".jsonl")
     row_cnt = 0
 
+    csv.field_size_limit(sys.maxsize)
+
     with csv_path.open(newline="", encoding="utf-8") as fin, \
          jsonl_path.open("w", encoding="utf-8") as fout:
 

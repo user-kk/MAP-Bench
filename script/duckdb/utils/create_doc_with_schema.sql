@@ -23,17 +23,6 @@ CREATE TABLE new_work_doc (
     
 );
 
-
--- 0. 如果 JSON 扩展还没加载
-LOAD json;
-
--- 0. 加载 JSON 扩展
-LOAD json;
-
--- 1. 迁移数据（元素级补字段）
--- 0. 加载 JSON 扩展
-LOAD json;
-
 -- 1. 迁移数据（元素级全部补 NULL）
 INSERT INTO new_work_doc
 SELECT
