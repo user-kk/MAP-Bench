@@ -16,13 +16,13 @@ let curVec = FIRST(
 
 /* ---- ids2：与当前论文向量最相似的 20 篇 不包含自己 ---- */
 LET ids2 = (
-    FOR row IN ids
-      FILTER row.work_id != current_paper_id
-      for v in work_vec
-        FILTER v.id == row.work_id
-        SORT L2_DISTANCE(v.vec, curVec) ASC,row.work_id ASC
+
+    for wv in work_vec
+        filter wv.id in ids[*].work_id and wv.id != current_paper_id
+        // 不能用APPROX_NEAR_L2 报错 Note that filtering can be applied in trivial cases.
+        SORT APPROX_NEAR_L2(wv.vec, curVec) ASC
         LIMIT 20
-        RETURN {work_id: row.work_id}
+        return {work_id: wv.id}
 )
 
 /* ---- 最终组装 bib 对象 ---- */

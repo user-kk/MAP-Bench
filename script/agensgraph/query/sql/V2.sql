@@ -1,20 +1,25 @@
-with tids as (
-    select id,tv.vec <-> (select vec from topic_vec where id = 10862) as dis
-    from topic_vec tv
-    order by tv.vec <-> (select vec from topic_vec where id = 10862) asc
-    limit 5
+WITH context_pool AS (
+    (SELECT id::bigint AS id
+    FROM ( -- 不能用[:work_referenced_work_e*0..1] 非常慢
+        MATCH (p1:work_v {id: 4395661325})-[:work_referenced_work_e]->(p2:work_v)
+        RETURN p2.id
+    ) t)
+    UNION
+    SELECT 4395661325 AS id
 ),
-topicWork as (
-    select tids.id,tids.dis,g.title,ROW_NUMBER() OVER (PARTITION BY tids.id ORDER BY g.cited_by_count::int DESC,g.wid asc) AS rank
-    from (
-        MATCH (w: work_v)-[:work_topic_e]->(t: topic_v)
-        where t.id in (select to_jsonb(id) from tids) and t.works_count > 10000
-        return w.id as wid,w.title,w.cited_by_count,t.id as tid
-    ) g join tids on g.tid::bigint = tids.id
+context_vectors AS (
+    -- 第二步：获取这些论文的向量 (Relational Join)
+    SELECT cp.id AS work_id, wv.vec
+    FROM context_pool cp
+    JOIN work_vec wv ON cp.id = wv.id
 )
-
-select t.display_name,json_agg(tw.title order by tw.rank) as top_papers_json
-    from topicWork tw join topic t on tw.id = t.id
-    where tw.rank<=3
-    group by t.display_name,tw.dis
-    order by tw.dis asc
+SELECT 
+    cv.work_id,
+    ARRAY(
+        SELECT w.id
+        FROM work_vec w
+        WHERE w.id not in (select id from context_pool)
+        ORDER BY w.vec <-> cv.vec ASC
+        LIMIT 5
+    ) as recommendations
+FROM context_vectors cv;

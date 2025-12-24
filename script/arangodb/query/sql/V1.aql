@@ -12,30 +12,17 @@ LET PaperCitationNetwork = (
       FOR v IN 1..2 OUTBOUND CONCAT("work_v/", to_string(tcp.work_id)) work_referenced_work_e
         RETURN distinct {cited_work_id: v.id}
 )
-LET PaperVector = (
-    UNION (
-    (FOR pcn IN PaperCitationNetwork
-      FOR wv IN work_vec
-        FILTER wv.id == pcn.cited_work_id
-        RETURN {id: wv.id, vec: wv.vec}
-    ),
-    (FOR tcp IN TopCitedPaper
-        FOR wv IN work_vec
-          FILTER wv.id == tcp.work_id
-          RETURN {id: wv.id, vec: wv.vec})
-    )
-)
-LET topVec = (FOR pv IN PaperVector FILTER pv.id == TopCitedPaper[0].work_id RETURN pv.vec)[0]
+LET topVec = (FOR wv IN work_vec FILTER wv.id == TopCitedPaper[0].work_id RETURN wv.vec)[0]
 LET SimilarityScore = (
-    FOR pcn IN PaperCitationNetwork
-      FOR pv1 IN PaperVector
-        FILTER pv1.id == pcn.cited_work_id
-        LET similarity_score = L2_DISTANCE(topVec, pv1.vec)
-        SORT similarity_score ASC , pcn.cited_work_id ASC
-        RETURN {cited_work_id: pcn.cited_work_id, similarity_score}
+    for wv in work_vec
+        filter wv.id in PaperCitationNetwork[*].cited_work_id
+        //不能用APPROX_NEAR_L2 报错：Note that filtering can be applied in trivial cases.
+        let similarity_score = L2_DISTANCE(wv.vec, topVec)
+        SORT similarity_score ASC 
+        limit 10
+        return {cited_work_id: wv.id, similarity_score}
 )
 FOR ss IN SimilarityScore
-  LIMIT 10
   FOR w IN work
     FILTER w.id == ss.cited_work_id
     RETURN {

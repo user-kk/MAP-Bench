@@ -9,12 +9,12 @@ WITH ids AS (
 ),
 ids2 AS (
     -- 第二步：计算与给定论文的主题向量相似度，取出相似度最高的 20 篇论文 不包含自己
-    SELECT ids.id
-    FROM ids join work_vec p1_vec on ids.id = p1_vec.id
-    WHERE  ids.id != 3183282730
-    ORDER BY (p1_vec.vec <-> (
-        select p2_vec.vec from work_vec p2_vec where p2_vec.id =  3183282730
-    )) ASC,ids.id asc
+    SELECT work_vec.id
+    FROM work_vec
+    WHERE id IN (SELECT id FROM ids) and id != 3183282730
+    ORDER BY work_vec.vec <-> (
+        select vec from work_vec where id = 3183282730
+    ) ASC
     LIMIT 20
 )
 SELECT 

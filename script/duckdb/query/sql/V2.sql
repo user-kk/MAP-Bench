@@ -1,21 +1,40 @@
-with tids as (
-    select id,array_distance(tv.vec,(select vec from topic_vec where id = 10862)) as dis
-    from topic_vec tv
-    order by dis asc
-    limit 5
-),
-topicWork as (
-    select tids.id,tids.dis,g.title,ROW_NUMBER() OVER (PARTITION BY tids.id ORDER BY g.cited_by_count::int DESC,g.wid asc) AS rank
-    from tids join
-    GRAPH_TABLE (
-        academic_net
-        MATCH (w: work_v)-[e:work_topic_e]->(t: topic_v)
-        COLUMNS (w.id as wid,w.title,w.cited_by_count,t.id as tid,t.works_count)
-    ) g on tids.id = g.tid and g.works_count > 10000
-)
+WITH context_ids_agg AS (
 
-select t.display_name,array_agg(tw.title order by tw.rank)
-    from topicWork tw join topic t on tw.id = t.id
-    where tw.rank<=3
-    group by t.display_name,tw.dis
-    order by tw.dis asc
+    -- 用下面这个duckdb会直接崩溃
+    -- SELECT id AS id
+    -- from GRAPH_TABLE (
+    --     academic_net
+    --     MATCH (p1:work_v)-[e:work_referenced_work_e]->(p2:work_v)
+    --     WHERE p1.id = 4395661325
+    --     COLUMNS (p2.id AS id)
+    -- ) t
+    -- UNION
+    -- select 4395661325 AS id
+
+    -- 1. 先把所有引用ID聚合成一个数组 (List), 绕开duckpgq的bug
+
+    SELECT list_append(list(id), 4395661325) as all_ids
+    FROM GRAPH_TABLE (
+        academic_net
+        MATCH (p1:work_v)-[e:work_referenced_work_e]->(p2:work_v)
+        WHERE p1.id = 4395661325
+        COLUMNS (p2.id AS id)
+    ) t
+),
+context_vectors AS (
+    -- 2. 获取上下文向量 (需要展开数组再 Join)
+    SELECT u.id AS work_id, wv.vec
+    FROM context_ids_agg, unnest(all_ids) AS u(id)
+    JOIN work_vec wv ON u.id = wv.id
+)
+-- 3. 核心计算
+SELECT 
+    cv.work_id,
+    ARRAY(
+        SELECT w.id
+        FROM work_vec w, context_ids_agg cia -- 引用那个聚合数组表
+        WHERE NOT list_contains(cia.all_ids, w.id)
+        ORDER BY array_distance(w.vec, cv.vec) ASC
+        LIMIT 5
+    ) as recommendations
+FROM context_vectors cv;

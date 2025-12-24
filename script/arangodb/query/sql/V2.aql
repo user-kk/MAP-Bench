@@ -1,20 +1,29 @@
-let target_vec = FIRST(FOR t IN topic_vec FILTER t.id == 10862 RETURN t.vec)
+LET seed_id = 4395661325
 
-let tids = (
-    FOR tv IN topic_vec
-    LET d = APPROX_NEAR_L2(tv.vec, target_vec)   
-    SORT d ASC                          
-    LIMIT 5
-    RETURN {id:tv.id,dis:d}
+LET context_ids = (
+    FOR v, e IN 1..1 OUTBOUND CONCAT("work_v/", seed_id) work_referenced_work_e
+        RETURN v.id
 )
 
-for tid in tids
-    for t in topic
-        FILTER tid.id == t.id and t.works_count > 10000
-        let top3 = (
-            FOR work_v IN 1..1 INBOUND CONCAT('topic_v/',to_string(t.id)) GRAPH 'work_topic_gra'
-                sort work_v.cited_by_count desc,work_v.id asc
-                limit 3
-                return work_v.title
-        )
-        return {display_name:t.display_name,titles:top3}
+LET all_context_ids = APPEND(context_ids, seed_id)
+
+// 3. 核心查询：对每一篇上下文论文，找相似推荐
+FOR ctx_id IN all_context_ids
+    for wv in work_vec
+        filter wv.id == ctx_id
+
+    LET recommendations = (
+        for w in work_vec
+            // 报错：不能用 Query error: filter node could not be moved into EnumerateNearVector node!
+            // 所以用后过滤吧
+            sort APPROX_NEAR_L2(wv.vec,w.vec) asc
+            limit 10
+            filter w.id not in all_context_ids
+            limit 5
+            return w.id
+    )
+
+    RETURN {
+        source_id: ctx_id,
+        recommendations: recommendations
+    }

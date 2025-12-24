@@ -21,25 +21,13 @@ PaperCitationNetwork AS (
     ) t
 ),
 
-
-PaperVector AS (
-    SELECT id, vec
-    FROM work_vec
-    WHERE id IN (SELECT cited_work_id FROM PaperCitationNetwork)
-    UNION ALL
-    SELECT id, vec
-    FROM work_vec
-    WHERE id = (SELECT work_id FROM TopCitedPaper)
-),
-
 SimilarityScore AS (
-    SELECT pcn.cited_work_id::BIGINT                           AS cited_work_id,
-           array_distance(wv1.vec, wv2.vec) AS similarity_score
-    FROM PaperCitationNetwork AS pcn
-    JOIN PaperVector AS wv1 ON wv1.id = pcn.cited_work_id::BIGINT
-    JOIN PaperVector AS wv2 ON wv2.id = (SELECT work_id FROM TopCitedPaper)
-    ORDER BY array_distance(wv1.vec, wv2.vec), pcn.cited_work_id
-    LIMIT 10
+    SELECT id as cited_work_id ,
+    array_distance(vec, (SELECT vec FROM work_vec WHERE id = (SELECT work_id FROM TopCitedPaper))) as similarity_score
+    FROM work_vec 
+    where id in (SELECT cited_work_id FROM PaperCitationNetwork)
+    order by similarity_score asc
+    limit 10
 )
 
 SELECT w.title,
