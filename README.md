@@ -1,10 +1,17 @@
-# openalex-bench
+# MAP-Bench
 
 
 ## 介绍
 
-这是openalex-bench的脚本仓库，包括导入脚本和测试sql脚本
+这是MAP-Bench的脚本仓库，包括导入脚本和测试sql脚本
 
+MAP-Bench：Multi-model Analytical Processing Benchmark
+
+也可以理解成Multi-model Analytics Pipeline，因为负载是通过不同子查询的查询分析流水线组织起来的
+
+Map(地图/映射) 暗示了连接和导航。 Benchmark 的核心是将不同模型连接起来，像地图一样展示多模数据之间的关联
+
+### 依赖
 当前脚本的依赖如下：
 
 ```bash
@@ -43,7 +50,7 @@ pip install psycopg2-binary==2.9.8 python-arango==7.3.1 duckdb==1.2.2 "psycopg[b
 >
 > 如果不想自己编译,仓库提供dockerfile来生成镜像 
 
-## polystore系统 关系：PostgresSQL 14.20 文档：MongoDB 6.0.26 图：Neo4j 5.24.2 向量：Milvus 2.3.4
+### polystore系统 关系：PostgresSQL 14.20 文档：MongoDB 6.0.26 图：Neo4j 5.24.2 向量：Milvus 2.3.4
 
 在util目录运行如下脚本，使用docker拉取polystore集群
 ```bash
@@ -78,3 +85,7 @@ pip install psycopg2-binary==2.9.8 python-arango==7.3.1 duckdb==1.2.2 "psycopg[b
 ### duckdb 1.2.2 
 
 修改bench_duckdb.py中的DB_CONF配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
+
+### polystore系统
+
+修改bench_poly.py中的DB_CONF配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
