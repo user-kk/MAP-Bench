@@ -21,7 +21,7 @@ pip install psycopg2-binary==2.9.8 python-arango==7.3.1 duckdb==1.2.2 "psycopg[b
 
 ## 导入数据
 
-### arangodb 3.12.5
+### arangodb 3.12.7
 
 在main.sh中填写对应的配置信息，执行即可，时间较长，建议挂一晚，建索引时可能超时，重新单独跑建索引即可
 
@@ -70,7 +70,7 @@ pip install psycopg2-binary==2.9.8 python-arango==7.3.1 duckdb==1.2.2 "psycopg[b
 
 ## 跑查询
 
-### arangodb 3.12.5
+### arangodb 3.12.7
 
 修改bench_arangodb.py中的client和db的配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
 

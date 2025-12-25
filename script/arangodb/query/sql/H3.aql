@@ -1,7 +1,8 @@
 let topic_info = (
     for t in topic
+        filter t.display_name == 'Chemistry and Applications of Metal-Organic Frameworks'
         for tv in topic_vec
-            FILTER t.id == tv.id and t.display_name == 'Chemistry and Applications of Metal-Organic Frameworks'
+            FILTER t.id == tv.id
             return {id:t.id,vec:tv.vec}
 )
 let related = (

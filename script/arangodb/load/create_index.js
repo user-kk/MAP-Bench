@@ -26,12 +26,14 @@ db.work_vec.ensureIndex({
     type: "vector", fields: ["vec"], params: {
         dimension: 128, metric: "l2", nLists: 4096, defaultNProbe:50
     },
+    storedValues: ["id"],
     inBackground: true
 });
 db.topic_vec.ensureIndex({
     type: "vector", fields: ["vec"], params: {
         dimension: 128, metric: "l2", nLists: 128, defaultNProbe:10
     },
+    storedValues: ["id"],
     inBackground: true
 });
 
