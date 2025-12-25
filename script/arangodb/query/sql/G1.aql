@@ -1,4 +1,5 @@
 LET author_name = 'Zupei Liu'
+LET topic_name = 'RNA Methylation and Modification in Gene Expression'
 LET Potential = (
     FOR a IN author_v
         FILTER a.display_name == author_name 
@@ -12,7 +13,7 @@ LET Potential = (
 let topic_info = (
   for t in topic
     for tv in topic_vec
-      filter t.display_name == 'RNA Methylation and Modification in Gene Expression' 
+      filter t.display_name == topic_name 
         and t.id == tv.id
       limit 1
     return {id:t.id,vec:tv.vec}
@@ -22,7 +23,8 @@ let CandidateWork = (
     for p in Potential
         for w in 1..1 inbound concat("author_v/",to_string(p)) work_author_e
             for wd in work_doc
-                FILTER w.id == wd.id and topic_info[0].id in wd.doc.topics[*].id
+                filter topic_name in wd.doc.topics[*].display_name
+                FILTER w.id == wd.id
                 return distinct{aid:p,wid:w.id}
 )
 
