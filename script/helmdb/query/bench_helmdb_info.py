@@ -45,11 +45,10 @@ def get_tokens_and_nodes(cur, sql: str,name):
     )
     node_cnt = 0
     ops = ''
-    if not (name == "A1.sql" or name == "G1.sql"):
-        cur.execute(explain_sql)
-        raw: str = cur.fetchone()[0]
-        node_cnt = len(re.findall(r'^\s*"Node Type"\s*:', raw, re.M))
-        ops = operators_with_cnt(raw)
+    cur.execute(explain_sql)
+    raw: str = cur.fetchone()[0]
+    node_cnt = len(re.findall(r'^\s*"Node Type"\s*:', raw, re.M))
+    ops = operators_with_cnt(raw)
     return tokens, node_cnt, ops
 
 def main():

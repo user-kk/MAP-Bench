@@ -3,6 +3,7 @@ __pycache__/
 **/*.csv
 **/*.zip
 **/*.txt
+**/*.jsonl
 .vscode
 script/common/demo
 tmp/
