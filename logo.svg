@@ -1,0 +1,63 @@
+<svg width="500" height="550" viewBox="0 0 500 550" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Gradient: White to Light Blue -->
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+    </radialGradient>
+    
+    <!-- Deep Blue for outlines -->
+    <style>
+      .main-stroke { fill: none; stroke: #003366; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+      .main-fill { fill: #003366; }
+      .accent-fill { fill: #4fc3f7; }
+    </style>
+  </defs>
+
+  <!-- 1. Background Glow (Optional) -->
+  <circle cx="250" cy="250" r="180" fill="url(#bgGrad)" />
+
+  <!-- 2. The Main Compass Circle -->
+  <!-- We leave a gap at the bottom for the water and top right for the star -->
+  <path d="M 380 150 A 180 180 0 1 0 380 350" class="main-stroke" stroke-width="5" />
+  
+  <!-- Compass Ticks (N, W, S) -->
+  <!-- North -->
+  <line x1="250" y1="70" x2="250" y2="40" class="main-stroke" />
+  <!-- West -->
+  <line x1="70" y1="250" x2="40" y2="250" class="main-stroke" />
+  <!-- South -->
+  <line x1="250" y1="430" x2="250" y2="460" class="main-stroke" />
+
+  <!-- 3. The Water / Waves -->
+  <!-- A stylized wave at the bottom -->
+  <path d="M 120 380 Q 250 420 380 380 Q 250 480 120 380 Z" fill="#003366" opacity="0.9" />
+  
+  <!-- 4. The Sailboat -->
+  <g transform="translate(230, 220) scale(1.2)">
+    <!-- Right Sail (Large) -->
+    <path d="M 40 10 Q 70 60 70 120 L 40 120 Z" fill="#0277bd" stroke="#003366" stroke-width="2"/>
+    <!-- Left Sail (Small) -->
+    <path d="M 35 30 Q 10 70 20 120 L 35 120 Z" fill="#4fc3f7" stroke="#003366" stroke-width="2"/>
+    <!-- Hull -->
+    <path d="M 10 130 L 80 130 L 70 150 L 20 150 Z" fill="#003366" />
+    <!-- Mast -->
+    <line x1="38" y1="10" x2="38" y2="130" stroke="#003366" stroke-width="3" />
+  </g>
+
+  <!-- 5. The Map Path (Dotted Line) -->
+  <!-- Winding from left to the top-right star -->
+  <path d="M 100 250 Q 150 150 250 200 T 380 120" fill="none" stroke="#003366" stroke-width="4" stroke-dasharray="8 8" />
+
+  <!-- 6. The Compass Rose / Star (Top Right Target) -->
+  <g transform="translate(380, 120) scale(0.8)">
+     <!-- The 4 points star -->
+     <path d="M 0 -40 L 15 -15 L 40 0 L 15 15 L 0 40 L -15 15 L -40 0 L -15 -15 Z" fill="#ffffff" stroke="#003366" stroke-width="4" />
+     <path d="M 0 -40 L 0 40 M -40 0 L 40 0" stroke="#003366" stroke-width="2" />
+     <circle cx="0" cy="0" r="10" fill="#003366" />
+  </g>
+
+  <!-- 7. Text -->
+  <text x="250" y="520" font-family="'Segoe UI', Arial, sans-serif" font-weight="bold" font-size="56" text-anchor="middle" fill="#003366" letter-spacing="1">MAP-Bench</text>
+  
+</svg>

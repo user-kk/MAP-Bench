@@ -1,5 +1,8 @@
 # MAP-Bench
 
+<div align="center">
+    <img src="logo.svg" width="300" alt="Logo" />
+</div>
 
 ## 介绍
 
