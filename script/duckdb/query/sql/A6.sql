@@ -1,19 +1,22 @@
-SELECT t.id AS id,
-        count(*) AS cnt
-FROM (
-    SELECT wc.id AS id
-    FROM   work_doc wc
-    WHERE  json_contains(wc.doc.topics,
-                        '{"display_name":"Economic Implications of Climate Change Policies"}')
-    AND  json_contains(wc.doc.topics,
-                        '{"display_name":"Economic Impact of Environmental Policies and Resources"}')
-) as t join
-    GRAPH_TABLE (academic_net
-            MATCH (a:work_v)-[e :work_referenced_work_e]->(b:work_v)
-            where  a.type = 'article' and a.publication_year >= 2020
-            COLUMNS (a.id AS a_id,
-                    b.id AS b_id)
-    ) g on t.id = g.b_id
-GROUP BY t.id
-ORDER BY cnt DESC, id ASC
-limit 5
+with tids as (
+    select id,array_distance(tv.vec,(select vec from topic_vec where id = 10862)) as dis
+    from topic_vec tv
+    order by dis asc
+    limit 5
+),
+topicWork as (
+    select tids.id,tids.dis,g.title,ROW_NUMBER() OVER (PARTITION BY tids.id ORDER BY g.cited_by_count::int DESC,g.wid asc) AS rank
+    from tids join
+    GRAPH_TABLE (
+        academic_net
+        MATCH (w: work_v)-[e:work_topic_e]->(t: topic_v)
+        where t.id in (select id from tids) and t.works_count > 10000
+        COLUMNS (w.id as wid,w.title,w.cited_by_count,t.id as tid)
+    ) g on tids.id = g.tid
+)
+
+select t.display_name,array_agg(tw.title order by tw.rank)
+    from topicWork tw join topic t on tw.id = t.id
+    where tw.rank<=3
+    group by t.display_name,tw.dis
+    order by tw.dis asc
