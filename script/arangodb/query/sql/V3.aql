@@ -4,7 +4,7 @@ let ids = (
     FOR wv IN work_vec
     LET d = APPROX_NEAR_L2(wv.vec, target_vec)   /* <-- 换成 L2 */
     SORT d ASC                          /* 越小越相似 */
-    LIMIT 100
+    LIMIT 300
     RETURN {id:wv.id,dis:d}
 )
 
@@ -16,5 +16,7 @@ FOR t in ids
             FILTER wc.id == w.id 
                 and has(wc.doc.abstract_inverted_index,'benchmark')
                 and has(wc.doc.abstract_inverted_index,'database')
+                and not has(wc.doc.abstract_inverted_index,'survey')
+                and not has(wc.doc.abstract_inverted_index,'review')
             sort t.dis asc
             RETURN {work_id: wc.id,title:w.title}
