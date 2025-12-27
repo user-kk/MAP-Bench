@@ -34,7 +34,7 @@ FOR pd IN PaperDetails
                 FILTER to_number(auth.author.id) == a.id
                 RETURN a.cited_by_count
     )
-    let influence_score = pd.paper_cites + (avgAuthorCites != NULL ? avgAuthorCites : 0)
+    let influence_score = pd.paper_cites + sqrt((avgAuthorCites != NULL ? avgAuthorCites : 0))
     SORT influence_score DESC, pd.p_id ASC
 
     RETURN {

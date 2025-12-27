@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import pandas as pd
 from pathlib import Path
+import math
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from common.context import Context
@@ -70,7 +71,7 @@ def G2(ctx: "Context",
         if not a_ids:
             return row["paper_cites"]
         avg = sum(author_cites.get(aid, 0) for aid in a_ids) / len(a_ids)
-        return row["paper_cites"] + avg
+        return row["paper_cites"] + math.sqrt(avg) 
 
     pg_df["influence_score"] = pg_df.apply(calc_influence, axis=1)
 

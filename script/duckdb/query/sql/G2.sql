@@ -22,8 +22,8 @@ t2 as (
     SELECT 
         pd.id,
         p.title,
-        -- 影响力计算公式（示例）：论文被引量 + 作者平均影响力
-        (pd.paper_cites + COALESCE((
+        -- 影响力计算公式（示例）：论文被引量 + sqrt(作者平均影响力)
+        (pd.paper_cites + SQRT(COALESCE((
             -- 计算作者平均影响力
             SELECT AVG(a.cited_by_count) 
             FROM 
@@ -31,7 +31,7 @@ t2 as (
                 author a                                                   -- 2. 关联 author 表
             WHERE 
                 author_obj.id::bigint = a.id              -- 3. 从嵌套JSON中提取id进行关联
-        ), 0)) AS influence_score
+        ), 0))) AS influence_score
     FROM PaperDetails pd
     JOIN work p ON p.id = pd.id
 )
