@@ -1,12 +1,10 @@
---helmdb没有无向图的查找，如果一定要无向图需要查两个方向的最并集
---本查询为了方便统一结果只查了一个防线
 SELECT
     a.display_name,
     a.cited_by_count,
     i.display_name AS institution_name
 FROM
     (
-    MATCH (a:author_v)-[:author_author_e]->(b:author_v)
+    MATCH (a:author_v)-[:author_author_e]-(b:author_v)
     WHERE a.id = 5040670721
     RETURN b.id AS coauthor_id 
     )  ca

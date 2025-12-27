@@ -4,7 +4,7 @@
 WITH CoAuthorIDs AS (
     SELECT b.id AS coauthor_id
     FROM author_author_gra
-    MATCH (a: author_v)-[: author_author_e]->(b: author_v)
+    MATCH (a: author_v)-[: author_author_e]-(b: author_v)
     WHERE a.id = 5040670721
 )
 SELECT

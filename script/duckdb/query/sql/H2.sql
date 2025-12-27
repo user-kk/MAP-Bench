@@ -3,7 +3,7 @@ SELECT
     a.cited_by_count,
     i.display_name AS institution_name
 FROM GRAPH_TABLE (academic_net
-        MATCH (a:author_v)-[e:author_author_e]->(b:author_v)
+        MATCH (a:author_v)-[e:author_author_e]-(b:author_v)
         WHERE a.id = 5040670721
         COLUMNS (b.id AS coauthor_id)
     ) ca
