@@ -59,8 +59,9 @@ FROM (
 where wd.doc->'topics' @> jsonb_build_array(jsonb_build_object('id',(select id from topic_info)))
 )
 -- 第四步： 计算最佳n个候选者
-SELECT cw.aid as author_id,avg(wv.vec <-> (select vec from topic_info)) as avg_dis
+SELECT cw.aid as author_id,
+    SUM(1.0 / (1.0 + (wv.vec <-> (select vec from topic_info)))) AS relevance_score
 from CandidateWork cw join work_vec wv on cw.wid = wv.id 
 group by cw.aid
-order by avg(wv.vec <-> (select vec from topic_info)) asc,cw.aid asc
+order by relevance_score desc,cw.aid asc
 limit 3;

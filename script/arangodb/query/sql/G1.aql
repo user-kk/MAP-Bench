@@ -32,7 +32,7 @@ for cw in CandidateWork
     for wv in work_vec
         filter cw.wid == wv.id 
         collect author_id  = cw.aid
-        aggregate avg_dis = avg(l2_distance(wv.vec,topic_info[0].vec))
-        sort avg_dis asc, author_id asc
+        aggregate relevance_score = SUM(1.0 / (1.0 + (l2_distance(wv.vec,topic_info[0].vec))))
+        sort relevance_score DESC, author_id asc
         limit 3
-        return {author_id,avg_dis}
+        return {author_id,relevance_score}

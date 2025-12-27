@@ -70,13 +70,20 @@ def G1(ctx: "Context",
             limit=len(wids),
             expr=f"id in {wids}"
         )[0]
-        avg_dis = sum(math.sqrt(h.distance) for h in hits) / len(hits) if hits else float('inf')
-        rows.append({"author_id": aid, "avg_dis": avg_dis})
+        total_score = 0.0
+        for h in hits:
+            # Milvus L2 metric 返回的是欧氏距离的平方 (Squared Euclidean)
+            # 所以真正的 L2 Distance = sqrt(h.distance)
+            l2_dist = math.sqrt(h.distance)
+            
+            # 核心公式应用：
+            total_score += 1.0 / (1.0 + l2_dist)
+        rows.append({"author_id": aid, "relevance_score": total_score})
 
     # 5. 排序 & TOP K
     return (
         pd.DataFrame(rows)
-        .sort_values(["avg_dis", "author_id"], ascending=[True, True])
+        .sort_values(["relevance_score", "author_id"], ascending=[False, True])
         .head(top_k)
         .reset_index(drop=True)
     )

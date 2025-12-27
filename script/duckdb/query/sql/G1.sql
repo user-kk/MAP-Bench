@@ -43,12 +43,12 @@ CandidateWork AS (
     WHERE json_contains(wd.doc.topics,json_object('id',(SELECT topic_id FROM topic_info limit 1)))
 )
 
--- 第五步：计算每个候选作者作品的平均向量距离
+-- 第五步：计算每个候选作者的得分，并返回排名前三的作者
 SELECT
     cw.aid AS author_id,
-    avg(array_distance(wv.vec,(SELECT topic_vec FROM topic_info))) AS avg_dis
+    SUM(1.0 / (1.0 + array_distance(wv.vec, (SELECT topic_vec FROM topic_info)))) AS relevance_score
 FROM CandidateWork cw
 JOIN work_vec wv ON cw.wid = wv.id
 GROUP BY cw.aid
-ORDER BY avg_dis ASC, cw.aid ASC
+ORDER BY relevance_score DESC, cw.aid ASC
 LIMIT 3;
