@@ -20,12 +20,12 @@ TopicPaperPairs AS (
 )
 SELECT 
     topic_id, 
-    display_name, 
+    max(display_name) as display_name, -- 这样不用把 display_name 加入 GROUP BY
     COUNT(DISTINCT work_id) AS paper_count
 FROM 
     TopicPaperPairs
 GROUP BY 
-    topic_id, display_name
+    topic_id
 ORDER BY 
     paper_count DESC, topic_id ASC
 LIMIT 10;

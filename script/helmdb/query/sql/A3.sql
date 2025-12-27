@@ -18,8 +18,8 @@ FROM AuthorWorks aw,
 work_topic_gra MATCH (w: work_v)-[:work_topic_e]->(t: topic_v)
 WHERE w.id = aw.work_id
 ) 
-SELECT topic_id, display_name, COUNT(DISTINCT work_id) AS paper_count
-FROM AuthorTopics at
-GROUP BY topic_id, display_name
+SELECT topic_id, max(display_name) as display_name, COUNT(DISTINCT work_id) AS paper_count
+FROM AuthorTopics
+GROUP BY topic_id
 ORDER BY paper_count DESC
 LIMIT 10;

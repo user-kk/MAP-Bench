@@ -33,7 +33,7 @@ def A3(ctx: "Context", institution_name: str = 'Universität Hamburg') -> pd.Dat
     cypher = f"""
     UNWIND $id_list AS aid
     MATCH (a:author_v {{id: aid}})<-[:work_author_e]-(w:work_v)-[:work_topic_e]->(t:topic_v)
-    WITH t.id AS topic_id, t.display_name AS display_name, count(DISTINCT w.id) AS paper_count
+    WITH t.id AS topic_id, max(t.display_name) AS display_name, count(DISTINCT w.id) AS paper_count
     RETURN topic_id, display_name, paper_count
     ORDER BY paper_count DESC, topic_id ASC
     LIMIT 10

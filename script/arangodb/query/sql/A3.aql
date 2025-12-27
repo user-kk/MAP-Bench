@@ -15,8 +15,8 @@ LET topic_paper_pairs = (
                     }
 )
 FOR pair IN topic_paper_pairs
-    COLLECT topic_id = pair.topic_id,display_name = pair.topic_display_name 
-    aggregate paper_count = count_distinct(pair.work_id)
+    COLLECT topic_id = pair.topic_id
+    aggregate paper_count = count_distinct(pair.work_id), display_name = max(pair.topic_display_name)
     SORT paper_count DESC
     LIMIT 10
     RETURN {

@@ -6,7 +6,7 @@ WITH hamburg_authors AS (
 )
 SELECT 
     g.t_id as topic_id,
-    g.display_name,
+    max(g.display_name) as display_name,
     count(DISTINCT g.w_id) as paper_count
 FROM GRAPH_TABLE (
     academic_net
@@ -15,6 +15,6 @@ FROM GRAPH_TABLE (
     WHERE au.id IN (SELECT id FROM hamburg_authors)
     COLUMNS (au.id as a_id, t.id as t_id, w.id as w_id, t.display_name)
 ) g
-GROUP BY g.t_id, g.display_name
+GROUP BY g.t_id
 ORDER BY paper_count DESC, topic_id ASC
 LIMIT 10;
