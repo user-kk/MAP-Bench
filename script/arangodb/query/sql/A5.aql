@@ -1,33 +1,45 @@
+let topic_ids = (
+    for t in topic
+        filter t.subfield_display_name == 'Artificial Intelligence'
+        RETURN t.id
+)
+
 LET ai_papers = (
-    FOR w IN work
-        FILTER w.publication_year >= 2022 AND w.publication_year <= 2025
-        for wd in work_doc
+    for wd in work_doc
+        filter wd.doc.topics[*].id any in topic_ids
+        FILTER has(wd.doc.abstract_inverted_index,'LLM') or has(wd.doc.abstract_inverted_index,'transformer')
+        FOR w IN work
             filter w.id == wd.id
-            FILTER has(wd.doc.abstract_inverted_index,'model') and has(wd.doc.abstract_inverted_index,'ResNet') 
-            for k in wd.doc.topics
-                for t in topic 
-                    filter t.subfield_display_name == 'Artificial Intelligence' and k.id == t.id
-            RETURN DISTINCT w.id
+            FILTER w.publication_year >= 2022 AND w.publication_year <= 2025
+            RETURN {work_id:w.id,cited_by_count:w.cited_by_count}
 )
 LET author_counts = (
-    FOR paper_id IN ai_papers
+    FOR p IN ai_papers
         for wd in work_doc
-            filter paper_id == wd.id
+            filter p.work_id == wd.id and wd.doc.authorships != null
             FOR authorship IN wd.doc.authorships
-                FILTER authorship.author.id != null
-                COLLECT author_id = authorship.author.id INTO papers_authored = paper_id
-                LET pub_count = LENGTH(UNIQUE(papers_authored))
-                RETURN { author_id, pub_count }
+                COLLECT author_id = authorship.author.id INTO works = p
+                
+                // 计算 pub_count (去重后的论文数)
+                LET pub_count = LENGTH(UNIQUE(works[*].work_id))
+
+                LET i10_index = LENGTH(UNIQUE(
+                    FOR w IN works 
+                    FILTER w.cited_by_count >= 10 
+                    RETURN w.work_id
+                ))
+                
+                RETURN { author_id, pub_count, i10_index }
 )
 FOR ac IN author_counts
     for a in author
         filter ac.author_id == a.id AND a.works_count != 0 and a.cited_by_count >= 10000
         let ratio = ac.pub_count/a.works_count
-        SORT ac.pub_count DESC,ratio DESC,ac.author_id ASC
+        SORT ac.i10_index DESC,ratio DESC,ac.author_id ASC
         LIMIT 10
         RETURN {
             author_id: ac.author_id,
             display_name: a.display_name,
-            pub_count: ac.pub_count,
+            i10_index: ac.i10_index,
             ratio:ratio
         }
