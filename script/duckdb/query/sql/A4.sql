@@ -9,12 +9,12 @@ LIMIT 1
 ),
 AuthorsInHotTopic AS (
 select DISTINCT g.a_id, g.w_id
-from HotTopic ht join GRAPH_TABLE(
+from GRAPH_TABLE(
     academic_net
     MATCH (au: author_v)<-[e1: work_author_e]-(w: work_v)-[e2: work_topic_e]->(t: topic_v)
-    where w.publication_year >= 2020 - 5
-    COLUMNS (au.id as a_id,w.id as w_id,t.id as t_id)
-) g on ht.topic_id = g.t_id 
+    where t.id in (select topic_id from HotTopic) and w.publication_year >= 2020 - 5
+    COLUMNS (au.id as a_id,w.id as w_id)
+) g
 ),
 InstCount AS (
 SELECT a.institution_id::bigint AS inst_id, COUNT(1) AS paper_cnt

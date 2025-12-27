@@ -1,5 +1,5 @@
 WITH
-TopCitedPaper AS (
+TopCitedPaper AS MATERIALIZED(
     SELECT w.id AS work_id
     FROM work AS w join work_doc AS wd ON w.id = wd.id
     WHERE w.publication_year >= 2023

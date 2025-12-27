@@ -1,4 +1,4 @@
-WITH topic_info AS (
+WITH topic_info AS MATERIALIZED(
     SELECT t.id, tv.vec
     FROM topic t
     JOIN topic_vec tv ON t.id = tv.id
@@ -10,6 +10,7 @@ related AS (
     FROM topic_info ti,
          GRAPH_TABLE (academic_net
              MATCH (w:work_v)-[e:work_topic_e]->(t:topic_v)
+             where t.id in (SELECT id FROM topic_info)
              COLUMNS (w.id as w_id, e.score as score, t.id as t_id)
          ) g,
          work_vec wv

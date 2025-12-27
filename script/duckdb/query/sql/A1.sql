@@ -1,4 +1,4 @@
-with TopInstitutions AS ( 
+with TopInstitutions( 
     -- 1. 近 5 年发文最多的 3 所机构
     SELECT institution.id::bigint AS inst_id,
            count(1) as papers_cnt
@@ -19,13 +19,13 @@ InstFields AS (
     SELECT a.institution_id  AS inst_id,
            g.topic_id          AS topic_id,
            COUNT(*)                AS freq
-    FROM author a join TopInstitutions ti on a.institution_id = ti.inst_id
-    JOIN GRAPH_TABLE (
+    FROM GRAPH_TABLE (
         academic_net
         MATCH (a2:author_v)<-[e1:work_author_e]-(w:work_v)-[e2:work_topic_e]->(t:topic_v)
-        WHERE w.publication_year >= 2024-5
+        WHERE a2.id in (SELECT a.id from TopInstitutions ti join author a on ti.inst_id = a.institution_id) 
+            and w.publication_year >= 2024-5
         COLUMNS (a2.id author_id, t.id topic_id)
-    ) g ON g.author_id = a.id
+    ) g join author a ON g.author_id = a.id
     GROUP BY a.institution_id, topic_id
 ),
 
