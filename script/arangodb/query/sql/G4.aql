@@ -1,0 +1,36 @@
+LET works_from_t1 = (
+    FOR t IN topic
+    FILTER t.subfield_display_name == 'Education'
+    FOR w IN 1..1 INBOUND CONCAT('topic_v/', t.id) work_topic_e
+    RETURN w.id
+)
+
+LET works_from_t2 = (
+    FOR t IN topic
+    FILTER t.subfield_display_name == 'Computer Vision and Pattern Recognition'
+    FOR w IN 1..1 INBOUND CONCAT('topic_v/', t.id) work_topic_e
+    RETURN w.id
+)
+
+LET common_ids = INTERSECTION(works_from_t1, works_from_t2)
+
+FOR work_id IN common_ids
+    // Join work 表 (查 Title, Cited Count)
+    FOR w IN work
+        FILTER w.id == work_id and w.publication_year == 2022
+        
+        // Join work_doc 表 (查 Authorships)
+        FOR wc IN work_doc
+            FILTER wc.id == work_id
+            
+            // 过滤小团队 (<= 3人)
+            FILTER LENGTH(wc.doc.authorships) <= 3
+            
+            // 排序并取 Top-20
+            SORT w.cited_by_count DESC,w.id ASC
+            LIMIT 20
+            
+            RETURN {
+                id: w.id,
+                title: w.title
+            }

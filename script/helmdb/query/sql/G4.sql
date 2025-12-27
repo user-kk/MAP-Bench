@@ -1,24 +1,19 @@
-WITH TopAuthors AS (
-    SELECT pr.node_id AS author_id
-    FROM cpu_pagerank('author_author_gra'::regclass::bigint, 20, 0.85) 
-         AS pr(node_id, pagerank_score)
-    ORDER BY pagerank_score DESC
-    LIMIT 50
-),
-TopPapers AS (
-    SELECT pr.node_id AS paper_id
-    FROM cpu_pagerank('work_work_gra'::regclass::bigint, 20, 0.85) 
-         AS pr(node_id, pagerank_score)
-    ORDER BY pagerank_score DESC
-    LIMIT 50
+with ids as(
+    (
+        select distinct w.id
+        from topic tc, work_topic_gra MATCH (w: work_v)-[: work_topic_e]->(t: topic_v)
+        where tc.subfield_display_name = 'Education' and tc.id = t.id
+    )
+    intersect (
+        select distinct w.id
+        from topic tc, work_topic_gra MATCH (w: work_v)-[: work_topic_e]->(t: topic_v)
+        where tc.subfield_display_name = 'Computer Vision and Pattern Recognition' and tc.id = t.id
+    )
+    
 )
-SELECT DISTINCT 
-    ta.author_id
-FROM 
-    TopPapers tp
-JOIN 
-    work_doc wd ON tp.paper_id = wd.id,
-    -- 将 authorships 数组展开成多行
-    jsonb_array_elements(wd.authorships::jsonb) AS author_obj
-JOIN 
-    TopAuthors ta ON (author_obj.author.id)::bigint = ta.author_id;
+
+select w.id AS id, w.title AS title
+from ids join work w on ids.id::bigint = w.id join work_doc wc on w.id = wc.id
+where w.publication_year = 2022 and jsonb_array_length(wc.doc->'authorships') <= 3
+ORDER BY w.cited_by_count DESC,w.id ASC
+LIMIT 20;
