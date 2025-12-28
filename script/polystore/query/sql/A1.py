@@ -81,7 +81,6 @@ def A1(ctx: "Context", timer: Optional[MDTimer] = None) -> pd.DataFrame:
     with TimerPhase(timer, "g"):
         records = ctx.neo4j_session.run(cypher, rows=author_insts)
         df = pd.DataFrame([dict(r) for r in records])
-    print(df)
     # 显式指定列名，确保顺序和后面 sql 对应
     df = df[["inst_id", "topic_id", "freq"]]
 
