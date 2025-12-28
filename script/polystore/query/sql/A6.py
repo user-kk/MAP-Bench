@@ -40,6 +40,7 @@ def A6(ctx: "Context",
     WHERE t.works_count > 10000
     MATCH (w:work_v)-[:work_topic_e]->(t)
     WITH tid, w
+    WHERE w.title IS NOT NULL
     ORDER BY w.cited_by_count DESC, w.id ASC
     WITH tid, collect(w.title)[..$limit] as titles
     RETURN tid, titles

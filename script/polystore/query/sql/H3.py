@@ -51,17 +51,16 @@ def H3(ctx: "Context", timer: Optional[MDTimer] = None) -> pd.DataFrame:
 
     # 4. PG：临时表灌入 edge_score
     with ctx.temp_pg_table('tmp_work_score') as cur:
-        with TimerPhase(timer, "r"):
-            cur.execute("""
-                CREATE TEMP TABLE tmp_work_score AS
-                SELECT work_id::bigint, edge_score::float, 0::float AS l2_distance
-                FROM unnest(%s::bigint[], %s::float[]) AS t(work_id, edge_score)
-            """, (list(work_ids), list(edge_scores)))
-            
-            cur.execute("""
-                create index on tmp_work_score(work_id);
-            """)
+        cur.execute("""
+            CREATE TEMP TABLE tmp_work_score AS
+            SELECT work_id::bigint, edge_score::float, 0::float AS l2_distance
+            FROM unnest(%s::bigint[], %s::float[]) AS t(work_id, edge_score)
+        """, (list(work_ids), list(edge_scores)))
         
+        cur.execute("""
+            create index on tmp_work_score(work_id);
+        """)
+    
         with TimerPhase(timer, "v"):
             res = work_collection.search(
                     data=[topic_vec_rec[0]["vec"]],
@@ -71,14 +70,13 @@ def H3(ctx: "Context", timer: Optional[MDTimer] = None) -> pd.DataFrame:
                     expr=f"id in {list(work_ids)}",
                 )[0]
 
-        # 写回距离
-        with TimerPhase(timer, "r"):
-            for hit in res:
-                cur.execute("""
-                    UPDATE tmp_work_score
-                    SET l2_distance = %s
-                    WHERE work_id = %s
-                """, (hit.distance, int(hit.id)))
+
+        for hit in res:
+            cur.execute("""
+                UPDATE tmp_work_score
+                SET l2_distance = %s
+                WHERE work_id = %s
+            """, (hit.distance, int(hit.id)))
         
 
         # 6. 算分 Top-10
@@ -86,7 +84,7 @@ def H3(ctx: "Context", timer: Optional[MDTimer] = None) -> pd.DataFrame:
             cur.execute("""
                 with ids as (
                     SELECT work_id as id,
-                       sqrt(edge_score / sqrt(l2_distance)) AS topic_score
+                        sqrt(edge_score / sqrt(l2_distance)) AS topic_score
                     FROM   tmp_work_score 
                     WHERE  l2_distance > 0
                     ORDER  BY topic_score DESC, work_id ASC

@@ -69,27 +69,25 @@ def A4(ctx: "Context", timer: Optional[MDTimer] = None) -> pd.DataFrame:
     
     with ctx.temp_pg_table('tmp_author_work') as cur:
         # 4.1 灌入论文 id
-        with TimerPhase(timer, "r"):
-            cur.execute("CREATE TEMP TABLE tmp_author_work AS "
-                        "SELECT * FROM unnest(%s::bigint[], %s::float[]) AS t(a_id,w_id)",
-                        (author_ids,work_ids))
-            
-            sql = """
-            WITH InstCount AS (
-            SELECT a.institution_id::bigint AS inst_id, COUNT(1) AS paper_cnt
-            FROM tmp_author_work aht join author a ON aht.a_id = a.id
-            WHERE a.institution_id is not NULL
-            GROUP BY a.institution_id
-            ORDER BY COUNT(1) DESC,a.institution_id asc
-            LIMIT 3
-            ) 
-            SELECT i.display_name AS institution_name, ic.paper_cnt
-            FROM InstCount ic,
-            institution i
-            WHERE i.id = ic.inst_id
-            ORDER BY ic.paper_cnt DESC,i.id asc
-            """
-
+        cur.execute("CREATE TEMP TABLE tmp_author_work AS "
+                    "SELECT * FROM unnest(%s::bigint[], %s::float[]) AS t(a_id,w_id)",
+                    (author_ids,work_ids))
+        sql = """
+        WITH InstCount AS (
+        SELECT a.institution_id::bigint AS inst_id, COUNT(1) AS paper_cnt
+        FROM tmp_author_work aht join author a ON aht.a_id = a.id
+        WHERE a.institution_id is not NULL
+        GROUP BY a.institution_id
+        ORDER BY COUNT(1) DESC,a.institution_id asc
+        LIMIT 3
+        ) 
+        SELECT i.display_name AS institution_name, ic.paper_cnt
+        FROM InstCount ic,
+        institution i
+        WHERE i.id = ic.inst_id
+        ORDER BY ic.paper_cnt DESC,i.id asc
+        """
+        with TimerPhase(timer, "r"): 
             df = pd.read_sql(sql, ctx._pg_conn)
     
     # 5. 最终表
