@@ -4,6 +4,7 @@ const db = require('@arangodb').db;
 // 关系
 db.author.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inBackground: true });
 db.author.ensureIndex({ type: "persistent", fields: ["institution_id"], unique: false, inBackground: true });
+db.author.ensureIndex({ type: "persistent", fields: ["display_name"], unique: false, inBackground: true });
 db.work.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inBackground: true });
 db.topic.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inBackground: true });
 db.institution.ensureIndex({ type: "persistent", fields: ["id"], unique: true, inBackground: true });

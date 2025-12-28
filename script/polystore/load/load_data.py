@@ -219,6 +219,7 @@ def pg_build_and_load(ctx):
     
     # 建立索引
     cur.execute('CREATE INDEX inst_id_index on author(institution_id);')
+    cur.execute('CREATE INDEX author_name_index on author(display_name);')
     print('==> PostgreSQL 全部导入完成')
 
 def mongo_doc_import(ctx):
