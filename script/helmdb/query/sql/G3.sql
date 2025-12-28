@@ -12,7 +12,7 @@ SELECT
 FROM 
     (
         SELECT p2.id AS id
-        FROM work_work_gra MATCH (p1: work_v)-[r: work_referenced_work_e]{0,2}->(p2: work_v)
+        FROM work_work_gra MATCH (p1: work_v)-[r: work_referenced_work_e]{0,4}->(p2: work_v)
         WHERE p1.id = 4394922388
     ) t1,
     work p,

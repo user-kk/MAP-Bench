@@ -4,7 +4,7 @@ SELECT p.title,
        p.cited_by_count AS n_citation
 FROM GRAPH_TABLE(
     academic_net
-    MATCH (p1:work_v where p1.id = 4394922388)-[r:work_referenced_work_e]->{0,2}(p2:work_v)
+    MATCH (p1:work_v where p1.id = 4394922388)-[r:work_referenced_work_e]->{0,4}(p2:work_v)
     COLUMNS (p2.id)
 ) r
 JOIN work             p  ON p.id = r.id

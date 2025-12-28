@@ -1,8 +1,8 @@
 LET start_id = "4394922388"
 
-/* ---- t1：0-2 跳引用网络 ---- */
+/* ---- t1：0-4 跳引用网络 ---- */
 LET t1 = (
-    FOR v IN 0..2 OUTBOUND CONCAT('work_v/', start_id) work_referenced_work_e
+    FOR v IN 0..4 OUTBOUND CONCAT('work_v/', start_id) work_referenced_work_e
         RETURN {id: v.id}
 )
 

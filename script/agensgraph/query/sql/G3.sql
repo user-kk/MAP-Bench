@@ -1,6 +1,6 @@
 WITH reachable AS (
-    /* 1. 一次性把 0-2 步能到的 work id 拿出来 */
-   MATCH (p1:work_v {id: 4394922388})-[r:work_referenced_work_e*0..2]->(p2:work_v)
+    /* 1. 一次性把 0-4 步能到的 work id 拿出来 */
+   MATCH (p1:work_v {id: 4394922388})-[r:work_referenced_work_e*0..4]->(p2:work_v)
         RETURN p2.id AS id
 )
 SELECT p.title,
