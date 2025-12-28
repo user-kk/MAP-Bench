@@ -2,13 +2,17 @@
 import pandas as pd
 from pathlib import Path
 import sys
+import time
+from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from common.context import Context
+from common.timer import MultiDatabaseTimer as MDTimer, TimerPhase
 
 def H5(ctx: "Context",
        a_id: int = 4395661325,
        b_id: int = 4316345068,
-       topic_id: int = 10039) -> pd.DataFrame:
+       topic_id: int = 10039,
+       timer: Optional[MDTimer] = None) -> pd.DataFrame:
     """
     两篇文章最短路径上的中间论文（不含起点/终点），
     按主题向量距离升序 + 引用数降序取前 3。
@@ -25,8 +29,10 @@ def H5(ctx: "Context",
     WHERE mid.id <> $a_id AND mid.id <> $b_id
     RETURN mid.id AS w_id
     """
-    records = ctx.neo4j_session.run(cypher, a_id=a_id, b_id=b_id)
-    path_ids =[int(r["w_id"]) for r in records]
+    with TimerPhase(timer, "g"):
+        records = ctx.neo4j_session.run(cypher, a_id=a_id, b_id=b_id)
+        path_ids =[int(r["w_id"]) for r in records]
+    
     if len(path_ids) == 0:
         return pd.DataFrame(columns=['id', 'title', 'authors', 'topics', 'cited_by_count'])
 
@@ -34,16 +40,16 @@ def H5(ctx: "Context",
     topic_coll = ctx.get_milvus_collection("topic_vec")
     work_coll  = ctx.get_milvus_collection("work_vec")
 
-    topic_vec = topic_coll.query(expr=f"id=={topic_id}", output_fields=["vec"])[0]["vec"]
-    
-    hits = work_coll.search(
-            data=[topic_vec],
-            anns_field="vec",
-            param={"metric_type": "L2"},
-            limit=len(path_ids),
-            expr=f"id in {path_ids}"
-        )[0]
-
+    with TimerPhase(timer, "v"):
+        topic_vec = topic_coll.query(expr=f"id=={topic_id}", output_fields=["vec"])[0]["vec"]
+        
+        hits = work_coll.search(
+                data=[topic_vec],
+                anns_field="vec",
+                param={"metric_type": "L2"},
+                limit=len(path_ids),
+                expr=f"id in {path_ids}"
+            )[0]
 
     # 按距离升序、id 升序排
     hit_map = {int(h.id): h.distance for h in hits}
@@ -52,7 +58,8 @@ def H5(ctx: "Context",
     # 3. PostgreSQL：补齐 title / cited_by_count
     id_place = ",".join(["%s"] * len(df_vec))
     sql = f"SELECT id, title, cited_by_count FROM work WHERE id IN ({id_place})"
-    df_pg = pd.read_sql(sql, ctx._pg_conn, params=df_vec["id"].tolist())
+    with TimerPhase(timer, "r"):
+        df_pg = pd.read_sql(sql, ctx._pg_conn, params=df_vec["id"].tolist())
 
     # 4. MongoDB：聚合管道拿 authors & topics
     ref_ids = df_vec["id"].tolist()
@@ -64,13 +71,14 @@ def H5(ctx: "Context",
             "topics": "$doc.topics.display_name"
         }}
     ]
-    cursor = ctx.mongo_db["work_doc"].aggregate(pipe)
-    id2authors = {}
-    id2topics  = {}
-    for doc in cursor:
-        wid = doc["_id"]
-        id2authors[wid] = str(doc.get("authors", []))
-        id2topics[wid]  = str(doc.get("topics", []))
+    with TimerPhase(timer, "d"):
+        cursor = ctx.mongo_db["work_doc"].aggregate(pipe)
+        id2authors = {}
+        id2topics  = {}
+        for doc in cursor:
+            wid = doc["_id"]
+            id2authors[wid] = str(doc.get("authors", []))
+            id2topics[wid]  = str(doc.get("topics", []))
 
     # 5. 合并
     df = (df_vec.drop(columns=["vec_dist"])
@@ -84,4 +92,10 @@ def H5(ctx: "Context",
 if __name__ == "__main__":
     ctx = Context("127.0.0.1")
     ctx.use("openalex_middle")
-    print(H5(ctx))
+    timer = MDTimer()
+    t0 = time.perf_counter()
+    result = H5(ctx, timer=timer)
+    t1 = time.perf_counter()
+    print(result)
+    print(timer.get_times_map())
+    print((t1-t0)*1000)

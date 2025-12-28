@@ -1,34 +1,30 @@
 #!/usr/bin/env python3
-
 import pandas as pd
-import sys
 from pathlib import Path
-# 把外层目录加入搜索路径
+import sys
+import time
+from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from common.context import Context         
+from common.context import Context
+from common.timer import MultiDatabaseTimer as MDTimer, TimerPhase
 
-
-def H1(ctx,name:str = "Li Hongbo"):
-    """
-    参数
-    ----
-    ctx : Context   已切库的统一上下文实例
-
-    返回
-    ----
-    pd.DataFrame
-        columns: ['id', 'author_name', 'titles', 'paper_cnt']
-    """
+def H1(ctx: "Context",
+       name: str = "Li Hongbo",
+       timer: Optional[MDTimer] = None) -> pd.DataFrame:
+    
     # 1. MongoDB：json_contains 过滤
     filter_ = {"doc.display_name_alternatives": name}
-    ids = list(ctx.mongo_db.author_doc.distinct("_id", filter_))
+    with TimerPhase(timer, "d"):
+        ids = list(ctx.mongo_db.author_doc.distinct("_id", filter_))
+    
     if not ids:
         return pd.DataFrame(columns=['id', 'author_name', 'titles', 'paper_cnt'])
 
     # 2. PostgreSQL：id -> display_name
     id_place = ",".join(["%s"] * len(ids))
     sql = f"SELECT id, display_name FROM author WHERE id IN ({id_place})"
-    pg_df = pd.read_sql(sql, ctx._pg_conn, params=ids)   # 仅改连接对象
+    with TimerPhase(timer, "r"):
+        pg_df = pd.read_sql(sql, ctx._pg_conn, params=ids)
 
     # 3. Neo4j：按 id 聚合论文标题
     cypher = """
@@ -38,11 +34,12 @@ def H1(ctx,name:str = "Li Hongbo"):
     RETURN id, titles
     ORDER BY id
     """
-    neo_records = ctx.neo4j_session.run(cypher, id_list=ids)
-    neo_df = pd.DataFrame([
-        {"id": r["id"], "titles": r["titles"], "paper_cnt": len(r["titles"])}
-        for r in neo_records
-    ])
+    with TimerPhase(timer, "g"):
+        neo_records = ctx.neo4j_session.run(cypher, id_list=ids)
+        neo_df = pd.DataFrame([
+            {"id": r["id"], "titles": r["titles"], "paper_cnt": len(r["titles"])}
+            for r in neo_records
+        ])
 
     # 4. 汇总
     out = (
@@ -56,7 +53,12 @@ def H1(ctx,name:str = "Li Hongbo"):
 
 # 使用示例
 if __name__ == "__main__":
-    ctx = Context("127.0.0.1") 
+    ctx = Context("127.0.0.1")
     ctx.use("openalex_middle")
-    df = H1(ctx)
+    timer = MDTimer()
+    t0 = time.perf_counter()
+    df = H1(ctx, timer=timer)
+    t1 = time.perf_counter()
     print(df)
+    print(timer.get_times_map())
+    print((t1-t0)*1000)

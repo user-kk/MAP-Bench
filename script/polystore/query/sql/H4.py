@@ -2,10 +2,13 @@
 import pandas as pd
 from pathlib import Path
 import sys
+import time
+from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from common.context import Context
+from common.timer import MultiDatabaseTimer as MDTimer, TimerPhase
 
-def H4(ctx: "Context") -> pd.DataFrame:
+def H4(ctx: "Context", timer: Optional[MDTimer] = None) -> pd.DataFrame:
 
     work_id: int = 4395661325
 
@@ -19,11 +22,12 @@ def H4(ctx: "Context") -> pd.DataFrame:
     ORDER BY ref.publication_year DESC, ref.title ASC
     LIMIT 10
     """
-    records = ctx.neo4j_session.run(cypher, wid=work_id)
-    neo_df = (
-        pd.DataFrame([dict(r) for r in records])
-        .astype({"ref_work_id": int, "ref_work_publication_year": int})
-    )
+    with TimerPhase(timer, "g"):
+        records = ctx.neo4j_session.run(cypher, wid=work_id)
+        neo_df = (
+            pd.DataFrame([dict(r) for r in records])
+            .astype({"ref_work_id": int, "ref_work_publication_year": int})
+        )
     if neo_df.empty:
         return pd.DataFrame(columns=['ref_work_title',
                                      'ref_work_publication_year',
@@ -35,13 +39,13 @@ def H4(ctx: "Context") -> pd.DataFrame:
     mongo_filter = {"$match": {"_id":{"$in": list(ref_ids)}}}
     mongo_proj = {"$project":{"_id":1,"authors":"$doc.authorships.author"}}
     
-    cursor = ctx.mongo_db["work_doc"].aggregate([mongo_filter,mongo_proj])
-
-    mongo_df = pd.DataFrame([
-        {"ref_work_id": int(doc["_id"]),
-         "authorships_json": doc.get("authors")}
-        for doc in cursor
-    ])
+    with TimerPhase(timer, "d"):
+        cursor = ctx.mongo_db["work_doc"].aggregate([mongo_filter,mongo_proj])
+        mongo_df = pd.DataFrame([
+            {"ref_work_id": int(doc["_id"]),
+             "authorships_json": doc.get("authors")}
+            for doc in cursor
+        ])
 
     # 3. 拼 DataFrame
     df = (
@@ -53,8 +57,13 @@ def H4(ctx: "Context") -> pd.DataFrame:
     return df
 
 
-# 使用示例
 if __name__ == "__main__":
     ctx = Context("127.0.0.1")
     ctx.use("openalex_middle")
-    print(H4(ctx))
+    timer = MDTimer()
+    t0 = time.perf_counter()
+    result = H4(ctx, timer=timer)
+    t1 = time.perf_counter()
+    print(result)
+    print(timer.get_times_map())
+    print((t1-t0)*1000)

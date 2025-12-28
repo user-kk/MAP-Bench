@@ -3,11 +3,14 @@ import pandas as pd
 from pathlib import Path
 import os, time, random
 import sys
+import time
+from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from common.context import Context
+from common.timer import MultiDatabaseTimer as MDTimer, TimerPhase
 
 # --------- 主逻辑 ---------
-def A1(ctx: "Context") -> pd.DataFrame:
+def A1(ctx: "Context", timer: Optional[MDTimer] = None) -> pd.DataFrame:
     """
     返回 近5年发文最多的 TOP 3 机构，以及每个机构发文最多的 TOP 3 主题
     列：['institution_name', 'topic', 'freq']
@@ -15,10 +18,11 @@ def A1(ctx: "Context") -> pd.DataFrame:
 
     # 1. PostgreSQL：2024-2025 年所有论文 id
     with ctx.pg_cursor as cur:
-        cur.execute("SELECT id FROM work WHERE publication_year >= 2024-5")
-        work_ids = [int(row[0]) for row in cur.fetchall()]
-        if not work_ids:
-            return pd.DataFrame(columns=["institution_name", "topic", "freq"])
+        with TimerPhase(timer, "r"):
+            cur.execute("SELECT id FROM work WHERE publication_year >= 2024-5")
+            work_ids = [int(row[0]) for row in cur.fetchall()]
+    if not work_ids:
+        return pd.DataFrame(columns=["institution_name", "topic", "freq"])
 
     # 2. MongoDB：通过临时集合找发文最多的机构
     with ctx.temp_mongo_collection() as tmp_col:
@@ -42,25 +46,23 @@ def A1(ctx: "Context") -> pd.DataFrame:
             {"$sort": {"papers_cnt": -1, "_id": 1}},
             {"$limit": 3}
         ]
-        cursor = ctx.mongo_db["work_doc"].aggregate(pipeline, allowDiskUse=True)
-        top_institutions = list(cursor)
-        if not top_institutions:
-            return pd.DataFrame(columns=["institution_name", "topic", "freq"])
+        with TimerPhase(timer, "d"):
+            cursor = ctx.mongo_db["work_doc"].aggregate(pipeline, allowDiskUse=True)
+            top_institutions = list(cursor)
+    if not top_institutions:
+        return pd.DataFrame(columns=["institution_name", "topic", "freq"])
     
     # 3. PostgreSQL：拿这些机构下所有作者 id
-    
+    top_institutions_ids = [int(doc["_id"]) for doc in top_institutions]
+    id_place = ",".join(["%s"] * len(top_institutions_ids))
     with ctx.pg_cursor as cur:
-        top_institutions_ids = [int(doc["_id"]) for doc in top_institutions]
-        id_place = ",".join(["%s"] * len(top_institutions_ids))
-        cur.execute(f"SELECT id,institution_id FROM author a WHERE institution_id in ({id_place})", tuple(top_institutions_ids))
-        author_insts = [{"aid":int(row[0]),"inst_id":int(row[1])} for row in cur.fetchall()]
-        if not author_insts:
-            return pd.DataFrame(columns=["institution_name", "topic", "freq"])
-
-    
+        with TimerPhase(timer, "r"):
+            cur.execute(f"SELECT id,institution_id FROM author a WHERE institution_id in ({id_place})", tuple(top_institutions_ids))
+            author_insts = [{"aid":int(row[0]),"inst_id":int(row[1])} for row in cur.fetchall()]
+    if not author_insts:
+        return pd.DataFrame(columns=["institution_name", "topic", "freq"])
 
     # 4. Neo4j：获得每个机构作者在该时间段内各主题的发文数最多的前 3 个主题
-    
     cypher = """
     UNWIND $rows AS k
     MATCH (a:author_v)<-[:work_author_e]-(w:work_v)-[:work_topic_e]->(t:topic_v)
@@ -76,8 +78,9 @@ def A1(ctx: "Context") -> pd.DataFrame:
         t.freq      AS freq
     ORDER BY inst_id, freq DESC
     """
-    records = ctx.neo4j_session.run(cypher, rows=author_insts)
-    df = pd.DataFrame([dict(r) for r in records])
+    with TimerPhase(timer, "g"):
+        records = ctx.neo4j_session.run(cypher, rows=author_insts)
+        df = pd.DataFrame([dict(r) for r in records])
     print(df)
     # 显式指定列名，确保顺序和后面 sql 对应
     df = df[["inst_id", "topic_id", "freq"]]
@@ -93,11 +96,12 @@ def A1(ctx: "Context") -> pd.DataFrame:
 
     """
     
-    out = pd.read_sql(
-            sql,
-            ctx._pg_conn,
-            params=(df["inst_id"].tolist(), df["topic_id"].tolist(), df["freq"].tolist())
-        )
+    with TimerPhase(timer, "r"):
+        out = pd.read_sql(
+                sql,
+                ctx._pg_conn,
+                params=(df["inst_id"].tolist(), df["topic_id"].tolist(), df["freq"].tolist())
+            )
     return out
 
 
@@ -105,4 +109,10 @@ def A1(ctx: "Context") -> pd.DataFrame:
 if __name__ == "__main__":
     ctx = Context("127.0.0.1")
     ctx.use("openalex_middle")
-    print(A1(ctx))
+    timer = MDTimer()
+    t0 = time.perf_counter()
+    result = A1(ctx, timer=timer)
+    t1 = time.perf_counter()
+    print(result)
+    print(timer.get_times_map())
+    print((t1-t0)*1000)

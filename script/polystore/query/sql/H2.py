@@ -26,19 +26,20 @@ def H2(ctx: "Context",
         return pd.DataFrame(columns=['author_name', 'cited_by_count', 'institution_name'])
 
     # 2. PostgreSQL：补齐 co-author 信息
+    id_place = ",".join(["%s"] * len(co_ids))
+    sql = f"""
+    SELECT 
+            a.display_name AS author_name,
+            a.cited_by_count,
+            i.display_name AS institution_name
+    FROM author a
+    JOIN institution i ON a.institution_id = i.id
+    WHERE a.id IN ({id_place})
+    ORDER BY a.cited_by_count DESC, a.display_name ASC
+    LIMIT 10
+    """
+
     with TimerPhase(timer, "r"):
-        id_place = ",".join(["%s"] * len(co_ids))
-        sql = f"""
-        SELECT 
-               a.display_name AS author_name,
-               a.cited_by_count,
-               i.display_name AS institution_name
-        FROM author a
-        JOIN institution i ON a.institution_id = i.id
-        WHERE a.id IN ({id_place})
-        ORDER BY a.cited_by_count DESC, a.display_name ASC
-        LIMIT 10
-        """
         df = pd.read_sql(sql, ctx._pg_conn, params=co_ids)
     
     return df
@@ -50,7 +51,8 @@ if __name__ == "__main__":
     ctx.use("openalex_middle")
     timer = MDTimer()
     t0 = time.perf_counter()
-    print(H2(ctx, timer=timer))
+    result = H2(ctx, timer=timer)
     t1 = time.perf_counter()
+    print(result)
     print(timer.get_times_map())
     print((t1-t0)*1000)

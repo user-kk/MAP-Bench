@@ -74,8 +74,11 @@ if __name__ == "__main__":
     ctx = Context("127.0.0.1")
     ctx.use("openalex_middle")
     timer = MDTimer()
+    
     t0 = time.perf_counter()
-    print(V2(ctx, timer=timer))
+    result = V2(ctx, timer=timer)
     t1 = time.perf_counter()
+    
+    print(result) 
     print(timer.get_times_map())
     print((t1-t0)*1000)

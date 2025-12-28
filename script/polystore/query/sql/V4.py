@@ -28,24 +28,27 @@ def V4(ctx: "Context",
         keyword_ids = {int(doc["_id"]) for doc in cursor}
     if not keyword_ids:
         return pd.DataFrame(columns=["bib"])
-
+    
     # 2. PostgreSQL：年份过滤
-    with TimerPhase(timer, "r"):
-        id_place = ",".join(["%s"] * len(keyword_ids))
-        sql = f"""
+    id_place = ",".join(["%s"] * len(keyword_ids))
+    sql = f"""
         SELECT id
         FROM work
         WHERE id IN ({id_place})
           AND publication_year BETWEEN 2018 AND 2023
         """
+
+    with TimerPhase(timer, "r"):
         pg_df = pd.read_sql(sql, ctx._pg_conn, params=list(keyword_ids))
-        qualified_ids = pg_df["id"].tolist()
+        
+    qualified_ids = pg_df["id"].tolist()
     if not qualified_ids:
         return pd.DataFrame(columns=["bib"])
 
+    work_vec_coll = ctx.get_milvus_collection("work_vec")
+    
     # 3. Milvus：向量近邻搜索（排除自己）
     with TimerPhase(timer, "v"):
-        work_vec_coll = ctx.get_milvus_collection("work_vec")
         seed_vec = work_vec_coll.query(
             expr=f"id == {seed_work_id}",
             output_fields=["vec"]
@@ -58,34 +61,37 @@ def V4(ctx: "Context",
             limit=len(qualified_ids),
             expr=f"id in {qualified_ids} and id != {seed_work_id}"
         )[0]
-        top_ids = [int(h.id) for h in hits[:top_k]]
+        
+    top_ids = [int(h.id) for h in hits[:top_k]]
     if not top_ids:
         return pd.DataFrame(columns=["bib"])
+    
 
-    # 4. PostgreSQL：补齐字段并保持顺序
+    id_place2 = ",".join(["%s"] * len(top_ids))
+    sql_work = f"""
+    SELECT id, title, publication_date, type, cited_by_api_url,
+            language, doi
+    FROM work
+    WHERE id IN ({id_place2})
+    ORDER BY array_position(ARRAY[{id_place2}], id)
+    """
+
+
     with TimerPhase(timer, "r"):
-        id_place2 = ",".join(["%s"] * len(top_ids))
-        sql_work = f"""
-        SELECT id, title, publication_date, type, cited_by_api_url,
-               language, doi
-        FROM work
-        WHERE id IN ({id_place2})
-        ORDER BY array_position(ARRAY[{id_place2}], id)
-        """
         work_df = pd.read_sql(sql_work, ctx._pg_conn, params=top_ids + top_ids)
 
     # 5. MongoDB：补齐文档字段
+    mongo_filter = {"_id": {"$in": top_ids}}
+    proj = {
+        "authorships": "$doc.authorships.author.display_name",
+        "abstract": "$doc.abstract",
+        "volume": "$doc.volume",
+        "issue": "$doc.issue",
+        "first_page": "$doc.first_page",
+        "last_page": "$doc.last_page",
+        "doi": "$doi"
+    }
     with TimerPhase(timer, "d"):
-        mongo_filter = {"_id": {"$in": top_ids}}
-        proj = {
-            "authorships": "$doc.authorships.author.display_name",
-            "abstract": "$doc.abstract",
-            "volume": "$doc.volume",
-            "issue": "$doc.issue",
-            "first_page": "$doc.first_page",
-            "last_page": "$doc.last_page",
-            "doi": "$doi"
-        }
         cursor = ctx.mongo_db["work_doc"].find(mongo_filter, proj)
         id2doc = {int(d["_id"]): d for d in cursor}
 
@@ -121,8 +127,11 @@ if __name__ == "__main__":
     ctx = Context("127.0.0.1")
     ctx.use("openalex_middle")
     timer = MDTimer()
+    
     t0 = time.perf_counter()
-    print(V4(ctx, timer=timer))
+    result = V4(ctx, timer=timer)
     t1 = time.perf_counter()
+    
+    print(result) 
     print(timer.get_times_map())
     print((t1-t0)*1000)

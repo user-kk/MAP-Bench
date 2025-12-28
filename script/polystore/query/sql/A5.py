@@ -2,10 +2,13 @@
 import pandas as pd
 from pathlib import Path
 import sys
+import time
+from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from common.context import Context
+from common.timer import MultiDatabaseTimer as MDTimer, TimerPhase
 
-def A5(ctx: "Context", topic_name:str = 'Artificial Intelligence') -> pd.DataFrame:
+def A5(ctx: "Context", topic_name:str = 'Artificial Intelligence', timer: Optional[MDTimer] = None) -> pd.DataFrame:
     """
     返回 TOP 10 AI 高产区作者
     列：['author_id', 'display_name', 'i10_index', 'ratio']
@@ -15,13 +18,14 @@ def A5(ctx: "Context", topic_name:str = 'Artificial Intelligence') -> pd.DataFra
 
     # 1. PostgreSQL：先拿 AI 子领域对应的所有 topic id
     with ctx.pg_cursor as cur:
-        cur.execute(
-            "SELECT id FROM topic WHERE subfield_display_name = %s",
-            (topic_name,)
-        )
-        ai_topic_ids = [int(row[0]) for row in cur.fetchall()]
-        if not ai_topic_ids:
-            return pd.DataFrame(columns=["author_id", "display_name", "i10_index", "ratio"])
+        with TimerPhase(timer, "r"):
+            cur.execute(
+                "SELECT id FROM topic WHERE subfield_display_name = %s",
+                (topic_name,)
+            )
+            ai_topic_ids = [int(row[0]) for row in cur.fetchall()]
+    if not ai_topic_ids:
+        return pd.DataFrame(columns=["author_id", "display_name", "i10_index", "ratio"])
 
     # 2. MongoDB：仅过滤主题 + 摘要关键词
     mongo_pipeline = [
@@ -34,8 +38,10 @@ def A5(ctx: "Context", topic_name:str = 'Artificial Intelligence') -> pd.DataFra
         }},
         {"$project": {"_id": 1}}
     ]
-    cursor = ctx.mongo_db["work_doc"].aggregate(mongo_pipeline)
-    work_ids = [int(doc["_id"]) for doc in cursor]
+    with TimerPhase(timer, "d"):
+        cursor = ctx.mongo_db["work_doc"].aggregate(mongo_pipeline)
+        work_ids = [int(doc["_id"]) for doc in cursor]
+    
     if not work_ids:
         return pd.DataFrame(columns=["author_id", "display_name", "i10_index", "ratio"])
     
@@ -47,28 +53,27 @@ def A5(ctx: "Context", topic_name:str = 'Artificial Intelligence') -> pd.DataFra
     WHERE id IN ({id_place})
       AND publication_year BETWEEN 2022 AND 2025
     """
-    pg_df = pd.read_sql(sql, ctx._pg_conn, params=work_ids)
+    with TimerPhase(timer, "r"):
+        pg_df = pd.read_sql(sql, ctx._pg_conn, params=work_ids)
     
     # 构建 work_id -> cited_by_count 的映射
     wid_cite_map = dict(zip(pg_df["id"], pg_df["cited_by_count"]))
     
     # 4. MongoDB：拿这些论文的作者列表
     mongo_filter = {"_id": {"$in": pg_df["id"].tolist()}}
-    
     proj = {
         "authorships": "$doc.authorships.author.id",
         "_id": 1
-    } 
+    }
     
-    cursor = ctx.mongo_db["work_doc"].find(mongo_filter, proj)
-    
-    # 构建 work_id -> [author_ids]
-    work2authors = {}
-    for doc in cursor:
-        aids = doc.get("authorships", [])
-        if aids:
-            valid_aids = [int(aid) for aid in aids if aid is not None]
-            work2authors[int(doc["_id"])] = list(set(valid_aids))
+    with TimerPhase(timer, "d"):
+        cursor = ctx.mongo_db["work_doc"].find(mongo_filter, proj)
+        work2authors = {}
+        for doc in cursor:
+            aids = doc.get("authorships", [])
+            if aids:
+                valid_aids = [int(aid) for aid in aids if aid is not None]
+                work2authors[int(doc["_id"])] = list(set(valid_aids))
     
     if not work2authors:
         return pd.DataFrame(columns=["author_id", "display_name", "i10_index", "ratio"])
@@ -106,7 +111,8 @@ def A5(ctx: "Context", topic_name:str = 'Artificial Intelligence') -> pd.DataFra
       AND works_count != 0
       AND cited_by_count >= 10000
     """
-    res_authors = pd.read_sql(sql, ctx._pg_conn, params=aids)
+    with TimerPhase(timer, "r"):
+        res_authors = pd.read_sql(sql, ctx._pg_conn, params=aids)
 
     # 7. 合并 & 排序
     res_authors["pub_count"] = res_authors["author_id"].map(lambda x: author_stats.get(x, {}).get('pub', 0))
@@ -130,4 +136,10 @@ def A5(ctx: "Context", topic_name:str = 'Artificial Intelligence') -> pd.DataFra
 if __name__ == "__main__":
     ctx = Context("127.0.0.1")
     ctx.use("openalex_middle")
-    print(A5(ctx))
+    timer = MDTimer()
+    t0 = time.perf_counter()
+    result = A5(ctx, timer=timer)
+    t1 = time.perf_counter()
+    print(result)
+    print(timer.get_times_map())
+    print((t1-t0)*1000)

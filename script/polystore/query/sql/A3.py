@@ -2,10 +2,13 @@
 import pandas as pd
 from pathlib import Path
 import sys
+import time
+from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from common.context import Context
+from common.timer import MultiDatabaseTimer as MDTimer, TimerPhase
 
-def A3(ctx: "Context", institution_name: str = 'Universität Hamburg') -> pd.DataFrame:
+def A3(ctx: "Context", institution_name: str = 'Universität Hamburg', timer: Optional[MDTimer] = None) -> pd.DataFrame:
     """
     返回指定机构学者发表最多的 TOP 10 主题
     列：['topic_id', 'display_name', 'paper_count']
@@ -16,18 +19,19 @@ def A3(ctx: "Context", institution_name: str = 'Universität Hamburg') -> pd.Dat
 
     # 1. PostgreSQL：一条 SQL 拿机构下所有作者 id
     with ctx.pg_cursor as cur:
-        cur.execute(
-            """
-            SELECT a.id
-            FROM institution i
-            JOIN author a ON i.id = a.institution_id
-            WHERE i.display_name = %s
-            """,
-            (institution_name,)
-        )
-        author_ids = [int(row[0]) for row in cur.fetchall()]
-        if not author_ids:
-            return pd.DataFrame(columns=["topic_id", "display_name", "paper_count"])
+        with TimerPhase(timer, "r"):
+            cur.execute(
+                """
+                SELECT a.id
+                FROM institution i
+                JOIN author a ON i.id = a.institution_id
+                WHERE i.display_name = %s
+                """,
+                (institution_name,)
+            )
+            author_ids = [int(row[0]) for row in cur.fetchall()]
+    if not author_ids:
+        return pd.DataFrame(columns=["topic_id", "display_name", "paper_count"])
 
     # 2. Neo4j：这些作者 → work → topic，内部去重计数并排序
     cypher = f"""
@@ -38,10 +42,11 @@ def A3(ctx: "Context", institution_name: str = 'Universität Hamburg') -> pd.Dat
     ORDER BY paper_count DESC, topic_id ASC
     LIMIT 10
     """
-    records = ctx.neo4j_session.run(cypher, id_list=author_ids)
-    rows = [{"topic_id": int(r["topic_id"]),
-             "display_name": r["display_name"],
-             "paper_count": int(r["paper_count"])} for r in records]
+    with TimerPhase(timer, "g"):
+        records = ctx.neo4j_session.run(cypher, id_list=author_ids)
+        rows = [{"topic_id": int(r["topic_id"]),
+                 "display_name": r["display_name"],
+                 "paper_count": int(r["paper_count"])} for r in records]
 
     return pd.DataFrame(rows, columns=["topic_id", "display_name", "paper_count"])
 
@@ -49,4 +54,10 @@ def A3(ctx: "Context", institution_name: str = 'Universität Hamburg') -> pd.Dat
 if __name__ == "__main__":
     ctx = Context("127.0.0.1")
     ctx.use("openalex_middle")
-    print(A3(ctx))
+    timer = MDTimer()
+    t0 = time.perf_counter()
+    result = A3(ctx, timer=timer)
+    t1 = time.perf_counter()
+    print(result)
+    print(timer.get_times_map())
+    print((t1-t0)*1000)

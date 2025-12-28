@@ -23,7 +23,8 @@ def V1(ctx: "Context",
     ]
     
     with TimerPhase(timer, "d"):
-        work_ids = [doc["_id"] for doc in ctx.mongo_db["work_doc"].aggregate(pipeline)]
+        work_ids = list(ctx.mongo_db["work_doc"].aggregate(pipeline))
+        work_ids = [doc["_id"] for doc in work_ids]
     
     if not work_ids:
         return pd.DataFrame(columns=['title', 'cited_by_count', 'similarity_score'])
@@ -61,20 +62,24 @@ def V1(ctx: "Context",
         return pd.DataFrame(columns=['title', 'cited_by_count', 'similarity_score'])
     
     work_collection = ctx.get_milvus_collection("work_vec")
-    
+
     with TimerPhase(timer, "v"):
-        target_vec = work_collection.query(
+        # query target vector
+        query_results = work_collection.query(
             expr=f"id == {top_work_id}",
             output_fields=["vec"]
-        )[0]["vec"]
+        )
+        target_vec = query_results[0]["vec"]
         
-        hits = work_collection.search(
+        # search
+        search_results = work_collection.search(
             data=[target_vec],
             anns_field="vec",
             param={"metric_type": "L2"},
             limit=top_k,
             expr=f"id in {net_ids}"
-        )[0]
+        )
+        hits = search_results[0]
     
     if not hits:
         return pd.DataFrame(columns=['title', 'cited_by_count', 'similarity_score'])
@@ -101,8 +106,11 @@ if __name__ == "__main__":
     ctx = Context("127.0.0.1")
     ctx.use("openalex_middle")
     timer = MDTimer()
+    
     t0 = time.perf_counter()
-    print(V1(ctx,timer=timer))
+    result = V1(ctx, timer=timer)
     t1 = time.perf_counter()
+    
+    print(result) 
     print(timer.get_times_map()) 
-    print((t1-t0)*1000)
+    print(f"Total: {(t1-t0)*1000:.2f}ms")
