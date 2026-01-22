@@ -1,10 +1,10 @@
 WITH HotTopic AS (
 -- 找到近五年内发文最多的主题
-SELECT (t->>'id')::bigint as topic_id
-FROM work as w , work_doc as wc unwind jsonb_array_elements(wc.doc->'topics') as t
+SELECT t.id::bigint as topic_id
+FROM work as w , work_doc as wc unwind jsonb_array_elements(wc.topics::jsonb) as t
 WHERE w.publication_year >= 2020-5 and w.id = wc.id
-GROUP BY (t->>'id')::bigint
-ORDER BY count(1) DESC,(t->>'id')::bigint asc
+GROUP BY topic_id
+ORDER BY count(1) DESC,topic_id asc
 LIMIT 1
 ),
 PapersInHotTopic AS (

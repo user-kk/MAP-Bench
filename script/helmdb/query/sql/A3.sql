@@ -12,7 +12,7 @@ WHERE a.id = oa.author_id
 ),
 AuthorTopics AS (
 SELECT t.id AS topic_id,
-t.properties->>'display_name' AS display_name,
+t.display_name AS display_name,
 w.id as work_id
 FROM AuthorWorks aw,
 work_topic_gra MATCH (w: work_v)-[:work_topic_e]->(t: topic_v)

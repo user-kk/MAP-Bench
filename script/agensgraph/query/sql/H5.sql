@@ -1,4 +1,3 @@
--- @a_id, @b_id 是两篇论文ID
 WITH PathNodes AS (
 MATCH sp = shortestPath(
         (a:work_v {id: 4395661325})-[:work_referenced_work_e*]->(b:work_v {id: 4316345068})

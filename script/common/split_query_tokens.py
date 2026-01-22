@@ -27,7 +27,7 @@ def split_query_tokens(sql: str):
         content = single if single is not None else double
         if content.startswith('$'):
             return content
-        return 'str'
+        return 'str'          
     
     sql = re.sub(r"""'([^']*)'|"([^"]*)\" """, repl_quote, sql)
     
