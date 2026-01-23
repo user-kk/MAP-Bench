@@ -20,7 +20,7 @@ LET ids2 = (
     for wv in work_vec
         filter wv.id in ids[*].work_id and wv.id != current_paper_id
         // 不能用APPROX_NEAR_L2 报错 Note that filtering can be applied in trivial cases.
-        SORT APPROX_NEAR_L2(wv.vec, curVec) ASC
+        SORT L2_DISTANCE(wv.vec, curVec) ASC
         LIMIT 20
         return {work_id: wv.id}
 )

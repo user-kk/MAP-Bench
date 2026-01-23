@@ -1,14 +1,8 @@
 #!/usr/bin/env python
 """
-AgensGraph 性能基准脚本（每单次立即落盘 + 实时中位数）
+AgensGraph 性能基准脚本（支持指定并行度 + 实时落盘）
 用法:
-    python3 bench_agensgraph.py *.sql -n 10 -o result.csv -x exclude1.sql exclude2.sql
-
-CSV 格式:
-    file,median_ms,run1_ms,run2_ms,...,runN_ms
-
-依赖:
-    pip install "psycopg[binary]"
+    python3 bench_agensgraph.py *.sql -n 10 -t 8 -o result.csv
 """
 import argparse
 import csv
@@ -18,8 +12,7 @@ import psycopg
 import time
 from pathlib import Path
 
-TOTAL_RUNTIME_RE = re.compile(r'Execution\s+Time:\s+(\d+(?:\.\d+)?)\s*ms', re.I)
-
+# 数据库连接配置
 DB_CONF = dict(
     dbname='openalex_middle',
     user='agensgraph',
@@ -28,12 +21,22 @@ DB_CONF = dict(
     port=5555
 )
 
-# ---------- 工具 ----------
+def setup_session(cur, max_parallel: int):
+    """统一的会话设置"""
+    cur.execute("SET graph_path = academic_net")
+    cur.execute("SET plan_cache_mode = force_custom_plan")
+    cur.execute(f"SET max_parallel_workers_per_gather = {max_parallel}")
+    if max_parallel == 0:
+        cur.execute("SET work_mem = '12GB'")
+    else:
+        # 并行度不为0时，减少每个 worker 的内存占用以防 OOM
+        cur.execute("SET work_mem = '2GB'")
+
 def explain_runtime(cur, sql: str) -> float:
     """返回端到端耗时（毫秒）"""
     t0 = time.perf_counter()
     cur.execute(sql)
-    cur.fetchall()          # 把结果收完
+    cur.fetchall()  # 确保结果完全传输
     t1 = time.perf_counter()
     return (t1 - t0) * 1000
 
@@ -46,66 +49,70 @@ def flush_csv(out: Path, data: dict, runs: int):
         rows.append([fname, f'{median:.3f}' if times else ''] +
                     [f'{t:.3f}' for t in times] +
                     [''] * (runs - len(times)))
+    
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open('w', newline='') as cf:
         csv.writer(cf).writerows([header] + rows)
 
-# ---------- 主流程 ----------
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='AgensGraph SQL Benchmark Tool')
     parser.add_argument('-n', '--rounds', type=int, default=5,
                         help='每条 SQL 跑几轮（默认 5）')
+    parser.add_argument('-t', '--threads', type=int, default=0,
+                        help='设置 max_parallel_workers_per_gather (默认 0)')
     parser.add_argument('-o', '--out', type=Path, default=Path('result.csv'),
                         help='输出 csv 路径（默认 result.csv）')
     parser.add_argument('-x', '--exclude', nargs='*', default=[],
-                        help='要排除的 .sql 文件（可一次写多个，空格隔开）')
+                        help='要排除的 .sql 文件')
     parser.add_argument('files', nargs='+', help='待测试 .sql 文件')
     args = parser.parse_args()
 
-    exclude_set = {Path(f).name for f in args.exclude}          
+    # 文件筛选
+    exclude_set = {Path(f).name for f in args.exclude}
     file_list = sorted([Path(f).resolve() for f in args.files
-                    if Path(f).name not in exclude_set],    
-                   key=lambda p: p.name)
+                        if Path(f).name not in exclude_set],
+                       key=lambda p: p.name)
     
     if not file_list:
-        print('所有文件均被排除，无事可做。')
+        print('没有找到可执行的 SQL 文件。')
         return
 
     data = {f.name: [] for f in file_list}
 
-    conn = psycopg.connect(**DB_CONF)
-    conn.autocommit = True
-    cur = conn.cursor()
-    cur.execute("SET graph_path = academic_net")
-    cur.execute("SET plan_cache_mode = force_custom_plan")
-
-    # 单线程配置
-    # cur.execute("SET max_parallel_workers_per_gather = 0")
-
-
-    # 多线程配置，还得改conf文件
-    # work_mem = 4 GB  
-    # max_parallel_workers_per_gather = 88   # 物理核数，不再留余量
-    # max_parallel_workers          = 176   # 全局上限照旧
-     
-    cur.execute("SET max_parallel_workers_per_gather = 0")
-
     try:
+        conn = psycopg.connect(**DB_CONF)
+        conn.autocommit = True
+        cur = conn.cursor()
+
+        # 应用并行度配置
+        setup_session(cur, args.threads)
+
         flush_csv(args.out, data, args.rounds)
+        
         for rnd in range(1, args.rounds + 1):
             for f in file_list:
                 sql = f.read_text().strip()
-                t = explain_runtime(cur, sql)
-                data[f.name].append(t)
-                print(f'R{rnd:02d}  {f.name}: {t:.3f} ms')
+                if not sql:
+                    continue
+                
+                try:
+                    t = explain_runtime(cur, sql)
+                    data[f.name].append(t)
+                    print(f'Round {rnd}/{args.rounds} | {f.name}: {t:.3f} ms')
+                except Exception as e:
+                    print(f'  [Error] 执行 {f.name} 失败: {e}')
+                    data[f.name].append(0.0) # 记录失败
+                
+                # 实时写入
                 flush_csv(args.out, data, args.rounds)
+
     except Exception as e:
-        print(f'\n[ERROR] {e}  ——  已跑结果已实时写入')
+        print(f'\n[FATAL ERROR] {e}')
         raise
     finally:
-        print(f'结果实时写入 {args.out}')
-        cur.close()
-        conn.close()
+        if 'cur' in locals(): cur.close()
+        if 'conn' in locals(): conn.close()
+        print(f'\n测试完成，最终结果已保存至: {args.out}')
 
 if __name__ == '__main__':
     main()
