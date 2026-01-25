@@ -1,4 +1,4 @@
-with TopInstitutions( 
+with TopInstitutions AS( 
     -- 1. 近 5 年发文最多的 3 所机构
     SELECT institution.id::bigint AS inst_id,
            count(1) as papers_cnt

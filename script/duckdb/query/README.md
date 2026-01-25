@@ -1,7 +1,9 @@
 ## 端到端延迟
 
 ```bash
-python bench_duckdb.py sql/*.sql -x G1.sql G3.sql V1.sql -o "out/$(date +%F_%T).csv"
+prlimit --rss=64424509440 \
+taskset -c 66-87 \
+python3 bench_duckdb.py sql/*.sql -x G1.sql G3.sql V1.sql V2.sql -t 12 -o "out/$(date +%F_%T).csv"
 ```
 
 ## 内存和cpu占用

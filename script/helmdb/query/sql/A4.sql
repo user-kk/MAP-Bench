@@ -11,7 +11,8 @@ PapersInHotTopic AS (
 SELECT w.id as work_id
 FROM work_topic_gra MATCH (w: work_v)-[: work_topic_e]->(t: topic_v),
 HotTopic ht
-WHERE t.id = ht.topic_id
+WHERE t.id = ht.topic_id 
+AND w.publication_year is not NULL
 AND w.publication_year >= 2020 - 5
 ),
 InstCount AS (

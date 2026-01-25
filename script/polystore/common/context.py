@@ -85,10 +85,19 @@ class Context:
         return milvus_db
     
     def get_milvus_collection(self, name: str):
-        """返回已加载的 Milvus collection"""
-        coll = Collection(name)
-        coll.load()          # 幂等，可重复调用
-        return coll
+        """使用缓存机制返回 Milvus collection"""
+        # 1. 检查 Context 实例是否已经缓存了该 Collection
+        if not hasattr(self, '_coll_cache'):
+            self._coll_cache = {}
+
+        if name not in self._coll_cache:
+            # 只有第一次调用时才实例化并 load
+            coll = Collection(name)
+            coll.load()
+            self._coll_cache[name] = coll
+            print(f"[DEBUG] Collection {name} loaded and cached.")
+        
+        return self._coll_cache[name]
 
     # ---------- 建库 ----------
     def create_databases(self, db_list=None):
