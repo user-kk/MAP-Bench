@@ -26,7 +26,12 @@ DB_CONF = dict(
 def _walk_plan(node: dict, cnt: Counter):
     """递归遍历 DuckDB JSON 计划，统计节点"""
     if "name" in node:          # DuckDB 用 "name" 字段存放算子名称
-        cnt[node["name"]] += 1
+        # SEQ_SCAN 太容易让人误以为是全表扫描了，改成更中性的名字
+        # 实际上 explain输出的计划中 SEQ_SCAN 可能是全表扫描，也可能是索引扫描
+        if node["name"] == "SEQ_SCAN " or node["name"] == "SEQ_SCAN": 
+            cnt["TABLE_SCAN"] += 1
+        else:
+            cnt[node["name"]] += 1
     for child in node.get("children", []):
         _walk_plan(child, cnt)
 

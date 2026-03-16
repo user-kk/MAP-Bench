@@ -20,7 +20,7 @@ CONTAINER_DATA_ROOT = "/openalex_middle"  # 容器内csv挂载路径
 TMP_ROOT = '/tmp/polystore' # 当前主机内临时文件生成目录
 CONTAINER_TMP_ROOT = '/tmp/polystore' # 容器内临时文件挂载目录
 
-DIM = 128  # 固定向量维度
+DIM = 384  # 固定向量维度
 
 
 # csv → 表名
@@ -79,10 +79,10 @@ EDGE_CSV_JSONL = {
 # vector CSV → collection 名称映射
 VECTOR_CSV_JSONL = {
     'topic_vec':(
-        f"{DATA_ROOT}/vector/topics_vec.csv"
+        f"/openalex_384/topics_vector_384.csv"
     ),
     'work_vec':(
-        f"{DATA_ROOT}/vector/works_vec.csv"
+        f"/openalex_384/works_m_vector384.csv"
     )
 }
 

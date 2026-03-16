@@ -45,12 +45,12 @@ CREATE EXTENSION IF NOT EXISTS vector;
 CREATE TABLE work_vec (
     id bigint primary key,
     doi TEXT,
-    vec vector(128)
+    vec vector(384)
 );
 
 CREATE TABLE topic_vec(
     id bigint primary key,
-    vec vector(128)
+    vec vector(384)
 );
 
 /*

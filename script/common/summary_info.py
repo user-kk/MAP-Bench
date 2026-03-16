@@ -203,8 +203,9 @@ def _agg(df: pd.DataFrame) -> pd.Series:
         for counter in df["ops_pct"]:
             for key, value in counter.items():
                 shares[key].append(value)
-        
-        avg_shares = {k: sum(v)/len(v) for k, v in shares.items()}
+                
+        query_count = len(df)  # ← 用总查询数
+        avg_shares = {k: sum(v)/query_count for k, v in shares.items()}
         top5_ops = sorted(avg_shares.items(), key=lambda x: x[1], reverse=True)[:5]
         top5_ops = [(name, pct) for name, pct in top5_ops]
     else:

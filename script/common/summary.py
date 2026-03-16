@@ -42,13 +42,13 @@ from collections import OrderedDict
 ROOT_PATH = '/home/hyh/OpenAlex_mini_new/'
 
 DEFAULT_DBS = OrderedDict([
-    ('helmdb',        ROOT_PATH + 'script/helmdb/query/out/2025-12-06_15:04:13.csv'),
-    ('arangodb',      ROOT_PATH + 'script/arangodb/query/out/2025-12-05_20:24:15.csv'),
-    ('agensgraph-sp', ROOT_PATH + 'script/agensgraph/query/out/2025-12-05_20:23:37.csv'),
-    ('duckdb-st',     ROOT_PATH + 'script/duckdb/query/out/2025-12-06_23:02:49.csv'),
-    ('agensgraph-mp',     ROOT_PATH + 'script/agensgraph/query/out/2025-12-07_13:59:23.csv'),
-    ('duckdb-mt',     ROOT_PATH + 'script/duckdb/query/out/2025-12-07_15:06:10.csv'),
-    ('polystore', ROOT_PATH + 'script/polystore/query/out/2025-12-05_17:57:27.csv'),
+    ('helmdb',        ROOT_PATH + 'script/helmdb/query/out/2026-01-24_21:30:42.csv'),
+    ('arangodb',      ROOT_PATH + 'script/arangodb/query/out/2026-01-23_22:06:26.csv'),
+    ('agensgraph-sp', ROOT_PATH + 'script/agensgraph/query/out/2026-01-23_20:13:07.csv'),
+    ('duckdb-st',     ROOT_PATH + 'script/duckdb/query/out/2026-01-23_22:17:59.csv'),
+    ('agensgraph-mp',     ROOT_PATH + 'script/agensgraph/query/out/2026-01-23_21:19:53.csv'),
+    ('duckdb-mt',     ROOT_PATH + 'script/duckdb/query/out/2026-01-25_18:56:48.csv'),
+    ('polystore', ROOT_PATH + 'script/polystore/query/out/2026-01-24_22:59:16.csv'),
 ])
 
 # -------------------------------------------------
