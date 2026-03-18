@@ -14,7 +14,7 @@ LOAD duckpgq;
 CREATE INDEX inst_id_index on author(institution_id);
 CREATE INDEX author_name_index on author(display_name);
 
-|-- /* 1. 作者-作者合作边：双向遍历 + 按强度查 */
+-- /* 1. 作者-作者合作边：双向遍历 + 按强度查 */
 CREATE INDEX idx_aa_src ON author_author_e (start_id);
 CREATE INDEX idx_aa_dst ON author_author_e (end_id);
 

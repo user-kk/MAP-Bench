@@ -11,7 +11,7 @@ from pymilvus import Collection
 
 def V3(ctx: "Context",
        seed_work_id: int = 4321448324,
-       top_k: int = 300,
+       top_k: int = 100,
        timer: Optional[MDTimer] = None) -> pd.DataFrame:
     
     # 1. Milvus：向量近邻搜索
@@ -25,7 +25,7 @@ def V3(ctx: "Context",
         hits = work_coll.search(
             data=[seed_vec],
             anns_field="vec",
-            param={"metric_type": "L2"},
+            param={"metric_type": "L2","ef":160},
             limit=top_k + 1,
             expr=f"id != {seed_work_id}"
         )[0]
@@ -72,7 +72,7 @@ def V3(ctx: "Context",
 # 使用示例
 if __name__ == "__main__":
     ctx = Context("127.0.0.1")
-    ctx.use("openalex_middle")
+    ctx.use("mapl")
     timer = MDTimer()
     
     t0 = time.perf_counter()

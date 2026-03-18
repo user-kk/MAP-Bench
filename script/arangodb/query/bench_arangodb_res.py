@@ -34,7 +34,7 @@ DB_CONF = dict(
     hosts='http://127.0.0.1:8529',
     username='root',
     password='linux123',
-    dbname='openalex_middle',
+    dbname='mapl',
     ip='127.0.0.1',
     port=8529
 )
@@ -104,7 +104,7 @@ def measure_short_query(aql: str) -> tuple:
         aql, bind_vars={}, memory_limit=500 * 1024 ** 3,
         profile=False, cache=False, batch_size=None, stream=False
     )
-    _ = cursor.batch()
+    _ = [doc for doc in cursor]
     
     # 记录结束状态
     t1 = time.perf_counter()
@@ -225,7 +225,7 @@ def measure_long_query(aql: str, interval: float) -> tuple:
             aql, bind_vars={}, memory_limit=500 * 1024 ** 3,
             profile=False, cache=False, batch_size=None, stream=False
         )
-        _ = cursor.batch()
+        _ = [doc for doc in cursor]
         t1 = time.perf_counter()
 
     latency_ms = (t1 - t0) * 1000
@@ -251,7 +251,7 @@ def warmup_query(aql: str) -> float:
         aql, bind_vars={}, memory_limit=500 * 1024 ** 3,
         profile=False, cache=False, batch_size=None, stream=False
     )
-    _ = cursor.batch()
+    _ = [doc for doc in cursor]
     lat_ms = (time.perf_counter() - t0) * 1000
     
     client.close()

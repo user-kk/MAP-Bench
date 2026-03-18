@@ -14,7 +14,7 @@ from pathlib import Path
 
 # 数据库连接配置
 DB_CONF = dict(
-    dbname='openalex_middle',
+    dbname='mapl',
     user='agensgraph',
     password='linux123',
     host='127.0.0.1',

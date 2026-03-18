@@ -7,7 +7,7 @@ from typing import Dict, List
 
 # 配置数据库连接参数
 DB_CONF = dict(
-    dbname='openalex_middle',
+    dbname='mapl',
     user='agensgraph',
     password='linux123',
     host='127.0.0.1',

@@ -9,7 +9,7 @@ from typing import Dict, List
 
 # OpenGauss数据库连接配置
 DB_CONF = dict(
-    dbname='openalex_middle',
+    dbname='mapl',
     user='hyh',
     password='Linux123',
     host='127.0.0.1',

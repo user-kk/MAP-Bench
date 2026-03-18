@@ -4,7 +4,7 @@ set -euo pipefail
 
 # 配置
 port=9999
-database=openalex_middle 
+database=mapl
 
 
 

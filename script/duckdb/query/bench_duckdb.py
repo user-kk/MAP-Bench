@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 DB_CONF = dict(
-    db_path = '/duckdb_data/openalex_middle.db' 
+    db_path = '/duckdb_data/mapl.db' 
 )
 
 def setup_session(conn, threads: int):

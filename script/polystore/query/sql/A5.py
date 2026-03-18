@@ -135,7 +135,7 @@ def A5(ctx: "Context", topic_name:str = 'Artificial Intelligence', timer: Option
 # 使用示例
 if __name__ == "__main__":
     ctx = Context("127.0.0.1")
-    ctx.use("openalex_middle")
+    ctx.use("mapl")
     timer = MDTimer()
     t0 = time.perf_counter()
     result = A5(ctx, timer=timer)

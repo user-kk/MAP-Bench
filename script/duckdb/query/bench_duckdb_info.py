@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 from common.split_query_tokens import split_query_tokens
 
 DB_CONF = dict(
-    db_path='/duckdb_data/openalex_middle.db'   # 换成自己的库
+    db_path='/duckdb_data/mapl.db'   # 换成自己的库
 )
 
 # ---------- 计划解析 ----------
@@ -81,7 +81,6 @@ def main():
     for f in file_list:
         sql = f.read_text().strip()
         tokens, nodes, top3 = get_tokens_and_nodes(conn, sql)
-        print(tokens)
         print(f'{f.name}: tokens={len(tokens)}, nodes={nodes}, top3={top3}')
         rows.append([f.name, len(tokens), nodes, top3])
 

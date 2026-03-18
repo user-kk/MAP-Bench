@@ -23,11 +23,10 @@ import pandas as pd
 ROOT_PATH = '/home/hyh/OpenAlex_mini_new/'
 DEFAULT_DBS: "OrderedDict[str, pathlib.Path]" = OrderedDict(
     [
-        ("helmdb", ROOT_PATH + "script/helmdb/query/out/info_2025-12-25_20:40:49.csv"),
-        ("arangodb", ROOT_PATH + "script/arangodb/query/out/info_2025-12-05_18:18:31.csv"),
-        ("agensgraph", ROOT_PATH + "script/agensgraph/query/out/info_2025-12-05_18:18:47.csv"),
-        ("duckdb", ROOT_PATH + "script/duckdb/query/out/info_2025-12-05_18:20:32.csv"),
-        ("polystore", ROOT_PATH + "script/polystore/query/out/info_2025-12-28_15:45:58.csv"),
+        ("helmdb", ROOT_PATH + "script/helmdb/query/out/info_2026-03-16_19:09:49.csv"),
+        ("arangodb", ROOT_PATH + "script/arangodb/query/out/info_2026-03-16_19:07:15.csv"),
+        ("agensgraph", ROOT_PATH + "script/agensgraph/query/out/info_2026-03-16_19:06:23.csv"),
+        ("duckdb", ROOT_PATH + "script/duckdb/query/out/info_2026-03-16_19:09:19.csv"),
     ]
 )
 
@@ -42,7 +41,7 @@ def parse_cli() -> argparse.Namespace:
         help="显式指定数据库名与路径，格式 名称=路径，可多次使用",
     )
     p.add_argument(
-        "-o", "--output", help="输出文件路径；缺省生成 compare_<时间戳>.[csv|md]"
+        "-o", "--output", help="输出文件路径；缺省生成 out/compare_<时间戳>.[csv|md]"
     )
     p.add_argument(
         "-f",
@@ -341,7 +340,7 @@ def main():
     db_map = build_db_map(args)
     ext = "md" if args.format in ("md", "markdown") else "csv"
     out_path = pathlib.Path(
-        args.output or f"compare_token_{datetime.datetime.now():%Y%m%d_%H%M%S}.{ext}"
+        args.output or f"out/compare_token_{datetime.datetime.now():%Y%m%d_%H%M%S}.{ext}"
     )
 
     # 读取

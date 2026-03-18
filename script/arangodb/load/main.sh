@@ -6,11 +6,11 @@ set -euo pipefail
 
 username=root
 password=linux123
-database=openalex_test # arangodb的数据库名称
-thread_num=1 # 导入时的线程数 数据集大时可多开几个线程
-force_rebuild=false # 是否忽略已经生成的预处理数据 重新生成预处理数据
-build_dir=/tmp/openalex_bench/arangodb # 填一个空的文件夹就行 临时预处理数据文件的生成目录
-data_dir=/home/hyh/OpenAlex_mini_new
+database=mapl # arangodb的数据库名称
+thread_num=64 # 导入时的线程数 数据集大时可多开几个线程
+force_rebuild=true # 是否忽略已经生成的预处理数据 重新生成预处理数据
+build_dir=/home/hyh/OpenAlex_mini_new/tmp/arangodb # 填一个空的文件夹就行 临时预处理数据文件的生成目录
+data_dir=/mapbench/new_mapl
 
 author_path=$data_dir/csv-files/authors.csv
 work_path=$data_dir/csv-files/works.csv

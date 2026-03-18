@@ -19,7 +19,7 @@ from pathlib import Path
 import duckdb
 import psutil
 
-DB_PATH = '/duckdb_data/openalex_middle.db'
+DB_PATH = '/duckdb_data/mapl.db'
 
 SHORT_QUERY_THRESHOLD_MS = 500
 MIN_SAMPLE_INTERVAL = 0.05   # 50ms

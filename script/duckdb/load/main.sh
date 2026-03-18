@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # 配置
-database_path=/duckdb_data/openalex_middle.db
+database_path=/duckdb_data/mapl.db
 
 # 建表和导数据
 

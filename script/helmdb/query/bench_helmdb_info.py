@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 from common.split_query_tokens import split_query_tokens
 
 DB_CONF = dict(
-    dbname='openalex_middle',
+    dbname='mapl',
     user='hyh',
     password='Linux123',
     host='127.0.0.1',

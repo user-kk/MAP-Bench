@@ -9,7 +9,7 @@ ARANGO_CONF = dict(
     hosts='http://127.0.0.1:8529',
     username='root',
     password='linux123',
-    dbname='openalex_middle'
+    dbname='mapl'
 )
 
 # 定义模型分类（已移除XX_gra集合）

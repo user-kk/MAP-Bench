@@ -1,5 +1,5 @@
 -- 1. 基础目录
-\set prefix      /home/wzh/data/openalex_middle
+\set prefix      /mapbench/new_mapl
 
 -- 2. 拼出每一张表要用的文件路径
 \set doc_work        :prefix'/document/works_doc.csv'
@@ -66,15 +66,15 @@ UPDATE work_author_e
 /* ======================
    5. 文档表导入
    ====================== */
-COPY work_doc  (id, doi, doc) FROM :'doc_work   WITH (FORMAT csv,' DELIMITER ',', HEADER);
-COPY author_doc(id, doc)      FROM :'doc_author WITH (FORMAT csv,' DELIMITER ',', HEADER);
+COPY work_doc  (id, doi, doc) FROM :'doc_work'   WITH (FORMAT csv, DELIMITER ',', HEADER);
+COPY author_doc(id, doc)      FROM :'doc_author' WITH (FORMAT csv, DELIMITER ',', HEADER);
 
 
 /* ======================
    6. 向量表导入
    ====================== */
-COPY work_vec  (id, doi, vec) FROM :'vec_work  WITH (FORMAT csv,' DELIMITER ',', HEADER);
-COPY topic_vec (id, vec)      FROM :'vec_topic WITH (FORMAT csv,' DELIMITER ',', HEADER);
+COPY work_vec  (id, doi, vec) FROM :'vec_work'  WITH (FORMAT csv, DELIMITER ',', HEADER);
+COPY topic_vec (id, vec)      FROM :'vec_topic' WITH (FORMAT csv, DELIMITER ',', HEADER);
 
 
 /* ======================

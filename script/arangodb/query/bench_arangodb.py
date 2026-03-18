@@ -20,7 +20,7 @@ class MyHTTP(DefaultHTTPClient):
 
 
 client = ArangoClient(hosts='http://127.0.0.1:8529', http_client=MyHTTP())
-db = client.db('openalex_middle', username='root', password='linux123')
+db = client.db('mapl', username='root', password='linux123')
 
 # ---------- 工具 ----------
 def run_one(aql: str) -> float:
@@ -34,7 +34,7 @@ def run_one(aql: str) -> float:
         stream=False
     )
     # 把结果全部拉完
-    _ = cursor.batch()       
+    _ = [doc for doc in cursor]       
     t1 = time.perf_counter()
     return (t1 - t0) * 1000
 

@@ -19,7 +19,7 @@ import psutil
 import psycopg
 
 DB_CONF = dict(
-    dbname='openalex_middle',
+    dbname='mapl',
     user='agensgraph',
     password='linux123',
     host='127.0.0.1',

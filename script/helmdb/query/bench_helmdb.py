@@ -22,7 +22,7 @@ from pathlib import Path
 TOTAL_RUNTIME_RE = re.compile(r'Total\s+runtime:\s+(\d+(?:\.\d+)?)\s*ms', re.I)
 
 DB_CONF = dict(
-    dbname='openalex_middle',
+    dbname='mapl',
     user='hyh',
     password='Linux123',
     host='127.0.0.1',

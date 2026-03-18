@@ -10,13 +10,13 @@ from common.context import get_context
 
 # --------------- 配置 ---------------
 HOST = '127.0.0.1'
-DB_NAME = 'openalex_middle'
+DB_NAME = 'mapl'
 
 # 要求
 # DATA_ROOT 与 CONTAINER_DATA_ROOT 对应
 # TMP_ROOT 与 CONTAINER_TMP_ROOT 对应
-DATA_ROOT = '/openalex_middle'   # 当前主机内 csv 根目录 /tmp/polystore/OpenAlex_mini_new
-CONTAINER_DATA_ROOT = "/openalex_middle"  # 容器内csv挂载路径
+DATA_ROOT = '/mapbench/new_mapl'   # 当前主机内 csv 根目录 /tmp/polystore/OpenAlex_mini_new
+CONTAINER_DATA_ROOT = "/raw_data"  # 容器内csv挂载路径
 TMP_ROOT = '/tmp/polystore' # 当前主机内临时文件生成目录
 CONTAINER_TMP_ROOT = '/tmp/polystore' # 容器内临时文件挂载目录
 
@@ -25,7 +25,7 @@ DIM = 384  # 固定向量维度
 
 # csv → 表名
 FILE2TABLE = {
-    'sorted_authors.csv': 'author',
+    'authors.csv': 'author',
     'works.csv': 'work',
     'topics.csv': 'topic',
     'institutions.csv': 'institution',
@@ -42,15 +42,15 @@ DOC_FILES = {
 # 顶点 CSV → JSONL 映射：{label: (csv_path, jsonl_path)}
 VERTEX_CSV_JSONL = {
     "author_v": (
-        f"{DATA_ROOT}/graph/vertices/author_v.csv",
+        f"{DATA_ROOT}/graph_vertices/authors_v.csv",
         f"{TMP_ROOT}/author_v.jsonl"
     ),
     "work_v": (
-        f"{DATA_ROOT}/graph/vertices/work_v.csv",
+        f"{DATA_ROOT}/graph_vertices/works_v.csv",
         f"{TMP_ROOT}/work_v.jsonl"
     ),
     "topic_v": (
-        f"{DATA_ROOT}/graph/vertices/topic_v.csv",
+        f"{DATA_ROOT}/graph_vertices/topics_v.csv",
         f"{TMP_ROOT}/topic_v.jsonl"
     ),
 }
@@ -58,19 +58,19 @@ VERTEX_CSV_JSONL = {
 # 边 CSV → JSONL 映射：{rel_name: (csv_path, jsonl_path)}
 EDGE_CSV_JSONL = {
     "work_referenced_work_e": (
-        f"{DATA_ROOT}/graph/edges/work_referenced_work_e.csv",
+        f"{DATA_ROOT}/graph_edges/works_referenced_works_e.csv",
         f"{TMP_ROOT}/work_referenced_work_e.jsonl"
     ),
     "work_topic_e": (
-        f"{DATA_ROOT}/graph/edges/work_topic_e.csv",
+        f"{DATA_ROOT}/graph_edges/works_topics_e.csv",
         f"{TMP_ROOT}/work_topic_e.jsonl"
     ),
     "work_author_e": (
-        f"{DATA_ROOT}/graph/edges/work_author_e.csv",
+        f"{DATA_ROOT}/graph_edges/works_authors_e.csv",
         f"{TMP_ROOT}/work_author_e.jsonl"
     ),
     "author_author_e": (
-        f"{DATA_ROOT}/graph/edges/author_author_e.csv",
+        f"{DATA_ROOT}/graph_edges/authors_authors_e.csv",
         f"{TMP_ROOT}/author_author_e.jsonl"
     ),
 }
@@ -79,10 +79,10 @@ EDGE_CSV_JSONL = {
 # vector CSV → collection 名称映射
 VECTOR_CSV_JSONL = {
     'topic_vec':(
-        f"/openalex_384/topics_vector_384.csv"
+        f"{DATA_ROOT}/vector/topics_vec.csv"
     ),
     'work_vec':(
-        f"/openalex_384/works_m_vector384.csv"
+        f"{DATA_ROOT}/vector/works_vec.csv"
     )
 }
 
@@ -254,8 +254,8 @@ def mongo_doc_import(ctx):
             col.create_index([("doc.display_name_alternatives", 1)])
             print(f'==> 为 {coll_name} 创建索引: doc.display_name_alternatives')
         if coll_name == 'work_doc':
-            col.create_index([("doc.topics.display_name", 'hashed')])
-            print(f'==> 为 {coll_name} 创建索引: doc.topics.display_name : hashed')
+            col.create_index([("doc.topics.display_name", 1)])
+            print(f'==> 为 {coll_name} 创建索引: doc.topics.display_name')
 
 def _csv_vertex_to_jsonl(csv_path: str, jsonl_path: str, batch_size=100_000):
     """转换顶点 CSV 到 JSONL"""
@@ -721,20 +721,23 @@ def parse_cli() -> Set[str]:
     parser.add_argument("-m", "--mongo",   action="store_true", help="导入 MongoDB")
     parser.add_argument("-n", "--neo4j",   action="store_true", help="导入 Neo4j")
     parser.add_argument("-v", "--milvus",  action="store_true", help="导入 Milvus")
+    parser.add_argument("-c", "--create",  action="store_true", help="先创建位于Polystore中的所有数据库")
     args = parser.parse_args()
 
     # 如果什么都没选，默认就是 --all
-    if not any((args.pg, args.mongo, args.neo4j, args.milvus)):
+    if not any((args.pg, args.mongo, args.neo4j, args.milvus, args.create)):
         args.all = True
 
     targets = set()
     if args.all:
-        targets.update(["pg", "mongo", "neo4j", "milvus"])
+        targets.update(["pg", "mongo", "neo4j", "milvus", "create"])
     else:
         if args.pg:     targets.add("pg")
         if args.mongo:  targets.add("mongo")
         if args.neo4j:  targets.add("neo4j")
         if args.milvus: targets.add("milvus")
+        if args.create: targets.add("create")
+        
     return targets
 
 
@@ -742,7 +745,8 @@ if __name__ == "__main__":
     targets = parse_cli()
 
     ctx = get_context(HOST)
-    ctx.create_databases([DB_NAME])
+    if "create" in targets:
+        ctx.create_databases([DB_NAME])
     ctx.use(DB_NAME)
 
     if "pg"     in targets:  pg_build_and_load(ctx)

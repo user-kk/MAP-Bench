@@ -23,7 +23,7 @@ class MyHTTP(DefaultHTTPClient):
     REQUEST_TIMEOUT = 3600 * 6
 
 client = ArangoClient(hosts="http://127.0.0.1:8529", http_client=MyHTTP())
-db = client.db("openalex_middle", username="root", password="linux123")
+db = client.db("mapl", username="root", password="linux123")
 
 
 # ---------------- 解析 explain ----------------

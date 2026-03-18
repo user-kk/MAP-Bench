@@ -72,7 +72,7 @@ def V2(ctx: "Context",
 
 if __name__ == "__main__":
     ctx = Context("127.0.0.1")
-    ctx.use("openalex_middle")
+    ctx.use("mapl")
     timer = MDTimer()
     
     t0 = time.perf_counter()

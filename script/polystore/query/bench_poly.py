@@ -29,7 +29,7 @@ DB_CONF = dict(
     milvus_port=30004,
     user="root",
     pwd="linux123",
-    db_name='openalex_middle'
+    db_name='mapl'
 )
 
 # ---------- 工具 ----------

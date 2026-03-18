@@ -8,12 +8,12 @@ from typing import Dict, List
 # ================= 配置区域 =================
 # DuckDB数据库文件路径配置
 DB_CONF = dict(
-    db_path='/duckdb_data/openalex_middle.db'
+    db_path='/duckdb_data/mapl.db'
 )
 
 # 定义模型分类
 MODEL_CATEGORIES = {
-    '关系模型': ['author', 'work', 'topic', 'institution', 'institution_geo'],
+    '关系模型': ['author', 'work', 'topic', 'institution'],
     '文档模型': ['author_doc', 'work_doc'],
     '向量模型': ['topic_vec', 'work_vec'],
     '图模型': [

@@ -1,5 +1,5 @@
 -- 1. 基础目录
-\set prefix      /openalex_middle
+\set prefix      /mapbench/new_mapl
 
 -- 2. 拼出每一张表要用的文件路径
 \set doc_work           :prefix'/document/works_doc.csv'
