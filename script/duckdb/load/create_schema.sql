@@ -111,12 +111,12 @@ CREATE TABLE work_doc(
 CREATE TABLE work_vec (
     id  BIGINT PRIMARY KEY,
     doi TEXT,
-    vec FLOAT[128]
+    vec FLOAT[384]
 );
 
 CREATE TABLE topic_vec(
     id  BIGINT PRIMARY KEY,
-    vec FLOAT[128]
+    vec FLOAT[384]
 );
 
 /* 5. 关系表 */
@@ -179,15 +179,4 @@ CREATE TABLE institution (
     cited_by_count              INTEGER,
     works_api_url               TEXT,
     updated_date                TIMESTAMP
-);
-
-CREATE TABLE institution_geo (
-    institution_id   BIGINT PRIMARY KEY,
-    city             TEXT,
-    geonames_city_id TEXT,
-    region           TEXT,
-    country_code     TEXT,
-    country          TEXT,
-    latitude         REAL,
-    longitude        REAL
 );

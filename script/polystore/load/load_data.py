@@ -696,8 +696,8 @@ def milvus_import_vectors(ctx):
                 "index_type": "HNSW",
                 "metric_type": "L2",
                 "params": {
-                    "M": 32 if collection_name == "work_vec" else 8,
-                    "efConstruction": 400 if collection_name == "work_vec" else 32
+                    "M": 8,
+                    "efConstruction": 64 if collection_name == "work_vec" else 32
                 }
             }
             collection.create_index(field_name="vec", index_params=index_params)

@@ -19,7 +19,7 @@ ALTER TABLE topic_vec ADD PRIMARY KEY (id);
 
 -- IVFFLAT 近似索引
 CREATE INDEX idx_work_vec_l2  ON work_vec
-  USING ivfflat (vec vector_l2_ops) WITH (lists = 4096);
+  USING ivfflat (vec vector_l2_ops) WITH (lists = 2048);
 
 CREATE INDEX idx_topic_vec_l2 ON topic_vec
   USING ivfflat (vec vector_l2_ops) WITH (lists = 128);

@@ -10,7 +10,7 @@ DO $$
 DECLARE
     _db text := current_database();
 BEGIN
-    EXECUTE format('ALTER DATABASE %I SET ivfflat.probes = 50', _db);
+    EXECUTE format('ALTER DATABASE %I SET ivfflat.probes = 38', _db);
 END $$;
 
 -- 重载配置，无需重启
@@ -72,18 +72,18 @@ CREATE DOCUMENTS work_doc(
     创建openalex的向量模式
 */
 -- works_vector向量表schema
-CREATE VECTORS work_vec[128](
+CREATE VECTORS work_vec[384](
 -- 对应work.id
     doi TEXT
 -- 默认还会生成一个字段
--- vec vector[128] 依据works表的title+abstract字段向量编码而来
+-- vec vector[384] 依据works表的title+abstract字段向量编码而来
 );
 ALTER TABLE work_vec ALTER COLUMN id TYPE bigint;
 -- topics_vector向量表schema
-CREATE VECTORS topic_vec[128](-- 对应topic.id
+CREATE VECTORS topic_vec[384](-- 对应topic.id
     -- 默认还会生成一个字段
 
--- vec vector[128] 依据topics表的keywords字段（该topic的英文描述）向量编码而来
+-- vec vector[384] 依据topics表的keywords字段（该topic的英文描述）向量编码而来
 );
 ALTER TABLE topic_vec ALTER COLUMN id TYPE bigint;
 
