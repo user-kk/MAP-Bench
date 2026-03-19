@@ -6,6 +6,13 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
+DO $$
+DECLARE
+    _db text := current_database();
+BEGIN
+    EXECUTE format('ALTER DATABASE %I SET hnsw.ef_search = 102', _db);
+END $$;
+
 
 
 CREATE GRAPH academic_net; 

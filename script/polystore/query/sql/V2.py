@@ -56,7 +56,7 @@ def V2(ctx: "Context",
             hits = work_collection.search(
                 data=[context_vec],
                 anns_field="vec",
-                param={"metric_type": "L2"},
+                param={"metric_type": "L2", "ef": 102},
                 limit=top_k,
                 expr=exclude_expr
             )[0]

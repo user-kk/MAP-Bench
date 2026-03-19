@@ -1,8 +1,7 @@
 CREATE INDEX inst_id_index on author(institution_id);
 CREATE INDEX author_name_index on author(display_name);
 
--- 报错：
--- CREATE INDEX ad_gin_index on author_doc using gin ((doc->'display_name_alternatives'));
+CREATE INDEX ad_gin_index on author_doc using gin ((doc->'display_name_alternatives'));
 CREATE INDEX wd_topic_gin_index on work_doc using gin ((doc->'topics'));
 
 

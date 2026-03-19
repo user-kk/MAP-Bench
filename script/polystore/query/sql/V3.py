@@ -25,7 +25,7 @@ def V3(ctx: "Context",
         hits = work_coll.search(
             data=[seed_vec],
             anns_field="vec",
-            param={"metric_type": "L2","ef":160},
+            param={"metric_type": "L2", "ef": 102},
             limit=top_k + 1,
             expr=f"id != {seed_work_id}"
         )[0]

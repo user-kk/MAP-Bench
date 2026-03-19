@@ -36,8 +36,8 @@ SET hnsw_enable_experimental_persistence = true;
 
 CREATE INDEX IF NOT EXISTS idx_work_vec_l2
   ON work_vec
-  USING HNSW (vec) WITH (metric = 'l2sq', m = 8, ef_construction = 64);
+  USING HNSW (vec) WITH (metric = 'l2sq', m = 8, ef_construction = 64, ef_search = 102);
 
 CREATE INDEX IF NOT EXISTS idx_topic_vec_l2
   ON topic_vec
-  USING HNSW (vec) WITH (metric = 'l2sq', m = 8, ef_construction = 32);
+  USING HNSW (vec) WITH (metric = 'l2sq', m = 8, ef_construction = 32, ef_search = 102);

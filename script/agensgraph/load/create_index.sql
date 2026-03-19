@@ -11,6 +11,7 @@ CREATE INDEX wd_topic_gin_index on work_doc using gin ((doc->'topics'));
 CREATE INDEX inst_id_index on author(institution_id);
 CREATE INDEX author_name_index on author(display_name);
 
+-- 经测试recall@100 ~= 0.95的配置如下：
 -- nLists	2048
 -- nProbe	38
 -- m	8

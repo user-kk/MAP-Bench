@@ -172,4 +172,4 @@ CREATE TABLE institution_geo (
 
 
 --示例用法
--- gsql -d postgres -p 5435 -r -f /openalex_data/demo_works_data/last_code/openalex-schema.sql
+-- gsql -d postgres -p 5435 -r -f /path/to/create_schema.sql
