@@ -4,11 +4,12 @@ SELECT p.title,
        p.cited_by_count AS n_citation
 FROM GRAPH_TABLE(
     academic_net
-    MATCH (p1:work_v where p1.id = 4394922388)-[r:work_referenced_work_e]->{0,4}(p2:work_v)
+    MATCH (p1:work_v where p1.id = 4399669303)-[r:work_referenced_work_e]->{0,2}(p2:work_v)
     COLUMNS (p2.id)
 ) r
 JOIN work             p  ON p.id = r.id
 JOIN work_doc         wd ON wd.id = p.id
+WHERE p.cited_by_count > 100
 ORDER BY p.cited_by_count DESC, p.id ASC;
 
 
@@ -16,7 +17,7 @@ ORDER BY p.cited_by_count DESC, p.id ASC;
 -- -- select r.id 
 -- -- FROM GRAPH_TABLE(
 -- --     academic_net
--- --     MATCH  (p1:work_v where p1.id = 4394922388)-[e:work_referenced_work_e]->{1,2}(p2:work_v)
+-- --     MATCH  (p1:work_v where p1.id = 4399669303)-[e:work_referenced_work_e]->{1,2}(p2:work_v)
 -- --     COLUMNS (p2.id)
 -- -- ) r
 
@@ -27,7 +28,7 @@ ORDER BY p.cited_by_count DESC, p.id ASC;
 --     select g1.id
 --     FROM GRAPH_TABLE(
 --         academic_net
---         MATCH (p1:work_v where p1.id = 4394922388)-[r1:work_referenced_work_e]->(p2:work_v)-[r2:work_referenced_work_e]->(p3:work_v)
+--         MATCH (p1:work_v where p1.id = 4399669303)-[r1:work_referenced_work_e]->(p2:work_v)-[r2:work_referenced_work_e]->(p3:work_v)
 --         COLUMNS (p3.id)
 --     ) g1
 -- ),
@@ -35,7 +36,7 @@ ORDER BY p.cited_by_count DESC, p.id ASC;
 --     select g2.id
 --     FROM GRAPH_TABLE(
 --         academic_net
---         MATCH (p4:work_v where p4.id = 4394922388)-[r3:work_referenced_work_e]->(p5:work_v)
+--         MATCH (p4:work_v where p4.id = 4399669303)-[r3:work_referenced_work_e]->(p5:work_v)
 --         COLUMNS (p5.id)
 --     ) g2
 -- ),
@@ -43,7 +44,7 @@ ORDER BY p.cited_by_count DESC, p.id ASC;
 --     (select g3.id
 --     FROM GRAPH_TABLE(
 --         academic_net
---         MATCH (p6:work_v where p6.id = 4394922388)
+--         MATCH (p6:work_v where p6.id = 4399669303)
 --         COLUMNS (p6.id)
 --     ) g3)
 -- )
@@ -58,7 +59,7 @@ ORDER BY p.cited_by_count DESC, p.id ASC;
 --        p.cited_by_count AS n_citation
 -- FROM GRAPH_TABLE(
 --     academic_net
---     MATCH (p1:work_v where p1.id = 4394922388)-[r:work_referenced_work_e]->{0,2}(p2:work_v)
+--     MATCH (p1:work_v where p1.id = 4399669303)-[r:work_referenced_work_e]->{0,2}(p2:work_v)
 --     COLUMNS (p2.id)
 -- ) r
 -- JOIN work             p  ON p.id = r.id
@@ -79,6 +80,6 @@ ORDER BY p.cited_by_count DESC, p.id ASC;
 -- select r.id 
 -- FROM GRAPH_TABLE(
 --     academic_net
---     MATCH  p = ANY SHORTEST (p1:work_v where p1.id = 4394922388)-[e:work_referenced_work_e]->{1,2}(p2:work_v)
+--     MATCH  p = ANY SHORTEST (p1:work_v where p1.id = 4399669303)-[e:work_referenced_work_e]->{1,2}(p2:work_v)
 --     COLUMNS (p2.id)
 -- ) r

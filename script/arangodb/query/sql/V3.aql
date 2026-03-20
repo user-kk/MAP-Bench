@@ -4,7 +4,7 @@ let ids = (
     FOR wv IN work_vec
     LET d = APPROX_NEAR_L2(wv.vec, target_vec)   /* <-- 换成 L2 */
     SORT d ASC                          /* 越小越相似 */
-    LIMIT 300
+    LIMIT 100
     RETURN {id:wv.id,dis:d}
 )
 

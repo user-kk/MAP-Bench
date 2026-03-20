@@ -11,13 +11,13 @@ SELECT
     p.cited_by_count AS n_citation
 FROM 
     (
-        SELECT p2.id AS id
-        FROM work_work_gra MATCH (p1: work_v)-[r: work_referenced_work_e]{0,4}->(p2: work_v)
-        WHERE p1.id = 4394922388
+        SELECT DISTINCT p2.id AS id
+        FROM work_work_gra MATCH (p1: work_v)-[r: work_referenced_work_e]{0,2}->(p2: work_v)
+        WHERE p1.id = 4399669303
     ) t1,
     work p,
     work_doc wd
 WHERE 
-    t1.id = p.id AND p.id = wd.id
+    t1.id = p.id AND p.id = wd.id AND p.cited_by_count > 100
 ORDER BY 
     p.cited_by_count DESC,p.id asc

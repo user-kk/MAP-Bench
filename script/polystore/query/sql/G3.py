@@ -9,7 +9,7 @@ from common.context import Context
 from common.timer import MultiDatabaseTimer as MDTimer, TimerPhase
 
 def G3(ctx: "Context",
-       seed_work_id: int = 4394922388,
+       seed_work_id: int = 4399669303,
        timer: Optional[MDTimer] = None) -> pd.DataFrame:
     """
     返回 0-2 步引用网络内所有论文的
@@ -19,7 +19,7 @@ def G3(ctx: "Context",
 
     # 1. Neo4j：0-2 步可达节点（含自己）
     cypher = """
-    MATCH (p1:work_v {id: $wid})-[*0..4]->(p2:work_v)
+    MATCH (p1:work_v {id: $wid})-[*0..2]->(p2:work_v)
     RETURN DISTINCT p2.id AS id
     """
     with TimerPhase(timer, "g"):
@@ -34,7 +34,7 @@ def G3(ctx: "Context",
     sql = f"""
     SELECT id, title, publication_year AS year, cited_by_count AS n_citation
     FROM work
-    WHERE id IN ({id_place})
+    WHERE id IN ({id_place}) and cited_by_count > 100
     ORDER BY cited_by_count DESC, id ASC
     """
     with TimerPhase(timer, "r"):

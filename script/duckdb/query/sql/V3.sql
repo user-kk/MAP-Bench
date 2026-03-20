@@ -2,7 +2,7 @@ WITH ids AS (
     select id,array_distance(vec,(select vec from work_vec where id = 4321448324))  as dis
     from work_vec 
     order by dis asc
-    limit 300
+    limit 100
 )
 SELECT wc.id AS id,w.title
 FROM ids join work w on ids.id = w.id 

@@ -1,10 +1,8 @@
--- SET hnsw.ef_search = 100;
-
 WITH ids AS (
     select id,work_vec.vec <-> (select vec from work_vec where id = 4321448324) as dis
     from work_vec 
     order by work_vec.vec <-> (select vec from work_vec where id = 4321448324) asc
-    limit 300
+    limit 100
 )
 SELECT wc.id AS id,w.title
 FROM ids join work w on ids.id = w.id 
