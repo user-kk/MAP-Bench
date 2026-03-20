@@ -15,7 +15,7 @@ DB_NAME = 'mapl'
 # 要求
 # DATA_ROOT 与 CONTAINER_DATA_ROOT 对应
 # TMP_ROOT 与 CONTAINER_TMP_ROOT 对应
-DATA_ROOT = '/mapbench/new_mapl'   # 当前主机内 csv 根目录 /tmp/polystore/OpenAlex_mini_new
+DATA_ROOT = '/mapbench/new_mapl'   # 当前主机内 csv 根目录
 CONTAINER_DATA_ROOT = "/raw_data"  # 容器内csv挂载路径
 TMP_ROOT = '/tmp/polystore' # 当前主机内临时文件生成目录
 CONTAINER_TMP_ROOT = '/tmp/polystore' # 容器内临时文件挂载目录
@@ -498,7 +498,7 @@ def neo4j_import_graph(ctx, force_convert=False,slice_lines=500_000):
             print(cypher)
             session.run(cypher)  # 通过 $file 传路径
 
-    # 3.3.1 小边
+    # 3.3.1 小边，导入边数据不要并行，容易死锁，尤其是author_author_e边
     _import_small_edge(
         "work_referenced_work_e.jsonl",
         '''
@@ -507,7 +507,7 @@ def neo4j_import_graph(ctx, force_convert=False,slice_lines=500_000):
           'MATCH (w1:work_v {id: value.start_id})
            MATCH (w2:work_v {id: value.end_id})
            CREATE (w1)-[:work_referenced_work_e]->(w2)',
-          {batchSize: 50000, parallel: true}
+          {batchSize: 50000, parallel: false}
         )
         '''
     )
@@ -519,24 +519,21 @@ def neo4j_import_graph(ctx, force_convert=False,slice_lines=500_000):
           'MATCH (w:work_v {id: value.start_id})
            MATCH (t:topic_v {id: value.end_id})
            CREATE (w)-[:work_topic_e {score: toFloat(value.score)}]->(t)',
-          {batchSize: 50000, parallel: true}
+          {batchSize: 50000, parallel: false}
         )
         '''
     )
-
-    # 3.3.2 大边：work_author_e
-    _import_big_edge(
-        EDGE_CSV_JSONL["work_author_e"][1],
+    
+    _import_small_edge(
+        "work_author_e.jsonl",
         '''
         CALL apoc.periodic.iterate(
-        'CALL apoc.load.json("{file_path}") YIELD value RETURN value',
-        'MATCH (w:work_v {{id: value.start_id}})
-        MATCH (a:author_v {{id: value.end_id}})
-        MERGE (w)-[e:work_author_e]->(a)
-            ON CREATE SET e.author_position = value.author_position',
-        {{batchSize: 10000, parallel: false}}
-        )
-        '''
+            'CALL apoc.load.json("file:///work_author_e.jsonl") YIELD value RETURN value',
+              'MATCH (w:work_v {id: value.start_id})
+                MATCH (a:author_v {id: value.end_id})
+                CREATE (w)-[:work_author_e {author_position: value.author_position}]->(a)',
+              {batchSize: 50000, parallel: false}
+        )'''
     )
 
     # 3.3.3 大边：author_author_e
@@ -555,7 +552,7 @@ def neo4j_import_graph(ctx, force_convert=False,slice_lines=500_000):
             ON CREATE SET r.cnt = toInteger(value.cnt),
                         r.years = years,
                         r.work_ids = work_ids,
-                        r.list = list
+                        r.list = list',
         {{batchSize: 10000, parallel: false}}
         )
         '''

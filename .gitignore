@@ -4,6 +4,7 @@ __pycache__/
 **/*.zip
 **/*.txt
 **/*.jsonl
+**/*.log
 .vscode
 script/common/demo
 tmp/
