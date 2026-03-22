@@ -15,8 +15,8 @@ ai_papers AS (
         )
         AND exists (
             select 1
-                from unnest(json_extract(wd.doc,'$.topics[*].id')) k(id) join topic t on k.id::bigint = t.id
-                where t.subfield_display_name = 'Artificial Intelligence' 
+                from unnest(json_extract(wd.doc,'$.topics[*].id')) k(id)
+                where k.id IN (SELECT id FROM ai_topic_ids)
         )
 ),
 author_counts AS (
