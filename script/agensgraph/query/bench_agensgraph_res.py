@@ -274,13 +274,14 @@ def measure_long_query(sql: str, interval: float, conn_params: dict, max_paralle
 
 def restart_agens(host=DB_CONF['host'], port=DB_CONF['port'], max_wait=60):
     """重启 AgensGraph 服务"""
+    time.sleep(3)
     print('♻️  restarting agensgraph …')
     subprocess.run(['sudo', 'systemctl', 'restart', 'agensgraph.service'], check=True)
     time.sleep(7)
     
     for _ in range(max_wait):
         try:
-            with socket.create_connection((host, port), timeout=1):
+            with socket.create_connection((host, port), timeout=10):
                 print('✅  agensgraph ready')
                 return
         except (socket.error, OSError):

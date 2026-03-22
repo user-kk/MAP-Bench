@@ -66,7 +66,7 @@ def pick_interval(latency_ms: float) -> float:
     return max(MIN_SAMPLE_INTERVAL, min(MAX_SAMPLE_INTERVAL, ideal))
 
 
-def restart_arangod(host=DB_CONF['ip'], port=DB_CONF['port'], max_wait=60):
+def restart_arangod(host=DB_CONF['ip'], port=DB_CONF['port'], max_wait=10):
     """重启 ArangoDB 服务"""
     print('♻️  restarting arangod …')
     subprocess.run(['sudo', 'systemctl', 'restart', 'arangodb3.service'], check=True)
@@ -74,7 +74,7 @@ def restart_arangod(host=DB_CONF['ip'], port=DB_CONF['port'], max_wait=60):
 
     for _ in range(max_wait):
         try:
-            with socket.create_connection((host, port), timeout=1):
+            with socket.create_connection((host, port), timeout=20):
                 print('✅  arangod ready')
                 return
         except (socket.error, OSError):

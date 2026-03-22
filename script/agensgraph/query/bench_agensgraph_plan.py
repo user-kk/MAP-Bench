@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-AgensGraph 执行计划获取器：使用 EXPLAIN ANALYZE 执行每个查询，
+AgensGraph 执行计划获取器：先按轮次完成所有查询的预热，
+再统一使用 EXPLAIN ANALYZE 执行每个查询，
 将完整执行计划输出到一个 txt 文件中。
 
 用法:
@@ -50,6 +51,11 @@ def main():
         print('所有文件均被排除，无事可做。')
         return
 
+    queries = []
+    for f in file_list:
+        sql = f.read_text(encoding='utf-8').strip()
+        queries.append((f, sql))
+
     conn = psycopg.connect(**DB_CONF, autocommit=True)
     info = TypeInfo.fetch(conn, 'json')
     conn.adapters.register_loader(info.oid, TextLoader)
@@ -61,41 +67,44 @@ def main():
 
     separator = "=" * 80
 
+    # 第一阶段：先整轮预热，但不写入输出文件
+    if args.warmup > 0:
+        print(f'开始预热，共 {args.warmup} 轮，每轮执行 {len(queries)} 个查询...')
+        for warmup_round in range(1, args.warmup + 1):
+            print(f'Warmup round {warmup_round}/{args.warmup}')
+            for f, sql in queries:
+                print(f'  Warmup: {f.name}')
+                try:
+                    cur.execute(sql)
+                    if cur.description:
+                        cur.fetchall()
+                    print('    OK')
+                except Exception as e:
+                    error_msg = f"ERROR: {type(e).__name__}: {e}"
+                    print(f'    {error_msg}')
+                    conn.rollback() if not conn.autocommit else None
+        print('预热完成。\n')
+
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open('w', encoding='utf-8') as out_f:
-        out_f.write(f"AgensGraph EXPLAIN ANALYZE Results\n")
+        out_f.write("AgensGraph EXPLAIN ANALYZE Results\n")
         out_f.write(f"Parallel workers: {args.threads}\n")
         out_f.write(f"Warmup rounds: {args.warmup}\n")
         out_f.write(f"{separator}\n\n")
 
-        for f in file_list:
-            sql = f.read_text().strip()
-            print(f'Processing: {f.name}')
+        # 第二阶段：统一执行 EXPLAIN ANALYZE
+        print(f'开始获取执行计划，共 {len(queries)} 个查询...')
+        for f, sql in queries:
+            print(f'Processing EXPLAIN ANALYZE: {f.name}')
 
             out_f.write(f"{separator}\n")
             out_f.write(f"File: {f.name}\n")
             out_f.write(f"{separator}\n\n")
 
-            # 写入原始 SQL
             out_f.write("-- Original SQL:\n")
             out_f.write(sql)
             out_f.write("\n\n")
 
-            # 预热阶段：执行但不获取执行计划
-            if args.warmup > 0:
-                print(f'  Warmup phase ({args.warmup} rounds)...')
-                for warmup_idx in range(1, args.warmup + 1):
-                    try:
-                        cur.execute(sql)
-                        cur.fetchall() if cur.description else None
-                        print(f'    Warmup {warmup_idx}/{args.warmup}: OK')
-                    except Exception as e:
-                        error_msg = f"ERROR: {type(e).__name__}: {e}"
-                        print(f'    Warmup {warmup_idx}/{args.warmup}: {error_msg}')
-                        conn.rollback() if not conn.autocommit else None
-                print(f'  Warmup completed.')
-
-            # 正式执行：获取 EXPLAIN ANALYZE 结果
             explain_sql = "EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) " + sql
 
             try:
@@ -107,7 +116,7 @@ def main():
                     out_f.write(row[0] + "\n")
                 out_f.write("\n")
 
-                print(f'  EXPLAIN ANALYZE: OK')
+                print('  EXPLAIN ANALYZE: OK')
 
             except Exception as e:
                 error_msg = f"ERROR: {type(e).__name__}: {e}"

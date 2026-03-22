@@ -18,5 +18,5 @@ python bench_duckdb_info.py sql/*.sql -o "out/info_$(date +%F_%T).csv"
 ## 查询计划与profile信息
 
 ```bash
-python bench_duckdb_plan.py sql/*.sql --warmup 1 -t 12 -x G1.sql G3.sql V1.sql V2.sql  -o "out/plan_$(date +%F_%T).txt"
+python bench_duckdb_plan.py sql/*.sql --warmup 1 -t 12 -x G1.sql G3.sql V1.sql  -o "out/plan_$(date +%F_%T).txt"
 ```

@@ -19,7 +19,7 @@ def A2(ctx: "Context", author_id: int = 5015704722, timer: Optional[MDTimer] = N
     # 1. Neo4j：先把合作关系列表拉回来（JSON 字符串）
     cypher = """
     MATCH (a:author_v {id: $aid})-[e:author_author_e]->(b:author_v)
-    RETURN b.id AS id, e.raw_list AS list
+    RETURN b.id AS id, e.list AS list
     """
     with TimerPhase(timer, "g"):
         records = ctx.neo4j_session.run(cypher, aid=author_id)

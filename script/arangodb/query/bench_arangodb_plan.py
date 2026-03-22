@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-ArangoDB 执行计划获取器：通过 arangosh 调用 db._profileQuery() 获取原生格式化输出。
+ArangoDB 执行计划获取器：先按轮次完成所有查询的预热，
+再通过 arangosh 调用 db._profileQuery() 获取原生格式化输出。
 
 用法:
     python3 arango_explain_analyze.py query/*.aql -o plans.txt
@@ -23,18 +24,18 @@ SEPARATOR = "=" * 100
 
 def run_query(aql: str, timeout: int = 3600, profile: bool = False) -> str:
     """通过 arangosh 执行查询，profile=True 时返回执行计划，否则只执行"""
-    
-    escaped_aql = aql.replace("\\", "\\\\").replace("`", "\`")
-    
     if profile:
         js_code = f"""
-var query = `{escaped_aql}`;
+var query = `{aql}`;
 db._profileQuery(query, {{}}, {{maxRuntime: {timeout}}});
 """
     else:
         js_code = f"""
-var query = `{escaped_aql}`;
-db._query(query, {{}}, {{maxRuntime: {timeout}}});
+var query = `{aql}`;
+var cursor = db._query(query, {{}}, {{maxRuntime: {timeout}}});
+while (cursor.hasNext()) {{
+  cursor.next();
+}}
 """
 
     cmd = [ARANGOSH, "--quiet", "true", "--console.colors", "false"]
@@ -89,15 +90,35 @@ def main():
         print('No files to process.')
         return
 
+    queries = []
+    for f in file_list:
+        aql = f.read_text(encoding='utf-8').strip()
+        queries.append((f, aql))
+
+    # 第一阶段：整轮预热，不写输出文件
+    if args.warmup > 0:
+        print(f'开始预热，共 {args.warmup} 轮，每轮执行 {len(queries)} 个查询...')
+        for warmup_round in range(1, args.warmup + 1):
+            print(f'Warmup round {warmup_round}/{args.warmup}')
+            for f, aql in queries:
+                print(f'  Warmup: {f.name}')
+                output = run_query(aql, timeout=args.timeout, profile=False)
+                if output.startswith("ERROR:"):
+                    print(f'    {output.splitlines()[0]}')
+                else:
+                    print('    OK')
+        print('预热完成。\n')
+
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open('w', encoding='utf-8') as out_f:
-        out_f.write(f"ArangoDB Profile Execution Plans (via arangosh)\n")
+        out_f.write("ArangoDB Profile Execution Plans (via arangosh)\n")
         out_f.write(f"Warmup rounds: {args.warmup}\n")
         out_f.write(f"{SEPARATOR}\n\n")
 
-        for f in file_list:
-            aql = f.read_text().strip()
-            print(f'Processing: {f.name}')
+        # 第二阶段：统一获取执行计划
+        print(f'开始获取执行计划，共 {len(queries)} 个查询...')
+        for f, aql in queries:
+            print(f'Processing profile: {f.name}')
 
             out_f.write(f"{SEPARATOR}\n")
             out_f.write(f"File: {f.name}\n")
@@ -107,24 +128,15 @@ def main():
             out_f.write(aql)
             out_f.write("\n\n")
 
-            # 预热阶段：执行但不获取执行计划
-            if args.warmup > 0:
-                print(f'  Warmup phase ({args.warmup} rounds)...')
-                for warmup_idx in range(1, args.warmup + 1):
-                    output = run_query(aql, timeout=args.timeout, profile=False)
-                    if output.startswith("ERROR:"):
-                        print(f'    Warmup {warmup_idx}/{args.warmup}: {output.splitlines()[0]}')
-                    else:
-                        print(f'    Warmup {warmup_idx}/{args.warmup}: OK')
-                print(f'  Warmup completed.')
-
-            # 正式执行：获取执行计划
-            out_f.write(f"--- db._profileQuery() ---\n\n")
+            out_f.write("--- db._profileQuery() ---\n\n")
             output = run_query(aql, timeout=args.timeout, profile=True)
             out_f.write(output)
             out_f.write("\n\n")
 
-            print(f'  db._profileQuery(): OK')
+            if output.startswith("ERROR:"):
+                print(f'  db._profileQuery(): {output.splitlines()[0]}')
+            else:
+                print('  db._profileQuery(): OK')
 
             out_f.write("\n")
 
