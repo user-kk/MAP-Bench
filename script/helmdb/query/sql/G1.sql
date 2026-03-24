@@ -16,9 +16,14 @@ AND b.cited_by_count::int >= 10000
 ),
 CandidateWork AS (
 -- 第三步： 找出这些候选作者的在这个领域的作品
-SELECT DISTINCT p.id as aid, w.id as wid
-FROM Potential p,work_author_gra MATCH (au: author_v)<-[: work_author_e]-(w: work_v),work_doc wd
-where p.id = au.id and w.id = wd.id and  wd.topics::jsonb @> json_build_array(json_build_object('id',(select id from topic_info)))::jsonb
+select t.*
+FROM
+(
+    SELECT DISTINCT p.id as aid, w.id as wid
+    FROM Potential p, work_author_gra MATCH (au: author_v)<-[: work_author_e]-(w: work_v)
+    WHERE p.id = au.id
+) t join work_doc wd on t.wid = wd.id 
+where wd.topics::jsonb @> json_build_array(json_build_object('id',(select id from topic_info)))::jsonb
 )
 
 -- 第四步： 计算最佳n个候选者

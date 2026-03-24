@@ -7,9 +7,14 @@ python bench_poly.py sql/*.py -o "out/$(date +%F_%T).csv"
 ## 资源占用
 
 ```bash
-python bench_poly.py sql/*.py -o "out/res_$(date +%F_%T).csv" -f ../util/docker-compose.yml
+python bench_poly_res.py sql/*.py -o "out/res_$(date +%F_%T).csv" -f ../util/docker-compose.yml
 ```
 
+## 各模型时间占比
+
+```bash
+python bench_poly_info.py sql/*.py -o "out/info_$(date +%F_%T).csv"
+```
 
 ## polyglot persistent实现策略：模拟高效的polyglot persistent系统，最大化的减少网络通信的开销
 - 跨系统物化与下推：

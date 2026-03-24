@@ -351,7 +351,7 @@ def restart_polystore(compose_file: Path, max_wait=120):
     for port in ports:
         for _ in range(max_wait):
             try:
-                with socket.create_connection((DB_CONF['host'], port), timeout=1):
+                with socket.create_connection((DB_CONF['host'], port), timeout=20):
                     break
             except: time.sleep(1)
         else: raise RuntimeError(f'端口 {port} 超时')

@@ -42,13 +42,13 @@ from collections import OrderedDict
 ROOT_PATH = '/home/hyh/OpenAlex_mini_new/'
 
 DEFAULT_DBS = OrderedDict([
-    ('helmdb',        ROOT_PATH + 'script/helmdb/query/out/2026-01-24_21:30:42.csv'),
-    ('arangodb',      ROOT_PATH + 'script/arangodb/query/out/2026-01-23_22:06:26.csv'),
-    ('agensgraph-sp', ROOT_PATH + 'script/agensgraph/query/out/2026-01-23_20:13:07.csv'),
-    ('duckdb-st',     ROOT_PATH + 'script/duckdb/query/out/2026-01-23_22:17:59.csv'),
-    ('agensgraph-mp',     ROOT_PATH + 'script/agensgraph/query/out/2026-01-23_21:19:53.csv'),
-    ('duckdb-mt',     ROOT_PATH + 'script/duckdb/query/out/2026-01-25_18:56:48.csv'),
-    ('polystore', ROOT_PATH + 'script/polystore/query/out/2026-01-24_22:59:16.csv'),
+    ('helmdb',        ROOT_PATH + 'script/helmdb/query/out/2026-03-22_17:02:04.csv'),
+    ('arangodb',      ROOT_PATH + 'script/arangodb/query/out/2026-03-22_18:54:57.csv'),
+    ('agensgraph-sp', ROOT_PATH + 'script/agensgraph/query/out/2026-03-22_19:26:36.csv'),
+    ('agensgraph-mp',     ROOT_PATH + 'script/agensgraph/query/out/2026-03-22_17:42:23.csv'),
+    ('duckdb-st',     ROOT_PATH + 'script/duckdb/query/out/2026-03-22_18:52:30.csv'),
+    ('duckdb-mt',     ROOT_PATH + 'script/duckdb/query/out/2026-03-22_17:43:25.csv'),
+    ('polystore', ROOT_PATH + 'script/polystore/query/out/2026-03-22_20:38:24.csv'),
 ])
 
 # -------------------------------------------------
@@ -141,7 +141,7 @@ def main():
 
     # 根据格式自动补扩展名
     ext = 'md' if args.format in ('md', 'markdown') else 'csv'
-    out_path = pathlib.Path(args.output or f"compare_{datetime.datetime.now():%Y%m%d_%H%M%S}.{ext}")
+    out_path = pathlib.Path(args.output or f"out/compare_{datetime.datetime.now():%Y%m%d_%H%M%S}.{ext}")
 
     # 读取数据
     data = {name: load_median(p) for name, p in db_map.items()}

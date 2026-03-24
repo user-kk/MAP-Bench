@@ -46,14 +46,12 @@ def _worker(sql: str, db_path: str, threads: int,
         conn.execute("INSTALL duckpgq FROM community; INSTALL vss;")
         conn.execute("LOAD duckpgq; LOAD vss;")
         conn.execute(f"SET threads={threads}")
-        conn.execute("SET memory_limit='50GB'")
         
         # 通知父进程：连接已建立
         ready_event.set()
         
         # 等待开始信号
         start_event.wait()
-        
         # 执行查询并计时
         t0 = time.perf_counter()
         conn.execute(sql).fetchall()

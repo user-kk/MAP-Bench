@@ -407,7 +407,7 @@ def neo4j_import_graph(ctx, force_convert=False,slice_lines=500_000):
              works_count: toInteger(value.works_count),
              cited_by_count: toInteger(value.cited_by_count)
            }})',
-          {{batchSize: 1000000, parallel: true}}
+          {{batchSize: 100000, parallel: true}}
         )
         ''',
 
@@ -548,11 +548,12 @@ def neo4j_import_graph(ctx, force_convert=False,slice_lines=500_000):
                 [item IN value.list | toInteger(item.year)]   AS years,
                 [item IN value.list | toInteger(item.work_id)] AS work_ids,
                 apoc.convert.toJson(value.list)               AS list
-        MERGE (a1)-[r:author_author_e]->(a2)
-            ON CREATE SET r.cnt = toInteger(value.cnt),
-                        r.years = years,
-                        r.work_ids = work_ids,
-                        r.list = list',
+        CREATE (a1)-[r:author_author_e {{
+            cnt: toInteger(value.cnt),
+            years: years,
+            work_ids: work_ids,
+            list: list
+            }}]->(a2)',
         {{batchSize: 10000, parallel: false}}
         )
         '''
