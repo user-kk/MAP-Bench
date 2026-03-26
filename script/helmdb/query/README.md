@@ -16,7 +16,7 @@
 /usr/bin/python3 bench_helmdb_info.py sql/*.sql -o "out/info_$(date +%F_%T).csv" -x  G5.sql G6.sql G7.sql
 ```
 
-## 查询语句与查询计划节点信息
+## 查询计划与profile信息
 
 
 ```bash
