@@ -14,7 +14,7 @@ ARANGO_CONF = dict(
 
 # 定义模型分类（已移除XX_gra集合）
 MODEL_CATEGORIES = {
-    '关系模型': ['author', 'work', 'topic', 'institution', 'institution_geo'],
+    '关系模型': ['author', 'work', 'topic', 'institution'],
     '文档模型': ['author_doc', 'work_doc'],
     '向量模型': ['topic_vec', 'work_vec'],
     '图模型': [

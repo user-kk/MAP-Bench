@@ -8,7 +8,7 @@ from typing import Dict, List
 # ================= 配置区域 =================
 # DuckDB数据库文件路径配置
 DB_CONF = dict(
-    db_path='/duckdb_data/mapl.db'
+    db_path='/duckdb_data/mapl_compacted.db'
 )
 
 # 定义模型分类
@@ -215,8 +215,6 @@ def print_summary(stats: List[Dict], category_stats: Dict[str, List[Dict]], file
     if file_size > 0:
         ratio = (grand_total_data / file_size) * 100
         print(f"数据块占比:         {ratio:.2f}%")
-        if ratio < 50:
-            print("提示: 索引和元数据占比较高，建议检查是否需要VACUUM")
     print("=" * 100)
 
 def main():

@@ -11,10 +11,10 @@ from common.context import Context, get_context
 # ================= 配置区域 =================
 # polystore 连接配置
 POLYSTORE_HOST = "127.0.0.1"
-POLYSTORE_DB = "openalex_middle"
+POLYSTORE_DB = "mapl"
 
 # 每个数据库要统计的对象列表
-POSTGRESQL_TABLES = ['author', 'work', 'topic', 'institution', 'institution_geo']
+POSTGRESQL_TABLES = ['author', 'work', 'topic', 'institution']
 MONGODB_COLLECTIONS = ['author_doc', 'work_doc']
 MILVUS_COLLECTIONS = ['topic_vec', 'work_vec']
 NEO4J_LABELS = ['author_v', 'topic_v', 'work_v', 'author_author_e', 'work_referenced_work_e', 'work_author_e', 'work_topic_e']
@@ -173,7 +173,6 @@ def get_mongodb_stats(ctx) -> List[Dict]:
             
             # 大小统计
             stats_info = db.command("collstats", coll)
-            print(stats_info)
             data_bytes = stats_info.get('storageSize', 0)
             index_bytes = stats_info.get('totalIndexSize', 0)
             

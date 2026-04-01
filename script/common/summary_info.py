@@ -27,6 +27,7 @@ DEFAULT_DBS: "OrderedDict[str, pathlib.Path]" = OrderedDict(
         ("arangodb", ROOT_PATH + "script/arangodb/query/out/info_2026-03-16_19:07:15.csv"),
         ("agensgraph", ROOT_PATH + "script/agensgraph/query/out/info_2026-03-16_19:06:23.csv"),
         ("duckdb", ROOT_PATH + "script/duckdb/query/out/info_2026-03-16_19:09:19.csv"),
+        ("polystore", ROOT_PATH + "script/polystore/query/out/info_2026-03-22_16:35:50.csv"),
     ]
 )
 

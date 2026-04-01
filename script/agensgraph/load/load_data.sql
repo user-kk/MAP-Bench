@@ -147,3 +147,5 @@ DROP FOREIGN TABLE IF EXISTS
         work_topic_e_csv;
 DROP SERVER IF EXISTS csv_server CASCADE;
 
+-- 统计信息更新
+ANALYSE; 

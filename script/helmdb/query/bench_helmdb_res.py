@@ -67,12 +67,12 @@ def restart_helmdb(host=DB_CONF['host'], port=DB_CONF['port'], max_wait=60):
     # Python 3.6 run 也不支持 capture_output，直接调用即可
     subprocess.check_call(['sudo', 'systemctl', 'restart', 'opengauss.service'])
     
-    time.sleep(30)
+    time.sleep(20)
 
     for _ in range(max_wait):
         try:
             # socket 库在 3.6 是通用的
-            with socket.create_connection((host, port), timeout=1):
+            with socket.create_connection((host, port), timeout=20):
                 print('✅  openGauss ready')
                 return
         except (socket.error, OSError):

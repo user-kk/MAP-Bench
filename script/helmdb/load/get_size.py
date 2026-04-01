@@ -29,7 +29,7 @@ GRAPH_TABLES = {
 
 # 定义模型分类（已删除ag_开头的表，新增图表）
 MODEL_CATEGORIES = {
-    '关系模型': ['author', 'work', 'topic', 'institution', 'institution_geo'],
+    '关系模型': ['author', 'work', 'topic', 'institution'],
     '文档模型': ['author_doc', 'work_doc'],
     '向量模型': ['topic_vec', 'work_vec'],
     '图模型': [
