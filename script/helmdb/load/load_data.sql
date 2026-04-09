@@ -105,3 +105,6 @@ FROM :'csv_inst' DELIMITER ',' CSV HEADER;
 COPY institution_geo (institution_id, city, geonames_city_id,
                      region, country_code, country, latitude, longitude)
 FROM :'csv_geo' DELIMITER ',' CSV HEADER;
+
+-- 8. 统计信息更新
+ANALYSE; 

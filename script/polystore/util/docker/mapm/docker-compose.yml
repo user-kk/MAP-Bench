@@ -1,0 +1,184 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: postgres
+    restart: unless-stopped
+    mem_limit: ${POSTGRES_MEM_LIMIT:-10g}
+    environment:
+      POSTGRES_PASSWORD: linux123
+      TZ: Asia/Shanghai
+    ports:
+      - "30000:5432"
+    command: >
+      postgres
+        -c shared_buffers=4GB
+        -c effective_cache_size=5GB
+        -c maintenance_work_mem=4GB
+        -c max_connections=20
+        -c work_mem=0.5GB
+    volumes:
+      - pg_data_mapm:/var/lib/postgresql/data
+      - /tmp/polystore_mapm:/tmp/polystore
+      - /mapbench/mapm:/raw_data
+    deploy:
+      resources:
+        limits:
+          memory: ${POSTGRES_MEM_LIMIT:-10GB}
+        reservations:
+          memory: ${POSTGRES_MEM_LIMIT:-10GB}
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    restart: unless-stopped
+    mem_limit: ${MONGODB_MEM_LIMIT:-10g}
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: linux123
+    ports:
+      - "30001:27017"
+    volumes:
+      - mongo_data_mapm:/data/db
+      - /tmp/polystore_mapm:/tmp/polystore
+      - /mapbench/mapm:/raw_data
+    command: mongod --wiredTigerCacheSizeGB 5
+    deploy:
+      resources:
+        limits:
+          memory: ${MONGODB_MEM_LIMIT:-10GB}
+        reservations:
+          memory: ${MONGODB_MEM_LIMIT:-10GB}
+
+  neo4j:
+    image: neo4j:5.24
+    container_name: neo4j
+    restart: unless-stopped
+    mem_limit: ${NEO4J_MEM_LIMIT:-21g}
+    environment:
+      NEO4J_AUTH: neo4j/linux123
+      NEO4J_apoc_export_file_enabled: "true"
+      NEO4J_apoc_import_file_enabled: "true"
+      NEO4J_apoc_import_file_use__neo4j__config: "true"
+      NEO4J_dbms_security_procedures_unrestricted: "apoc.*"
+      NEO4J_server_memory_heap_initial__size: 16g
+      NEO4J_server_memory_heap_max__size: 16g
+      NEO4J_server_memory_pagecache_size: 4g
+      NEO4J_dbms_transaction_timeout: 0
+      NEO4JLABS_PLUGINS: '["apoc"]'
+    ports:
+      - "30002:7474"
+      - "30003:7687"
+    volumes:
+      - neo4j_data_mapm:/data
+      - neo4j_logs_mapm:/logs
+      - /tmp/polystore_mapm:/tmp/polystore
+      - /mapbench/mapm:/raw_data
+      - /tmp/polystore_mapm:/var/lib/neo4j/import
+    deploy:
+      resources:
+        limits:
+          memory: ${NEO4J_MEM_LIMIT:-21GB}
+        reservations:
+          memory: ${NEO4J_MEM_LIMIT:-21GB}
+
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    container_name: milvus-etcd
+    restart: unless-stopped
+    environment:
+      - ETCD_LOG_LEVEL=info
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd:2380
+      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
+      - ETCD_INITIAL_CLUSTER=default=http://etcd:2380
+      - ETCD_DATA_DIR=/etcd-data
+    ports:
+      - "30010:2379"
+      - "30011:2380"
+    volumes:
+      - etcd_data_mapm:/etcd-data
+    deploy:
+      resources:
+        limits:
+          memory: ${ETCD_MEM_LIMIT:-2GB}
+        reservations:
+          memory: ${ETCD_MEM_LIMIT:-2GB}
+
+  minio:
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    container_name: milvus-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "30012:9000"
+      - "30013:9001"
+    volumes:
+      - minio_data_mapm:/minio-data
+    command: minio server /minio-data --console-address ":9001"
+    deploy:
+      resources:
+        limits:
+          memory: ${MINIO_MEM_LIMIT:-2GB}
+        reservations:
+          memory: ${MINIO_MEM_LIMIT:-2GB}
+
+  milvus:
+    image: milvusdb/milvus:v2.3.4
+    container_name: milvus
+    restart: unless-stopped
+    mem_limit: ${MILVUS_MEM_LIMIT:-14g}
+    ports:
+      - "30004:19530"
+      - "30005:9091"
+    environment:
+      ETCD_ENDPOINTS: "etcd:2379"
+      MINIO_ADDRESS: "minio:9000"
+      MINIO_ACCESS_KEY: "minioadmin"
+      MINIO_SECRET_KEY: "minioadmin"
+    volumes:
+      - /tmp/polystore_mapm:/var/lib/milvus/import
+      - milvus_data_mapm:/var/lib/milvus
+      - /tmp/polystore_mapm:/tmp/polystore
+      - /mapbench/mapm:/raw_data
+    depends_on:
+      - etcd
+      - minio
+    command: ["milvus", "run", "standalone"]
+    deploy:
+      resources:
+        limits:
+          memory: ${MILVUS_MEM_LIMIT:-14GB}
+        reservations:
+          memory: ${MILVUS_MEM_LIMIT:-14GB}
+
+  attu:
+    image: zilliz/attu:v2.3.8
+    container_name: attu
+    restart: unless-stopped
+    ports:
+      - "30006:3000"
+    environment:
+      MILVUS_URL: milvus:19530
+    depends_on:
+      - milvus
+    deploy:
+      resources:
+        limits:
+          memory: ${ATTU_MEM_LIMIT:-2GB}
+        reservations:
+          memory: ${ATTU_MEM_LIMIT:-2GB}
+
+volumes:
+  pg_data_mapm:
+  mongo_data_mapm:
+  neo4j_data_mapm:
+  neo4j_logs_mapm:
+  etcd_data_mapm:
+  minio_data_mapm:
+  milvus_data_mapm:

@@ -5,6 +5,8 @@ __pycache__/
 **/*.txt
 **/*.jsonl
 **/*.log
+**/*.png
+**/*.pdf
 .vscode
 script/common/demo
 tmp/
