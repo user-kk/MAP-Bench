@@ -1,7 +1,7 @@
 with tids as (
-    select id,tv.vec <-> (select vec from topic_vec where id = 10862) as dis
+    select id,tv.vec <-> (select vec from topic_vec where id = __MB_seed_topic_id__) as dis
     from topic_vec tv
-    order by tv.vec <-> (select vec from topic_vec where id = 10862) asc
+    order by tv.vec <-> (select vec from topic_vec where id = __MB_seed_topic_id__) asc
     limit 5
 ),
 topicWork as (

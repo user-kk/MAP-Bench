@@ -14,6 +14,15 @@ import subprocess
 import threading
 import time
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'common'))
+from benchmark_config import (
+    get_dataset_conf,
+    get_query_params,
+    load_benchmark_config,
+    render_query_template,
+)
 
 import psutil
 import psycopg
@@ -25,6 +34,7 @@ DB_CONF = dict(
     host='127.0.0.1',
     port=5555
 )
+DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / 'common' / 'benchmark_config.json'
 
 SHORT_QUERY_THRESHOLD_MS = 500
 MIN_SAMPLE_INTERVAL = 0.05   # 50ms
@@ -358,6 +368,10 @@ def main():
     parser = argparse.ArgumentParser(description='AgensGraph 资源采样脚本')
     parser.add_argument('-n', '--rounds', type=int, default=5,
                         help='采样轮数 (默认: 5)')
+    parser.add_argument('-d', '--dataset', choices=['mapl', 'mapm', 'maps'], default='mapl',
+                        help='选择数据集（默认 mapl）')
+    parser.add_argument('-c', '--config', type=Path, default=DEFAULT_CONFIG_PATH,
+                        help='配置文件路径（默认 script/common/benchmark_config.json）')
     parser.add_argument('-o', '--out', type=Path, default=Path('result.csv'),
                         help='输出CSV路径 (默认: result.csv)')
     parser.add_argument('-p', '--parallel', type=int, default=12,
@@ -367,6 +381,11 @@ def main():
     parser.add_argument('files', nargs='+',
                         help='SQL文件列表')
     args = parser.parse_args()
+
+    config = load_benchmark_config(args.config)
+    dataset_conf = get_dataset_conf(config, 'agensgraph', args.dataset)
+    conn_params = DB_CONF.copy()
+    conn_params['dbname'] = dataset_conf['db_name']
 
     max_parallel = args.parallel
     
@@ -399,8 +418,11 @@ def main():
     
     for f in file_list:
         restart_agens()
-        sql = f.read_text().strip()
-        lat_ms = warmup_query(sql, DB_CONF, max_parallel)
+        sql = render_query_template(
+            f.read_text(encoding='utf-8').strip(),
+            get_query_params(config, 'agensgraph', f.stem, args.dataset),
+        )
+        lat_ms = warmup_query(sql, conn_params, max_parallel)
         
         is_short = lat_ms < SHORT_QUERY_THRESHOLD_MS
         method = "cpu_times" if is_short else "sampling"
@@ -421,14 +443,17 @@ def main():
         
         for f in file_list:
             restart_agens()
-            sql = f.read_text().strip()
+            sql = render_query_template(
+            f.read_text(encoding='utf-8').strip(),
+            get_query_params(config, 'agensgraph', f.stem, args.dataset),
+        )
             method = data[f.name]['method']
             interval = data[f.name]['interval']
             
             if method == "cpu_times":
-                result = measure_short_query(sql, DB_CONF, max_parallel)
+                result = measure_short_query(sql, conn_params, max_parallel)
             else:
-                result = measure_long_query(sql, interval, DB_CONF, max_parallel)
+                result = measure_long_query(sql, interval, conn_params, max_parallel)
             
             lat, cpu_t, cpu_pct, rss, peak_cpu, avg_cpu = result
             data[f.name]['samples'].append(result)

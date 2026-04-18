@@ -1,12 +1,12 @@
 with topic_id1s as(
     select t.id
     from topic t
-    where t.subfield_display_name = 'Education'
+    where t.subfield_display_name = '__MB_topic1_name__'
 ),
 topic_id2s as(
     select t.id
     from topic t
-    where t.subfield_display_name = 'Computer Vision and Pattern Recognition'
+    where t.subfield_display_name = '__MB_topic2_name__'
 ),
 ids AS (
     select DISTINCT g.wid as id

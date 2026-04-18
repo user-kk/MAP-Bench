@@ -2,7 +2,7 @@ WITH t AS (
 -- 第一步： 获取目标作者的合作关系， 并提取合作记录的年份信息
 SELECT b.id AS id, e.list::jsonb AS list
 FROM author_author_gra MATCH (a: author_v)-[e: author_author_e]-(b: author_v)
-WHERE a.id = 5015704722
+WHERE a.id = __MB_author_id__
 ),
 t2 AS (
 -- 第二步： 统计每个合作关系中的年份， 计算该年份内的合作次数

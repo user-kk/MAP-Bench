@@ -1,5 +1,5 @@
 with tids as (
-    select id,array_distance(tv.vec,(select vec from topic_vec where id = 10862)) as dis
+    select id,array_distance(tv.vec,(select vec from topic_vec where id = __MB_seed_topic_id__)) as dis
     from topic_vec tv
     order by dis asc
     limit 5

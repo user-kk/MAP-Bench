@@ -9,11 +9,11 @@ from common.context import Context
 from common.timer import MultiDatabaseTimer as MDTimer, TimerPhase
 
 def H1(ctx: "Context",
-       name: str = "Li Hongbo",
+       author_name: str = "Li Hongbo",
        timer: Optional[MDTimer] = None) -> pd.DataFrame:
     
     # 1. MongoDB：json_contains 过滤
-    filter_ = {"doc.display_name_alternatives": name}
+    filter_ = {"doc.display_name_alternatives": author_name}
     with TimerPhase(timer, "d"):
         ids = list(ctx.mongo_db.author_doc.distinct("_id", filter_))
     

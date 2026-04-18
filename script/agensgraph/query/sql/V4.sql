@@ -3,17 +3,17 @@ WITH ids AS (
     FROM work w
     JOIN work_doc wc ON w.id = wc.id
     WHERE w.publication_year >= 2018 AND w.publication_year <= 2023
-      AND wc.doc->'topics' @> '[{"display_name":"Neural Network Fundamentals and Applications"}]' 
-      AND wc.doc->'abstract_inverted_index' ?& array['network','model']
+      AND wc.doc->'topics' @> '[{"display_name":"__MB_topic_name__"}]' 
+      AND wc.doc->'abstract_inverted_index' ?& array['__MB_required_keyword_1__','__MB_required_keyword_2__']
     order by w.cited_by_count desc
 ),
 ids2 AS (
     -- 第二步：计算与给定论文的主题向量相似度，取出相似度最高的 20 篇论文 不包含自己
     SELECT work_vec.id
     FROM work_vec
-    WHERE id IN (SELECT id FROM ids) and id != 3183282730
+    WHERE id IN (SELECT id FROM ids) and id != __MB_seed_work_id__
     ORDER BY work_vec.vec <-> (
-        select vec from work_vec where id = 3183282730
+        select vec from work_vec where id = __MB_seed_work_id__
     ) ASC
     LIMIT 20
 )

@@ -8,9 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from common.context import Context
 from common.timer import MultiDatabaseTimer as MDTimer, TimerPhase
 
-def H4(ctx: "Context", timer: Optional[MDTimer] = None) -> pd.DataFrame:
-
-    work_id: int = 4395661325
+def H4(ctx: "Context", work_id: int = 4395661325, timer: Optional[MDTimer] = None) -> pd.DataFrame:
 
     # 1. Neo4j：图匹配拿被引用论文的基本信息
     cypher = """

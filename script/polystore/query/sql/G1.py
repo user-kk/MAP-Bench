@@ -11,7 +11,7 @@ from common.timer import MultiDatabaseTimer as MDTimer, TimerPhase
 
 def G1(ctx: "Context",
        topic_name: str = "RNA Methylation and Modification in Gene Expression",
-       seed_author_name: str = "Zupei Liu",
+       author_name: str = "Zupei Liu",
        min_cites: int = 10000,
        top_k: int = 3,
        timer: Optional[MDTimer] = None) -> pd.DataFrame:
@@ -36,7 +36,7 @@ def G1(ctx: "Context",
         with TimerPhase(timer, "r"):
             cur.execute(
                 "SELECT id FROM author WHERE display_name = %s LIMIT 1",
-                (seed_author_name,)
+                (author_name,)
             )
             auth_row = cur.fetchone()
         if not auth_row:

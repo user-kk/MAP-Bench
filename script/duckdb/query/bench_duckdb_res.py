@@ -15,11 +15,21 @@ import statistics
 import threading
 import time
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'common'))
+from benchmark_config import (
+    get_dataset_conf,
+    get_query_params,
+    load_benchmark_config,
+    render_query_template,
+)
 
 import duckdb
 import psutil
 
 DB_PATH = '/duckdb_data/mapl.db'
+DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / 'common' / 'benchmark_config.json'
 
 SHORT_QUERY_THRESHOLD_MS = 500
 MIN_SAMPLE_INTERVAL = 0.05   # 50ms
@@ -266,11 +276,20 @@ def flush_csv(out: Path, data: dict, threads: int):
 def main():
     parser = argparse.ArgumentParser(description='DuckDB 资源采样脚本')
     parser.add_argument('-n', '--rounds', type=int, default=5)
+    parser.add_argument('-d', '--dataset', choices=['mapl', 'mapm', 'maps'], default='mapl',
+                        help='选择数据集（默认 mapl）')
+    parser.add_argument('-c', '--config', type=Path, default=DEFAULT_CONFIG_PATH,
+                        help='配置文件路径（默认 script/common/benchmark_config.json）')
     parser.add_argument('-o', '--out', type=Path, default=Path('result.csv'))
     parser.add_argument('-t', '--threads', type=int, default=1)
     parser.add_argument('-x', '--exclude', nargs='*', default=[])
     parser.add_argument('files', nargs='+')
     args = parser.parse_args()
+
+    config = load_benchmark_config(args.config)
+    dataset_conf = get_dataset_conf(config, 'duckdb', args.dataset)
+    global DB_PATH
+    DB_PATH = dataset_conf['db_path']
 
     exclude = {Path(f).name for f in args.exclude}
     files = sorted([Path(f).resolve() for f in args.files if Path(f).name not in exclude], key=lambda p: p.name)
@@ -278,7 +297,10 @@ def main():
 
     print("="*60 + "\n预热轮\n" + "="*60)
     for f in files:
-        sql = f.read_text().strip()
+        sql = render_query_template(
+            f.read_text(encoding='utf-8').strip(),
+            get_query_params(config, 'duckdb', f.stem, args.dataset),
+        )
         try:
             lat = warmup_query(sql, args.threads)
             method = "cpu_times" if lat < SHORT_QUERY_THRESHOLD_MS else "sampling"
@@ -291,7 +313,10 @@ def main():
     for rnd in range(1, args.rounds + 1):
         print(f"\n----- 第 {rnd} 轮 -----")
         for f in files:
-            sql = f.read_text().strip()
+            sql = render_query_template(
+            f.read_text(encoding='utf-8').strip(),
+            get_query_params(config, 'duckdb', f.stem, args.dataset),
+        )
             try:
                 info = data[f.name]
                 if info['method'] == "cpu_times":

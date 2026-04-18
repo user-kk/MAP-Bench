@@ -12,6 +12,10 @@ from pymilvus import Collection
 def V3(ctx: "Context",
        seed_work_id: int = 4321448324,
        top_k: int = 100,
+       required_keyword_1: str = "benchmark",
+       required_keyword_2: str = "database",
+       excluded_keyword_1: str = "survey",
+       excluded_keyword_2: str = "review",
        timer: Optional[MDTimer] = None) -> pd.DataFrame:
     
     # 1. Milvus：向量近邻搜索
@@ -49,10 +53,10 @@ def V3(ctx: "Context",
     with TimerPhase(timer, "d"):
         mongo_filter = {
             "_id": {"$in": pg_df["id"].tolist()},
-            "doc.abstract_inverted_index.benchmark": {"$exists": True},
-            "doc.abstract_inverted_index.database": {"$exists": True},
-            "doc.abstract_inverted_index.survey": {"$exists": False},
-            "doc.abstract_inverted_index.review": {"$exists": False},
+            f"doc.abstract_inverted_index.{required_keyword_1}": {"$exists": True},
+            f"doc.abstract_inverted_index.{required_keyword_2}": {"$exists": True},
+            f"doc.abstract_inverted_index.{excluded_keyword_1}": {"$exists": False},
+            f"doc.abstract_inverted_index.{excluded_keyword_2}": {"$exists": False},
         }
         cursor = ctx.mongo_db["work_doc"].find(mongo_filter, {"_id": 1})
         qualified_ids = {int(doc["_id"]) for doc in cursor}

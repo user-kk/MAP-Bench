@@ -9,8 +9,9 @@ from common.context import Context
 from common.timer import MultiDatabaseTimer as MDTimer, TimerPhase
 
 
-def H3(ctx: "Context", timer: Optional[MDTimer] = None) -> pd.DataFrame:
-    topic_name = "Chemistry and Applications of Metal-Organic Frameworks"
+def H3(ctx: "Context",
+       topic_name: str = "Chemistry and Applications of Metal-Organic Frameworks",
+       timer: Optional[MDTimer] = None) -> pd.DataFrame:
 
     # 1. PG：主题 id
     with ctx.pg_cursor as cur:

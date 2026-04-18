@@ -1,11 +1,11 @@
 WITH PathNodes AS (
 MATCH sp = shortestPath(
-        (a:work_v {id: 4395661325})-[:work_referenced_work_e*]->(b:work_v {id: 4316345068})
+        (a:work_v {id: __MB_a_id__})-[:work_referenced_work_e*]->(b:work_v {id: __MB_b_id__})
 )
 WITH nodes(sp) AS nds
 UNWIND nds AS mid
 WITH mid
-WHERE mid.id <> 4395661325 AND mid.id <> 4316345068
+WHERE mid.id <> __MB_a_id__ AND mid.id <> __MB_b_id__
 RETURN mid.id AS w_id
 ) 
 SELECT w.id, w.title,
@@ -23,5 +23,5 @@ SELECT w.id, w.title,
  w.cited_by_count 
 FROM PathNodes f
 JOIN work w ON w.id = f.w_id::bigint join work_vec wv on w.id = wv.id
-ORDER BY wv.vec <-> (select vec from topic_vec tv where tv.id = 10039) ASC ,w.cited_by_count DESC,w.id asc
+ORDER BY wv.vec <-> (select vec from topic_vec tv where tv.id = __MB_topic_id__) ASC ,w.cited_by_count DESC,w.id asc
 limit 3;

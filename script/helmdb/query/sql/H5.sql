@@ -3,8 +3,8 @@ WITH PathNodes AS (
 SELECT e.endid AS w_id
 FROM work_work_gra
 MATCH SHORTEST path = (a: work_v)-[e: work_referenced_work_e] * -> (b: work_v)
-WHERE a.id = 4395661325
-AND b.id = 4316345068
+WHERE a.id = __MB_a_id__
+AND b.id = __MB_b_id__
 ) 
 SELECT w.id, w.title,
 (
@@ -21,5 +21,5 @@ SELECT w.id, w.title,
  w.cited_by_count 
 FROM PathNodes f
 JOIN work w ON w.id = f.w_id join work_vec wv on w.id = wv.id
-ORDER BY wv.vec <-> (select vec from topic_vec tv where tv.id = 10039) ASC ,w.cited_by_count DESC,w.id asc
+ORDER BY wv.vec <-> (select vec from topic_vec tv where tv.id = __MB_topic_id__) ASC ,w.cited_by_count DESC,w.id asc
 limit 3;

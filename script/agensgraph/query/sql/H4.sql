@@ -4,7 +4,7 @@ WITH ReferencedPapers AS (
         (work_title_jsonb) #>> '{}' AS ref_work_title,
         (work_pub_year_jsonb)::integer AS ref_work_publication_year
     FROM (
-        MATCH (p1:work_v {id: 4395661325})-[:work_referenced_work_e]->(p2:work_v)
+        MATCH (p1:work_v {id: __MB_work_id__})-[:work_referenced_work_e]->(p2:work_v)
         RETURN p2.id AS work_id_jsonb, 
                p2.title AS work_title_jsonb, 
                p2.publication_year AS work_pub_year_jsonb

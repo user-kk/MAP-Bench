@@ -1,5 +1,5 @@
 FOR ad IN author_doc
-  FILTER "Li Hongbo" in ad.doc.display_name_alternatives
+  FILTER "__MB_author_name__" in ad.doc.display_name_alternatives
   for a in author
     filter ad.id == a.id
       for w in inbound concat("author_v/",to_string(a.id)) work_author_e

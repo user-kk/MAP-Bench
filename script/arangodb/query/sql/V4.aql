@@ -1,12 +1,12 @@
-/* ---- ids：2018-2023 且摘要含 "multi-model database" ---- */
-let current_paper_id = 3183282730
+/* ---- ids：2018-2023 且摘要含 "multi-__MB_required_keyword_2__ database" ---- */
+let current_paper_id = __MB_seed_work_id__
 LET ids = (
     FOR wc IN work_doc 
-        filter 'Neural Network Fundamentals and Applications' in wc.doc.topics[*].display_name 
+        filter '__MB_topic_name__' in wc.doc.topics[*].display_name 
         FOR w IN work
           FILTER wc.id == w.id and w.publication_year >= 2018 and w.publication_year <= 2023
-                and has(wc.doc.abstract_inverted_index,'network')
-                and has(wc.doc.abstract_inverted_index,'model')
+                and has(wc.doc.abstract_inverted_index,'__MB_required_keyword_1__')
+                and has(wc.doc.abstract_inverted_index,'__MB_required_keyword_2__')
             RETURN {work_id: w.id}
 )
 

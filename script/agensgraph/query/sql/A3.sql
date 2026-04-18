@@ -2,7 +2,7 @@ WITH AuthorIDs AS (
     SELECT a.id
     FROM institution i
     JOIN author a ON i.id = a.institution_id
-    WHERE i.display_name = 'Universität Hamburg'
+    WHERE i.display_name = '__MB_institution_name__'
 ),
 TopicPaperPairs AS (
     SELECT 

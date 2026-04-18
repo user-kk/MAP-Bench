@@ -1,13 +1,13 @@
 LET works_from_t1 = (
     FOR t IN topic
-    FILTER t.subfield_display_name == 'Education'
+    FILTER t.subfield_display_name == '__MB_topic1_name__'
     FOR w IN 1..1 INBOUND CONCAT('topic_v/', t.id) work_topic_e
     RETURN w.id
 )
 
 LET works_from_t2 = (
     FOR t IN topic
-    FILTER t.subfield_display_name == 'Computer Vision and Pattern Recognition'
+    FILTER t.subfield_display_name == '__MB_topic2_name__'
     FOR w IN 1..1 INBOUND CONCAT('topic_v/', t.id) work_topic_e
     RETURN w.id
 )

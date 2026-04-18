@@ -1,4 +1,4 @@
-LET start_id = "4399669303"
+LET start_id = "__MB_seed_work_id__"
 
 /* ---- t1：0-2 跳引用网络 ---- */
 LET t1 = (

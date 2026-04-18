@@ -2,12 +2,12 @@ with ids as(
     (
         select distinct w.id
         from topic tc, work_topic_gra MATCH (w: work_v)-[: work_topic_e]->(t: topic_v)
-        where tc.subfield_display_name = 'Education' and tc.id = t.id
+        where tc.subfield_display_name = '__MB_topic1_name__' and tc.id = t.id
     )
     intersect (
         select distinct w.id
         from topic tc, work_topic_gra MATCH (w: work_v)-[: work_topic_e]->(t: topic_v)
-        where tc.subfield_display_name = 'Computer Vision and Pattern Recognition' and tc.id = t.id
+        where tc.subfield_display_name = '__MB_topic2_name__' and tc.id = t.id
     )
     
 )

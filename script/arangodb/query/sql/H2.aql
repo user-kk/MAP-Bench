@@ -1,4 +1,4 @@
-LET start_author_id = '5040670721'
+LET start_author_id = '__MB_author_id__'
 FOR co_author IN 1..1 ANY CONCAT('author_v/', start_author_id) GRAPH 'author_author_gra'
     FOR authb IN author
         FILTER authb.id == co_author.id

@@ -1,5 +1,5 @@
 WITH ai_topic_ids AS (
-    SELECT id FROM topic WHERE subfield_display_name = 'Artificial Intelligence'
+    SELECT id FROM topic WHERE subfield_display_name = '__MB_topic_name__'
 ),
 ai_papers AS (
     SELECT DISTINCT w.id AS work_id, w.cited_by_count 

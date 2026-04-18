@@ -2,7 +2,7 @@ WITH topic_info AS MATERIALIZED(
     SELECT t.id, tv.vec
     FROM topic t
     JOIN topic_vec tv ON t.id = tv.id
-    WHERE t.display_name = 'Chemistry and Applications of Metal-Organic Frameworks'
+    WHERE t.display_name = '__MB_topic_name__'
 ),
 related AS (
     SELECT g.w_id as id,

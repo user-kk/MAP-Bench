@@ -2,13 +2,13 @@ WITH topic_info AS (
 -- 第一步：先获得某领域的id与向量
 SELECT t.id,tv.vec
 from topic t join topic_vec tv on t.id = tv.id
-where t.display_name = 'RNA Methylation and Modification in Gene Expression'
+where t.display_name = '__MB_topic_name__'
 limit 1
 ),
 authorId AS MATERIALIZED (
     SELECT to_jsonb(au.id) as id
     FROM author au
-    WHERE au.display_name = 'Zupei Liu'
+    WHERE au.display_name = '__MB_author_name__'
 ),
 -- 正常应该是这么写，但是Agnesgraph VLE算子有问题，运行不出结果
 -- TmpPotential AS (

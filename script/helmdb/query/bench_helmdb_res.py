@@ -14,6 +14,15 @@ import threading
 import time
 from pathlib import Path
 from typing import List, Dict, Tuple, Set # Python 3.6 必须从 typing 导入
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'common'))
+from benchmark_config import (
+    get_dataset_conf,
+    get_query_params,
+    load_benchmark_config,
+    render_query_template,
+)
 
 import psutil
 import psycopg2
@@ -25,6 +34,7 @@ DB_CONF = dict(
     host='127.0.0.1',
     port=9999
 )
+DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / 'common' / 'benchmark_config.json'
 
 SHORT_QUERY_THRESHOLD_MS = 500
 MIN_SAMPLE_INTERVAL = 0.05   # 50ms
@@ -306,10 +316,19 @@ def flush_csv(out: Path, data: dict):
 def main():
     parser = argparse.ArgumentParser(description='openGauss/HelmDB 资源采样')
     parser.add_argument('-n', '--rounds', type=int, default=5, help='采样轮数')
+    parser.add_argument('-d', '--dataset', choices=['mapl', 'mapm', 'maps'], default='mapl',
+                        help='选择数据集（默认 mapl）')
+    parser.add_argument('-c', '--config', type=Path, default=DEFAULT_CONFIG_PATH,
+                        help='配置文件路径（默认 script/common/benchmark_config.json）')
     parser.add_argument('-o', '--out', type=Path, default=Path('result.csv'), help='输出路径')
     parser.add_argument('-x', '--exclude', nargs='*', default=[], help='排除文件')
     parser.add_argument('files', nargs='+', help='SQL文件')
     args = parser.parse_args()
+
+    config = load_benchmark_config(args.config)
+    dataset_conf = get_dataset_conf(config, 'helmdb', args.dataset)
+    conn_params = DB_CONF.copy()
+    conn_params['dbname'] = dataset_conf['db_name']
 
     # 打印配置 (Python 3.6 支持 f-string)
     print("=" * 60)
@@ -340,8 +359,11 @@ def main():
     for f in file_list:
         restart_helmdb()
         # Path.read_text() 在 3.5+ 可用
-        sql = f.read_text().strip()
-        lat_ms = warmup_query(sql, DB_CONF)
+        sql = render_query_template(
+            f.read_text(encoding='utf-8').strip(),
+            get_query_params(config, 'helmdb', f.stem, args.dataset),
+        )
+        lat_ms = warmup_query(sql, conn_params)
         
         is_short = lat_ms < SHORT_QUERY_THRESHOLD_MS
         method = "cpu_times" if is_short else "sampling"
@@ -362,14 +384,17 @@ def main():
         
         for f in file_list:
             restart_helmdb()
-            sql = f.read_text().strip()
+            sql = render_query_template(
+            f.read_text(encoding='utf-8').strip(),
+            get_query_params(config, 'helmdb', f.stem, args.dataset),
+        )
             method = data[f.name]['method']
             interval = data[f.name]['interval']
             
             if method == "cpu_times":
-                result = measure_short_query(sql, DB_CONF)
+                result = measure_short_query(sql, conn_params)
             else:
-                result = measure_long_query(sql, interval, DB_CONF)
+                result = measure_long_query(sql, interval, conn_params)
             
             lat, cpu_t, cpu_pct, rss, peak_cpu, avg_cpu = result
             data[f.name]['samples'].append(result)

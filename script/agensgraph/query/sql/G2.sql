@@ -2,12 +2,12 @@
 WITH t AS (
     -- 第一步：计算两篇论文之间的最短路径(不含起点终点)
     MATCH sp = shortestPath(
-        (p1:work_v {id:4377013841})-[:work_referenced_work_e*]->(p2:work_v {id:3155434940})
+        (p1:work_v {id:__MB_a_id__})-[:work_referenced_work_e*]->(p2:work_v {id:__MB_b_id__})
     )
     WITH nodes(sp) AS nds
     UNWIND nds AS mid
     WITH mid
-    WHERE mid.id <> 4377013841 AND mid.id <> 3155434940
+    WHERE mid.id <> __MB_a_id__ AND mid.id <> __MB_b_id__
     RETURN mid.id AS p_id
 ),
 PaperDetails AS (

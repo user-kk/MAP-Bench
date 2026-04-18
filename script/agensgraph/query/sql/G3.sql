@@ -1,5 +1,5 @@
 WITH reachable AS (
-   MATCH (p1:work_v {id: 4399669303})-[r:work_referenced_work_e*0..2]->(p2:work_v)
+   MATCH (p1:work_v {id: __MB_seed_work_id__})-[r:work_referenced_work_e*0..2]->(p2:work_v)
    RETURN DISTINCT p2.id AS id
 )
 SELECT p.title,

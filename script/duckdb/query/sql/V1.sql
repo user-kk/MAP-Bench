@@ -5,7 +5,7 @@ TopCitedPaper AS MATERIALIZED(
     WHERE w.publication_year >= 2023
       AND json_contains(
             json_extract(wd.doc, '$.topics'),
-            json_object('display_name', 'Graph Neural Network Models and Applications')
+            json_object('display_name', '__MB_topic_name__')
           )
     ORDER BY w.cited_by_count DESC, w.id
     LIMIT 1

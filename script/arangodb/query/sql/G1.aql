@@ -1,5 +1,5 @@
-LET author_name = 'Zupei Liu'
-LET topic_name = 'RNA Methylation and Modification in Gene Expression'
+LET author_name = '__MB_author_name__'
+LET topic_name = '__MB_topic_name__'
 LET Potential = (
     FOR a IN author_v
         FILTER a.display_name == author_name 

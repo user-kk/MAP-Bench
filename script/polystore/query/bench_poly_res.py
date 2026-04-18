@@ -26,6 +26,14 @@ from typing import Dict, List, Optional, Set
 import psutil
 
 warnings.simplefilter("ignore", UserWarning)
+SCRIPT_COMMON = Path(__file__).resolve().parents[2] / 'common'
+sys.path.insert(0, str(SCRIPT_COMMON))
+from benchmark_config import (
+    get_dataset_conf,
+    get_query_params,
+    load_benchmark_config,
+)
+DEFAULT_CONFIG_PATH = SCRIPT_COMMON / 'benchmark_config.json'
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 DB_CONF = dict(
@@ -90,7 +98,7 @@ def get_backend_info() -> tuple[Set[int], List[str]]:
 
 
 # -------------------- 子进程 Worker --------------------
-def _worker(py_file: Path, ready_evt: mp.Event, start_evt: mp.Event, res_q: mp.Queue):
+def _worker(py_file: Path, params: dict, ready_evt: mp.Event, start_evt: mp.Event, res_q: mp.Queue):
     """
     子进程：客户端逻辑
     """
@@ -121,7 +129,7 @@ def _worker(py_file: Path, ready_evt: mp.Event, start_evt: mp.Event, res_q: mp.Q
 
         # 执行并计时
         t0 = time.perf_counter()
-        func(ctx)
+        func(ctx, **params)
         t1 = time.perf_counter()
         
         ctx.close()
@@ -228,13 +236,13 @@ class PolystoreSampler:
 
 
 # -------------------- 核心测量函数 --------------------
-def measure_short_query(py_file: Path) -> tuple:
+def measure_short_query(py_file: Path, params: dict) -> tuple:
     """短查询：精确测量 (修正了进程退出读不到数据的问题)"""
     ready_evt = mp.Event()
     start_evt = mp.Event()
     res_q = mp.Queue()
 
-    p = mp.Process(target=_worker, args=(py_file, ready_evt, start_evt, res_q))
+    p = mp.Process(target=_worker, args=(py_file, params, ready_evt, start_evt, res_q))
     p.start()
     
     # 1. 等待导入和连接
@@ -289,13 +297,13 @@ def measure_short_query(py_file: Path) -> tuple:
     return (latency_ms, cpu_time_ms, cpu_percent, rss_peak/(1024**3), cpu_percent, cpu_percent)
 
 
-def measure_long_query(py_file: Path, interval: float) -> tuple:
+def measure_long_query(py_file: Path, params: dict, interval: float) -> tuple:
     """长查询：采样线程"""
     ready_evt = mp.Event()
     start_evt = mp.Event()
     res_q = mp.Queue()
 
-    p = mp.Process(target=_worker, args=(py_file, ready_evt, start_evt, res_q))
+    p = mp.Process(target=_worker, args=(py_file, params, ready_evt, start_evt, res_q))
     p.start()
     ready_evt.wait()
 
@@ -320,11 +328,11 @@ def measure_long_query(py_file: Path, interval: float) -> tuple:
             sampler.peak_rss(), sampler.peak_cpu(), sampler.avg_cpu())
 
 
-def warmup_query(py_file: Path) -> float:
+def warmup_query(py_file: Path, params: dict) -> float:
     ready_evt = mp.Event()
     start_evt = mp.Event()
     res_q = mp.Queue()
-    p = mp.Process(target=_worker, args=(py_file, ready_evt, start_evt, res_q))
+    p = mp.Process(target=_worker, args=(py_file, params, ready_evt, start_evt, res_q))
     p.start()
     ready_evt.wait()
     start_evt.set()
@@ -376,11 +384,19 @@ def flush_csv(out: Path, data: dict):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--rounds', type=int, default=5)
+    parser.add_argument('-d', '--dataset', choices=['mapl', 'mapm', 'maps'], default='mapl',
+                        help='选择数据集（默认 mapl）')
+    parser.add_argument('-c', '--config', type=Path, default=DEFAULT_CONFIG_PATH,
+                        help='配置文件路径（默认 script/common/benchmark_config.json）')
     parser.add_argument('-o', '--out', type=Path, default=Path('polystore_result.csv'))
     parser.add_argument('-f', '--compose-file', type=Path, default=Path('docker-compose.yml'))
     parser.add_argument('-x', '--exclude', nargs='*', default=[])
     parser.add_argument('files', nargs='+')
     args = parser.parse_args()
+
+    config = load_benchmark_config(args.config)
+    dataset_conf = get_dataset_conf(config, 'polystore', args.dataset)
+    DB_CONF['db_name'] = dataset_conf['db_name']
 
     exclude = {Path(f).name for f in args.exclude}
     files = sorted([Path(f).resolve() for f in args.files if Path(f).name not in exclude], key=lambda p:p.name)
@@ -390,7 +406,7 @@ def main():
     for f in files:
         restart_polystore(args.compose_file)
         try:
-            lat = warmup_query(f)
+            lat = warmup_query(f, get_query_params(config, 'polystore', f.stem, args.dataset))
             method = "cpu_times" if lat < SHORT_QUERY_THRESHOLD_MS else "sampling"
             data[f.name].update({'method': method, 'interval': pick_interval(lat)})
             print(f'{f.name}: {lat:.1f}ms → {method}')
@@ -405,9 +421,9 @@ def main():
             try:
                 info = data[f.name]
                 if info['method'] == "cpu_times":
-                    res = measure_short_query(f)
+                    res = measure_short_query(f, get_query_params(config, 'polystore', f.stem, args.dataset))
                 else:
-                    res = measure_long_query(f, info['interval'])
+                    res = measure_long_query(f, get_query_params(config, 'polystore', f.stem, args.dataset), info['interval'])
                 
                 info['samples'].append(res)
                 print(f'{f.name}: lat={res[0]:.1f}ms cpu_time={res[1]:.1f}ms cpu={res[2]:.1f}% rss={res[3]:.2f}GB')

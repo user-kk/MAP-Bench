@@ -1,7 +1,7 @@
 with topic_info as (
     SELECT t.id as id,tv.vec as vec
         from topic t join topic_vec tv on t.id = tv.id
-        where t.display_name = 'Chemistry and Applications of Metal-Organic Frameworks'
+        where t.display_name = '__MB_topic_name__'
 ),
 tv_find AS(
     SELECT  w.id as wid,ti.vec as tvec,e.score::text::float as sc

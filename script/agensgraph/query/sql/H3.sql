@@ -3,7 +3,7 @@ WITH topic_info AS (
     FROM topic t
         JOIN topic_vec tv ON t.id = tv.id
     WHERE
-        t.display_name = 'Chemistry and Applications of Metal-Organic Frameworks'
+        t.display_name = '__MB_topic_name__'
 ),
 ranked_papers AS (
 SELECT 

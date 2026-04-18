@@ -1,19 +1,51 @@
+## 运行说明
+
+- 在当前目录执行以下命令。
+- 查询参数统一配置在 `../../common/benchmark_config.json`。
+- 脚本中的 `-d mapl|mapm|maps` 只负责切换查询参数以及 `PG/MongoDB/Milvus` 侧的 `db_name`；默认值为 `mapl`。
+- `Neo4j` 数据集不会由 `-d` 自动切换，必须先手动切到对应的数据卷/容器栈。
+- 如果本地代理会影响 `127.0.0.1/localhost` 的请求，可在命令前添加以下前缀：
+
+```bash
+env NO_PROXY=127.0.0.1,localhost no_proxy=127.0.0.1,localhost HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy=
+```
+
+## 手动切换 Polystore 数据集
+
+以下以切到 `maps` 为例：
+
+```bash
+cd ../util
+sudo docker compose -p polystore -f docker/<当前数据集>/docker-compose.yml down
+sudo docker compose -p polystore -f docker/maps/docker-compose.yml up -d
+```
+
+可以用下面的命令确认 `Neo4j` 是否已经切到目标数据集：
+
+```bash
+sudo docker inspect neo4j --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Name}}{{end}}{{end}}'
+```
+
+如果输出包含 `neo4j_data_maps` 或 `util_neo4j_data_maps`，说明当前 `Neo4j` 已切到 `maps`。
+
 ## 端到端延迟
 
 ```bash
-python bench_poly.py sql/*.py -o "out/$(date +%F_%T).csv"
+python bench_poly.py sql/*.py -d maps -n 5 -o "out/maps_$(date +%F_%T).csv"
 ```
 
 ## 资源占用
 
+说明：`res` 脚本会调用 `docker compose restart`，因此 `-f` 需要显式传入当前数据集对应的 compose 文件。
+
 ```bash
-python bench_poly_res.py sql/*.py -o "out/res_$(date +%F_%T).csv" -f ../util/docker-compose.yml
+python bench_poly_res.py sql/*.py -d maps -n 5 -f ../util/docker/maps/docker-compose.yml -o "out/res_maps_$(date +%F_%T).csv"
 ```
 
 ## 各模型时间占比
 
 ```bash
-python bench_poly_info.py sql/*.py -o "out/info_$(date +%F_%T).csv"
+python bench_poly_info.py sql/*.py -d maps -o "out/info_maps_$(date +%F_%T).csv"
 ```
 
 ## polyglot persistent实现策略：模拟高效的polyglot persistent系统，最大化的减少网络通信的开销
@@ -34,4 +66,3 @@ python bench_poly_info.py sql/*.py -o "out/info_$(date +%F_%T).csv"
 		获得查询结果后直接在中间层完成完整的join操作或进行其他复杂处理（类似于分布式的半连接操作）
         - 例如：A5 G1 G2 G3 H1 H4 H5 V4 
         - 性能中等，取决于中间层的处理效率与数据规模。
-

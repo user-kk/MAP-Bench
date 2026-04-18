@@ -2,14 +2,14 @@ WITH topic_info AS (
 -- 第一步：先获得某领域的id与向量
 SELECT t.id,tv.vec
 from topic t join topic_vec tv on t.id = tv.id
-where t.display_name = 'RNA Methylation and Modification in Gene Expression'
+where t.display_name = '__MB_topic_name__'
 limit 1
 ),
 Potential AS (
 -- 第二步： 在作者合作图中查找 2～4 跳的候选作者, 并要求一定不是一跳的作者（已经合作过的）和自己
 SELECT DISTINCT b.id 
 FROM author au, author_author_gra MATCH (a: author_v)-[: author_author_e]{2,4}->(b: author_v)
-WHERE au.display_name = 'Zupei Liu'
+WHERE au.display_name = '__MB_author_name__'
 and au.id = a.id
 AND b.id != a.id
 AND b.cited_by_count::int >= 10000

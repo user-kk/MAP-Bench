@@ -5,19 +5,19 @@ WITH context_ids_agg AS (
     -- from GRAPH_TABLE (
     --     academic_net
     --     MATCH (p1:work_v)-[e:work_referenced_work_e]->(p2:work_v)
-    --     WHERE p1.id = 4395661325
+    --     WHERE p1.id = __MB_seed_work_id__
     --     COLUMNS (p2.id AS id)
     -- ) t
     -- UNION
-    -- select 4395661325 AS id
+    -- select __MB_seed_work_id__ AS id
 
     -- 1. 先把所有引用ID聚合成一个数组 (List), 绕开duckpgq的bug
 
-    SELECT list_append(list(id), 4395661325) as all_ids
+    SELECT list_append(list(id), __MB_seed_work_id__) as all_ids
     FROM GRAPH_TABLE (
         academic_net
         MATCH (p1:work_v)-[e:work_referenced_work_e]->(p2:work_v)
-        WHERE p1.id = 4395661325
+        WHERE p1.id = __MB_seed_work_id__
         COLUMNS (p2.id AS id)
     ) t
 ),

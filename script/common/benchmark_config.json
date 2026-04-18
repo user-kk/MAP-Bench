@@ -1,0 +1,1185 @@
+{
+  "datasets": {
+    "mapl": {
+      "arangodb": {
+        "db_name": "mapl"
+      },
+      "agensgraph": {
+        "db_name": "mapl"
+      },
+      "duckdb": {
+        "db_path": "/duckdb_data/mapl.db"
+      },
+      "helmdb": {
+        "db_name": "mapl"
+      },
+      "polystore": {
+        "db_name": "mapl"
+      }
+    },
+    "mapm": {
+      "arangodb": {
+        "db_name": "mapm"
+      },
+      "agensgraph": {
+        "db_name": "mapm"
+      },
+      "duckdb": {
+        "db_path": "/duckdb_data/mapm.db"
+      },
+      "helmdb": {
+        "db_name": "mapm"
+      },
+      "polystore": {
+        "db_name": "mapm"
+      }
+    },
+    "maps": {
+      "arangodb": {
+        "db_name": "maps"
+      },
+      "agensgraph": {
+        "db_name": "maps"
+      },
+      "duckdb": {
+        "db_path": "/duckdb_data/maps.db"
+      },
+      "helmdb": {
+        "db_name": "maps"
+      },
+      "polystore": {
+        "db_name": "maps"
+      }
+    }
+  },
+  "queries": {
+    "arangodb": {
+      "A2": {
+        "mapl": {
+          "author_id": 5015704722
+        },
+        "mapm": {
+          "author_id": 5000216958
+        },
+        "maps": {
+          "author_id": 5000216958
+        }
+      },
+      "G1": {
+        "mapl": {
+          "author_name": "Zupei Liu",
+          "topic_name": "RNA Methylation and Modification in Gene Expression"
+        },
+        "mapm": {
+          "author_name": "Jorge Flores-Chamba",
+          "topic_name": "Economic Impact of Environmental Policies and Resources"
+        },
+        "maps": {
+          "author_name": "Jorge Flores-Chamba",
+          "topic_name": "Life Cycle Assessment and Environmental Impact Analysis"
+        }
+      },
+      "G2": {
+        "mapl": {
+          "a_id": 4377013841,
+          "b_id": 3155434940
+        },
+        "mapm": {
+          "a_id": 4377013841,
+          "b_id": 3155434940
+        },
+        "maps": {
+          "a_id": 4386076325,
+          "b_id": 4390871882
+        }
+      },
+      "G3": {
+        "mapl": {
+          "seed_work_id": 4399669303
+        },
+        "mapm": {
+          "seed_work_id": 4313531093
+        },
+        "maps": {
+          "seed_work_id": 4312443924
+        }
+      },
+      "H2": {
+        "mapl": {
+          "author_id": 5040670721
+        },
+        "mapm": {
+          "author_id": 5040670721
+        },
+        "maps": {
+          "author_id": 5069702912
+        }
+      },
+      "H4": {
+        "mapl": {
+          "work_id": 4395661325
+        },
+        "mapm": {
+          "work_id": 4296801521
+        },
+        "maps": {
+          "work_id": 4401889225
+        }
+      },
+      "H5": {
+        "mapl": {
+          "a_id": 4395661325,
+          "b_id": 4316345068,
+          "topic_id": 10039
+        },
+        "mapm": {
+          "a_id": 4296801002,
+          "b_id": 4280538736,
+          "topic_id": 10039
+        },
+        "maps": {
+          "a_id": 4401890915,
+          "b_id": 4226498581,
+          "topic_id": 10039
+        }
+      },
+      "V2": {
+        "mapl": {
+          "seed_work_id": 4395661325
+        },
+        "mapm": {
+          "seed_work_id": 4280526110
+        },
+        "maps": {
+          "seed_work_id": 4401872132
+        }
+      },
+      "V3": {
+        "mapl": {
+          "seed_work_id": 4321448324,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        },
+        "mapm": {
+          "seed_work_id": 4210559218,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        },
+        "maps": {
+          "seed_work_id": 4288057686,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        }
+      },
+      "A3": {
+        "mapl": {
+          "institution_name": "Universität Hamburg"
+        },
+        "mapm": {
+          "institution_name": "Universität Hamburg"
+        },
+        "maps": {
+          "institution_name": "Universität Hamburg"
+        }
+      },
+      "A5": {
+        "mapl": {
+          "topic_name": "Artificial Intelligence"
+        },
+        "mapm": {
+          "topic_name": "Artificial Intelligence"
+        },
+        "maps": {
+          "topic_name": "Artificial Intelligence"
+        }
+      },
+      "A6": {
+        "mapl": {
+          "seed_topic_id": 10862
+        },
+        "mapm": {
+          "seed_topic_id": 10862
+        },
+        "maps": {
+          "seed_topic_id": 10862
+        }
+      },
+      "G4": {
+        "mapl": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        },
+        "mapm": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        },
+        "maps": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        }
+      },
+      "H1": {
+        "mapl": {
+          "author_name": "Li Hongbo"
+        },
+        "mapm": {
+          "author_name": "Li Hongbo"
+        },
+        "maps": {
+          "author_name": "Li Hongbo"
+        }
+      },
+      "H3": {
+        "mapl": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        },
+        "mapm": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        },
+        "maps": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        }
+      },
+      "V1": {
+        "mapl": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        },
+        "mapm": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        },
+        "maps": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        }
+      },
+      "V4": {
+        "mapl": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        },
+        "mapm": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        },
+        "maps": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        }
+      }
+    },
+    "agensgraph": {
+      "A2": {
+        "mapl": {
+          "author_id": 5015704722
+        },
+        "mapm": {
+          "author_id": 5000216958
+        },
+        "maps": {
+          "author_id": 5000216958
+        }
+      },
+      "G1": {
+        "mapl": {
+          "author_name": "Zupei Liu",
+          "topic_name": "RNA Methylation and Modification in Gene Expression"
+        },
+        "mapm": {
+          "author_name": "Jorge Flores-Chamba",
+          "topic_name": "Economic Impact of Environmental Policies and Resources"
+        },
+        "maps": {
+          "author_name": "Jorge Flores-Chamba",
+          "topic_name": "Life Cycle Assessment and Environmental Impact Analysis"
+        }
+      },
+      "G2": {
+        "mapl": {
+          "a_id": 4377013841,
+          "b_id": 3155434940
+        },
+        "mapm": {
+          "a_id": 4377013841,
+          "b_id": 3155434940
+        },
+        "maps": {
+          "a_id": 4386076325,
+          "b_id": 4390871882
+        }
+      },
+      "G3": {
+        "mapl": {
+          "seed_work_id": 4399669303
+        },
+        "mapm": {
+          "seed_work_id": 4313531093
+        },
+        "maps": {
+          "seed_work_id": 4312443924
+        }
+      },
+      "H2": {
+        "mapl": {
+          "author_id": 5040670721
+        },
+        "mapm": {
+          "author_id": 5040670721
+        },
+        "maps": {
+          "author_id": 5069702912
+        }
+      },
+      "H4": {
+        "mapl": {
+          "work_id": 4395661325
+        },
+        "mapm": {
+          "work_id": 4296801521
+        },
+        "maps": {
+          "work_id": 4401889225
+        }
+      },
+      "H5": {
+        "mapl": {
+          "a_id": 4395661325,
+          "b_id": 4316345068,
+          "topic_id": 10039
+        },
+        "mapm": {
+          "a_id": 4296801002,
+          "b_id": 4280538736,
+          "topic_id": 10039
+        },
+        "maps": {
+          "a_id": 4401890915,
+          "b_id": 4226498581,
+          "topic_id": 10039
+        }
+      },
+      "V2": {
+        "mapl": {
+          "seed_work_id": 4395661325
+        },
+        "mapm": {
+          "seed_work_id": 4280526110
+        },
+        "maps": {
+          "seed_work_id": 4401872132
+        }
+      },
+      "V3": {
+        "mapl": {
+          "seed_work_id": 4321448324,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        },
+        "mapm": {
+          "seed_work_id": 4210559218,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        },
+        "maps": {
+          "seed_work_id": 4288057686,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        }
+      },
+      "A3": {
+        "mapl": {
+          "institution_name": "Universität Hamburg"
+        },
+        "mapm": {
+          "institution_name": "Universität Hamburg"
+        },
+        "maps": {
+          "institution_name": "Universität Hamburg"
+        }
+      },
+      "A5": {
+        "mapl": {
+          "topic_name": "Artificial Intelligence"
+        },
+        "mapm": {
+          "topic_name": "Artificial Intelligence"
+        },
+        "maps": {
+          "topic_name": "Artificial Intelligence"
+        }
+      },
+      "A6": {
+        "mapl": {
+          "seed_topic_id": 10862
+        },
+        "mapm": {
+          "seed_topic_id": 10862
+        },
+        "maps": {
+          "seed_topic_id": 10862
+        }
+      },
+      "G4": {
+        "mapl": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        },
+        "mapm": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        },
+        "maps": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        }
+      },
+      "H1": {
+        "mapl": {
+          "author_name": "Li Hongbo"
+        },
+        "mapm": {
+          "author_name": "Li Hongbo"
+        },
+        "maps": {
+          "author_name": "Li Hongbo"
+        }
+      },
+      "H3": {
+        "mapl": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        },
+        "mapm": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        },
+        "maps": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        }
+      },
+      "V1": {
+        "mapl": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        },
+        "mapm": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        },
+        "maps": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        }
+      },
+      "V4": {
+        "mapl": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        },
+        "mapm": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        },
+        "maps": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        }
+      }
+    },
+    "duckdb": {
+      "A2": {
+        "mapl": {
+          "author_id": 5015704722
+        },
+        "mapm": {
+          "author_id": 5000216958
+        },
+        "maps": {
+          "author_id": 5000216958
+        }
+      },
+      "G1": {
+        "mapl": {
+          "author_name": "Zupei Liu",
+          "topic_name": "RNA Methylation and Modification in Gene Expression",
+          "target_author_id": 5042849120
+        },
+        "mapm": {
+          "author_name": "Jorge Flores-Chamba",
+          "topic_name": "Economic Impact of Environmental Policies and Resources",
+          "target_author_id": 5015620906
+        },
+        "maps": {
+          "author_name": "Jorge Flores-Chamba",
+          "topic_name": "Life Cycle Assessment and Environmental Impact Analysis",
+          "target_author_id": 5015620906
+        }
+      },
+      "G2": {
+        "mapl": {
+          "a_id": 4377013841,
+          "b_id": 3155434940
+        },
+        "mapm": {
+          "a_id": 4377013841,
+          "b_id": 3155434940
+        },
+        "maps": {
+          "a_id": 4386076325,
+          "b_id": 4390871882
+        }
+      },
+      "G3": {
+        "mapl": {
+          "seed_work_id": 4399669303
+        },
+        "mapm": {
+          "seed_work_id": 4313531093
+        },
+        "maps": {
+          "seed_work_id": 4312443924
+        }
+      },
+      "H2": {
+        "mapl": {
+          "author_id": 5040670721
+        },
+        "mapm": {
+          "author_id": 5040670721
+        },
+        "maps": {
+          "author_id": 5069702912
+        }
+      },
+      "H4": {
+        "mapl": {
+          "work_id": 4395661325
+        },
+        "mapm": {
+          "work_id": 4296801521
+        },
+        "maps": {
+          "work_id": 4401889225
+        }
+      },
+      "H5": {
+        "mapl": {
+          "a_id": 4395661325,
+          "b_id": 4316345068,
+          "topic_id": 10039
+        },
+        "mapm": {
+          "a_id": 4296801002,
+          "b_id": 4280538736,
+          "topic_id": 10039
+        },
+        "maps": {
+          "a_id": 4401890915,
+          "b_id": 4226498581,
+          "topic_id": 10039
+        }
+      },
+      "V2": {
+        "mapl": {
+          "seed_work_id": 4395661325
+        },
+        "mapm": {
+          "seed_work_id": 4280526110
+        },
+        "maps": {
+          "seed_work_id": 4401872132
+        }
+      },
+      "V3": {
+        "mapl": {
+          "seed_work_id": 4321448324,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        },
+        "mapm": {
+          "seed_work_id": 4210559218,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        },
+        "maps": {
+          "seed_work_id": 4288057686,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        }
+      },
+      "A3": {
+        "mapl": {
+          "institution_name": "Universität Hamburg"
+        },
+        "mapm": {
+          "institution_name": "Universität Hamburg"
+        },
+        "maps": {
+          "institution_name": "Universität Hamburg"
+        }
+      },
+      "A5": {
+        "mapl": {
+          "topic_name": "Artificial Intelligence"
+        },
+        "mapm": {
+          "topic_name": "Artificial Intelligence"
+        },
+        "maps": {
+          "topic_name": "Artificial Intelligence"
+        }
+      },
+      "A6": {
+        "mapl": {
+          "seed_topic_id": 10862
+        },
+        "mapm": {
+          "seed_topic_id": 10862
+        },
+        "maps": {
+          "seed_topic_id": 10862
+        }
+      },
+      "G4": {
+        "mapl": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        },
+        "mapm": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        },
+        "maps": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        }
+      },
+      "H1": {
+        "mapl": {
+          "author_name": "Li Hongbo"
+        },
+        "mapm": {
+          "author_name": "Li Hongbo"
+        },
+        "maps": {
+          "author_name": "Li Hongbo"
+        }
+      },
+      "H3": {
+        "mapl": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        },
+        "mapm": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        },
+        "maps": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        }
+      },
+      "V1": {
+        "mapl": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        },
+        "mapm": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        },
+        "maps": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        }
+      },
+      "V4": {
+        "mapl": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        },
+        "mapm": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        },
+        "maps": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        }
+      }
+    },
+    "helmdb": {
+      "A2": {
+        "mapl": {
+          "author_id": 5015704722
+        },
+        "mapm": {
+          "author_id": 5000216958
+        },
+        "maps": {
+          "author_id": 5000216958
+        }
+      },
+      "G1": {
+        "mapl": {
+          "author_name": "Zupei Liu",
+          "topic_name": "RNA Methylation and Modification in Gene Expression"
+        },
+        "mapm": {
+          "author_name": "Jorge Flores-Chamba",
+          "topic_name": "Economic Impact of Environmental Policies and Resources"
+        },
+        "maps": {
+          "author_name": "Jorge Flores-Chamba",
+          "topic_name": "Life Cycle Assessment and Environmental Impact Analysis"
+        }
+      },
+      "G2": {
+        "mapl": {
+          "a_id": 4377013841,
+          "b_id": 3155434940
+        },
+        "mapm": {
+          "a_id": 4377013841,
+          "b_id": 3155434940
+        },
+        "maps": {
+          "a_id": 4386076325,
+          "b_id": 4390871882
+        }
+      },
+      "G3": {
+        "mapl": {
+          "seed_work_id": 4399669303
+        },
+        "mapm": {
+          "seed_work_id": 4313531093
+        },
+        "maps": {
+          "seed_work_id": 4312443924
+        }
+      },
+      "H2": {
+        "mapl": {
+          "author_id": 5040670721
+        },
+        "mapm": {
+          "author_id": 5040670721
+        },
+        "maps": {
+          "author_id": 5069702912
+        }
+      },
+      "H4": {
+        "mapl": {
+          "work_id": 4395661325
+        },
+        "mapm": {
+          "work_id": 4296801521
+        },
+        "maps": {
+          "work_id": 4401889225
+        }
+      },
+      "H5": {
+        "mapl": {
+          "a_id": 4395661325,
+          "b_id": 4316345068,
+          "topic_id": 10039
+        },
+        "mapm": {
+          "a_id": 4296801002,
+          "b_id": 4280538736,
+          "topic_id": 10039
+        },
+        "maps": {
+          "a_id": 4401890915,
+          "b_id": 4226498581,
+          "topic_id": 10039
+        }
+      },
+      "V2": {
+        "mapl": {
+          "seed_work_id": 4395661325
+        },
+        "mapm": {
+          "seed_work_id": 4280526110
+        },
+        "maps": {
+          "seed_work_id": 4401872132
+        }
+      },
+      "V3": {
+        "mapl": {
+          "seed_work_id": 4321448324,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        },
+        "mapm": {
+          "seed_work_id": 4210559218,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        },
+        "maps": {
+          "seed_work_id": 4288057686,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        }
+      },
+      "A3": {
+        "mapl": {
+          "institution_name": "Universität Hamburg"
+        },
+        "mapm": {
+          "institution_name": "Universität Hamburg"
+        },
+        "maps": {
+          "institution_name": "Universität Hamburg"
+        }
+      },
+      "A5": {
+        "mapl": {
+          "topic_name": "Artificial Intelligence"
+        },
+        "mapm": {
+          "topic_name": "Artificial Intelligence"
+        },
+        "maps": {
+          "topic_name": "Artificial Intelligence"
+        }
+      },
+      "A6": {
+        "mapl": {
+          "seed_topic_id": 10862
+        },
+        "mapm": {
+          "seed_topic_id": 10862
+        },
+        "maps": {
+          "seed_topic_id": 10862
+        }
+      },
+      "G4": {
+        "mapl": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        },
+        "mapm": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        },
+        "maps": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        }
+      },
+      "H1": {
+        "mapl": {
+          "author_name": "Li Hongbo"
+        },
+        "mapm": {
+          "author_name": "Li Hongbo"
+        },
+        "maps": {
+          "author_name": "Li Hongbo"
+        }
+      },
+      "H3": {
+        "mapl": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        },
+        "mapm": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        },
+        "maps": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        }
+      },
+      "V1": {
+        "mapl": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        },
+        "mapm": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        },
+        "maps": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        }
+      },
+      "V4": {
+        "mapl": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        },
+        "mapm": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        },
+        "maps": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        }
+      }
+    },
+    "polystore": {
+      "A2": {
+        "mapl": {
+          "author_id": 5015704722
+        },
+        "mapm": {
+          "author_id": 5000216958
+        },
+        "maps": {
+          "author_id": 5000216958
+        }
+      },
+      "G1": {
+        "mapl": {
+          "author_name": "Zupei Liu",
+          "topic_name": "RNA Methylation and Modification in Gene Expression"
+        },
+        "mapm": {
+          "author_name": "Jorge Flores-Chamba",
+          "topic_name": "Economic Impact of Environmental Policies and Resources"
+        },
+        "maps": {
+          "author_name": "Jorge Flores-Chamba",
+          "topic_name": "Life Cycle Assessment and Environmental Impact Analysis"
+        }
+      },
+      "G2": {
+        "mapl": {
+          "a_id": 4377013841,
+          "b_id": 3155434940
+        },
+        "mapm": {
+          "a_id": 4377013841,
+          "b_id": 3155434940
+        },
+        "maps": {
+          "a_id": 4386076325,
+          "b_id": 4390871882
+        }
+      },
+      "G3": {
+        "mapl": {
+          "seed_work_id": 4399669303
+        },
+        "mapm": {
+          "seed_work_id": 4313531093
+        },
+        "maps": {
+          "seed_work_id": 4312443924
+        }
+      },
+      "H2": {
+        "mapl": {
+          "author_id": 5040670721
+        },
+        "mapm": {
+          "author_id": 5040670721
+        },
+        "maps": {
+          "author_id": 5069702912
+        }
+      },
+      "H4": {
+        "mapl": {
+          "work_id": 4395661325
+        },
+        "mapm": {
+          "work_id": 4296801521
+        },
+        "maps": {
+          "work_id": 4401889225
+        }
+      },
+      "H5": {
+        "mapl": {
+          "a_id": 4395661325,
+          "b_id": 4316345068,
+          "topic_id": 10039
+        },
+        "mapm": {
+          "a_id": 4296801002,
+          "b_id": 4280538736,
+          "topic_id": 10039
+        },
+        "maps": {
+          "a_id": 4401890915,
+          "b_id": 4226498581,
+          "topic_id": 10039
+        }
+      },
+      "V2": {
+        "mapl": {
+          "seed_work_id": 4395661325
+        },
+        "mapm": {
+          "seed_work_id": 4280526110
+        },
+        "maps": {
+          "seed_work_id": 4401872132
+        }
+      },
+      "V3": {
+        "mapl": {
+          "seed_work_id": 4321448324,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        },
+        "mapm": {
+          "seed_work_id": 4210559218,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        },
+        "maps": {
+          "seed_work_id": 4288057686,
+          "required_keyword_1": "benchmark",
+          "required_keyword_2": "database",
+          "excluded_keyword_1": "survey",
+          "excluded_keyword_2": "review"
+        }
+      },
+      "A3": {
+        "mapl": {
+          "institution_name": "Universität Hamburg"
+        },
+        "mapm": {
+          "institution_name": "Universität Hamburg"
+        },
+        "maps": {
+          "institution_name": "Universität Hamburg"
+        }
+      },
+      "A5": {
+        "mapl": {
+          "topic_name": "Artificial Intelligence"
+        },
+        "mapm": {
+          "topic_name": "Artificial Intelligence"
+        },
+        "maps": {
+          "topic_name": "Artificial Intelligence"
+        }
+      },
+      "A6": {
+        "mapl": {
+          "seed_topic_id": 10862
+        },
+        "mapm": {
+          "seed_topic_id": 10862
+        },
+        "maps": {
+          "seed_topic_id": 10862
+        }
+      },
+      "G4": {
+        "mapl": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        },
+        "mapm": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        },
+        "maps": {
+          "topic1_name": "Education",
+          "topic2_name": "Computer Vision and Pattern Recognition"
+        }
+      },
+      "H1": {
+        "mapl": {
+          "author_name": "Li Hongbo"
+        },
+        "mapm": {
+          "author_name": "Li Hongbo"
+        },
+        "maps": {
+          "author_name": "Li Hongbo"
+        }
+      },
+      "H3": {
+        "mapl": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        },
+        "mapm": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        },
+        "maps": {
+          "topic_name": "Chemistry and Applications of Metal-Organic Frameworks"
+        }
+      },
+      "V1": {
+        "mapl": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        },
+        "mapm": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        },
+        "maps": {
+          "topic_name": "Graph Neural Network Models and Applications"
+        }
+      },
+      "V4": {
+        "mapl": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        },
+        "mapm": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        },
+        "maps": {
+          "seed_work_id": 3183282730,
+          "topic_name": "Neural Network Fundamentals and Applications",
+          "required_keyword_1": "network",
+          "required_keyword_2": "model"
+        }
+      }
+    }
+  }
+}

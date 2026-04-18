@@ -13,7 +13,7 @@ FROM
     (
         SELECT DISTINCT p2.id AS id
         FROM work_work_gra MATCH (p1: work_v)-[r: work_referenced_work_e]{0,2}->(p2: work_v)
-        WHERE p1.id = 4399669303
+        WHERE p1.id = __MB_seed_work_id__
     ) t1,
     work p,
     work_doc wd

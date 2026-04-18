@@ -2,7 +2,7 @@ WITH OrgAuthors AS (
 SELECT a.id AS author_id
 FROM author a 
 JOIN institution i ON a.institution_id = i.id
-where i.display_name = 'Universität Hamburg'
+where i.display_name = '__MB_institution_name__'
 ),
 AuthorWorks AS (
 SELECT w.id AS work_id

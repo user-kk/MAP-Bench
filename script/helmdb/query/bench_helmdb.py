@@ -3,7 +3,7 @@
 openGauss MMSQL 性能基准脚本（每单次立即落盘 + 实时中位数 + 中位数第二列）
 
 用法:
-    python3 bench_helmdb.py *.sql -n 10 -o result.csv -x a.sql b.sql c.sql
+    python bench_helmdb.py *.sql -n 10 -o result.csv -x a.sql b.sql c.sql -d mapm
 
 CSV 格式:
     file,median_ms,run1_ms,run2_ms,...,runN_ms
@@ -15,31 +15,39 @@ import argparse
 import csv
 import re
 import statistics
-import psycopg2
 import time
 from pathlib import Path
+import psycopg2
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'common'))
+from benchmark_config import (
+    get_dataset_conf,
+    get_query_params,
+    load_benchmark_config,
+    render_query_template,
+)
 
 TOTAL_RUNTIME_RE = re.compile(r'Total\s+runtime:\s+(\d+(?:\.\d+)?)\s*ms', re.I)
-
 DB_CONF = dict(
     dbname='mapl',
     user='hyh',
     password='Linux123',
     host='127.0.0.1',
-    port=9999
+    port=9999,
 )
+DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / 'common' / 'benchmark_config.json'
 
-# ---------- 工具 ----------
+
 def explain_runtime(cur, sql: str) -> float:
-    """返回端到端耗时（毫秒）"""
     t0 = time.perf_counter()
     cur.execute(sql)
     _ = cur.fetchall()
     t1 = time.perf_counter()
     return (t1 - t0) * 1000
 
+
 def flush_csv(out: Path, data: dict, runs: int):
-    """实时重写整个 CSV 文件（中位数放第二列）"""
     header = ['file', 'median_ms'] + [f'run{i}_ms' for i in range(1, runs + 1)]
     rows = []
     for fname, times in data.items():
@@ -51,41 +59,52 @@ def flush_csv(out: Path, data: dict, runs: int):
     with out.open('w', newline='') as cf:
         csv.writer(cf).writerows([header] + rows)
 
-# ---------- 主流程 ----------
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--rounds', type=int, default=5,
                         help='每条 SQL 跑几轮（默认 5）')
+    parser.add_argument('-d', '--dataset', choices=['mapl', 'mapm', 'maps'], default='mapl',
+                        help='选择数据集（默认 mapl）')
+    parser.add_argument('-c', '--config', type=Path, default=DEFAULT_CONFIG_PATH,
+                        help='配置文件路径（默认 script/common/benchmark_config.json）')
     parser.add_argument('-o', '--out', type=Path, default=Path('result.csv'),
                         help='输出 csv 路径（默认 result.csv）')
-    # 关键：-x 后面可跟任意数量文件名
     parser.add_argument('-x', '--exclude', nargs='*', default=[],
                         help='要排除的 .sql 文件（可一次写多个，空格隔开）')
     parser.add_argument('files', nargs='+', help='待测试 .sql 文件')
     args = parser.parse_args()
 
-    exclude_set = {Path(f).name for f in args.exclude}          
+    config = load_benchmark_config(args.config)
+    dataset_conf = get_dataset_conf(config, 'helmdb', args.dataset)
+
+    exclude_set = {Path(f).name for f in args.exclude}
     file_list = sorted([Path(f).resolve() for f in args.files
-                    if Path(f).name not in exclude_set],    
+                    if Path(f).name not in exclude_set],
                    key=lambda p: p.name)
-    
+
     if not file_list:
         print('所有文件均被排除，无事可做。')
         return
 
     data = {f.name: [] for f in file_list}
+    db_conf = DB_CONF.copy()
+    db_conf['dbname'] = dataset_conf['db_name']
 
-    conn = psycopg2.connect(**DB_CONF)
+    conn = psycopg2.connect(**db_conf)
     conn.autocommit = True
     cur = conn.cursor()
-    cur.execute("SET enable_pbe_optimization = off")
-    cur.execute("ALTER SYSTEM SET enable_global_plancache = off")
+    cur.execute('SET enable_pbe_optimization = off')
+    cur.execute('ALTER SYSTEM SET enable_global_plancache = off')
 
     try:
         flush_csv(args.out, data, args.rounds)
         for rnd in range(1, args.rounds + 1):
             for f in file_list:
-                sql = f.read_text().strip()
+                sql = render_query_template(
+                    f.read_text(encoding='utf-8').strip(),
+                    get_query_params(config, 'helmdb', f.stem, args.dataset),
+                )
                 t = explain_runtime(cur, sql)
                 data[f.name].append(t)
                 print(f'R{rnd:02d}  {f.name}: {t:.3f} ms')
@@ -97,6 +116,7 @@ def main():
         print(f'结果实时写入 {args.out}')
         cur.close()
         conn.close()
+
 
 if __name__ == '__main__':
     main()

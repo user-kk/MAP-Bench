@@ -1,11 +1,11 @@
-let s_id = 4395661325
-let e_id = 4316345068   // 4316345068  原来为 4321790088
+let s_id = __MB_a_id__
+let e_id = __MB_b_id__   // __MB_b_id__  原来为 4321790088
 
 LET startId = CONCAT("work_v/", to_string(s_id))
 LET endId = CONCAT("work_v/", to_string(e_id))
 let topic_info = (
     for tv in topic_vec
-        filter tv.id == 10039
+        filter tv.id == __MB_topic_id__
         return tv
 )
 

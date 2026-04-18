@@ -1,6 +1,6 @@
 WITH t AS (
 -- 第一步： 获取目标作者的合作关系， 并提取合作记录的年份信息
-MATCH (a:author_v {id: 5015704722})-[e:author_author_e]->(b:author_v)
+MATCH (a:author_v {id: __MB_author_id__})-[e:author_author_e]->(b:author_v)
 RETURN b.id AS id, e.list AS list
 ),
 t2 AS (
