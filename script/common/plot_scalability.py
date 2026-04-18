@@ -9,7 +9,7 @@ from pathlib import Path
 
 # 颜色配置 - 与条形图对应
 SYSTEMS = [
-    ('helmdb',        'FleetDB',          '#3A76AF'),
+    ('helmdb',        'GredoDB',          '#3A76AF'),
     ('arangodb',      'ArangoDB',         '#2D8E4E'),
     ('agensgraph-sp', 'AgensGraph (SP)',  '#F4A742'),
     ('agensgraph-mp', 'AgensGraph (MP)',  '#D2691E'),
@@ -48,7 +48,7 @@ DEFAULT_QUERIES = {
 }
 
 SCALE_ORDER = ['MAP-S', 'MAP-M', 'MAP-L']
-SCALE_LABELS = ['Small', 'Medium', 'Large']
+SCALE_LABELS = ['MAP-S', 'MAP-M', 'MAP-L']
 
 
 def parse_args():
