@@ -1,6 +1,5 @@
-[English](README.md) | [中文](README_zh.md)
-
 # MAP-Bench
+[English](README.md) | [中文](README_zh.md)
 
 <div align="center">
     <img src="logo.svg" width="300" alt="Logo" />
