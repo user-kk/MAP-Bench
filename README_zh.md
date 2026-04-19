@@ -84,8 +84,8 @@ pip install psycopg2-binary==2.9.8 python-arango==7.3.1 duckdb==1.2.2 "psycopg[b
 > centos7 上使用 duckdb 可能需要自己编译高版本 glibc，如下：
 > ```bash
 > patchelf --set-interpreter /path/to/mylibc_2_31/lib/ld-linux-x86-64.so.2 \
---set-rpath /path/to/mylibc_2_31/lib \
-duckdb
+>          --set-rpath /path/to/mylibc_2_31/lib \
+>          duckdb
 > ```
 >
 > 也可自己编译 duckdb + 各类插件（因为插件仍依赖高版本 glibc）。

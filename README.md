@@ -84,8 +84,8 @@ DuckDB installs the `json`, `vss`, and `duckpgq` plugins automatically. Update t
 > On CentOS 7, DuckDB may require a newer glibc. One possible workaround is:
 > ```bash
 > patchelf --set-interpreter /path/to/mylibc_2_31/lib/ld-linux-x86-64.so.2 \
---set-rpath /path/to/mylibc_2_31/lib \
-duckdb
+>          --set-rpath /path/to/mylibc_2_31/lib \
+>          duckdb
 > ```
 >
 > You can also build DuckDB and its plugins yourself.
