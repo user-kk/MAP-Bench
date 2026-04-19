@@ -1,94 +1,154 @@
+[English](README.md) | [中文](README_zh.md)
+
 # MAP-Bench
 
 <div align="center">
     <img src="logo.svg" width="300" alt="Logo" />
 </div>
 
-## 介绍
+## Introduction
 
-这是MAP-Bench的脚本仓库，包括导入脚本和测试sql脚本
+This repository contains the scripts used by MAP-Bench, including data loading scripts and query benchmark scripts.
 
-MAP-Bench：Multi-model Analytical Processing Benchmark
+MAP-Bench stands for **Multi-model Analytical Processing Benchmark**.
 
-也可以理解成Multi-model Analytics Pipeline，因为负载是通过不同子查询的查询分析流水线组织起来的
+It can also be understood as a **Multi-model Analytics Pipeline**, because each workload is organized as a query-analysis pipeline composed of multiple subqueries.
 
-Map(地图/映射) 暗示了连接和导航。 Benchmark 的核心是将不同模型连接起来，像地图一样展示多模数据之间的关联
+The word *Map* implies connection and navigation. The core idea of the benchmark is to connect different data models and expose their relationships the way a map exposes paths and links.
 
-### 依赖
-当前脚本的依赖如下：
+## Directory Overview
+
+The repository root currently contains the following key items:
+
+- `script/`: all loading, query, statistics, and helper scripts.
+
+The main subdirectories under `script/` are:
+
+- `script/common/`: shared utilities, statistics scripts, plotting scripts, and multi-dataset benchmark configuration files.
+- `script/arangodb/`: loading and query scripts for ArangoDB.
+- `script/agensgraph/`: loading and query scripts for AgensGraph.
+- `script/duckdb/`: loading and query scripts for DuckDB.
+- `script/helmdb/`: loading and query scripts for HelmDB.
+- `script/polystore/`: loading, query, and container helper scripts for the Polystore implementation.
+
+Each system directory typically contains two subdirectories:
+
+- `load/`: create schema/collections, load data, create indexes, and collect storage-size statistics.
+- `query/`: run end-to-end latency benchmarks, resource profiling, complexity analysis, and execution-plan collection.
+
+See the detailed system-specific documentation here:
+
+- [ArangoDB Load](script/arangodb/load/README.md) / [ArangoDB Query](script/arangodb/query/README.md)
+- [AgensGraph Load](script/agensgraph/load/README.md) / [AgensGraph Query](script/agensgraph/query/README.md)
+- [DuckDB Load](script/duckdb/load/README.md) / [DuckDB Query](script/duckdb/query/README.md)
+- [HelmDB Load](script/helmdb/load/README.md) / [HelmDB Query](script/helmdb/query/README.md)
+- [Polystore Load](script/polystore/load/README.md) / [Polystore Query](script/polystore/query/README.md)
+
+## Dependencies
+
+The main Python dependencies are:
 
 ```bash
 pip install psycopg2-binary==2.9.8 python-arango==7.3.1 duckdb==1.2.2 "psycopg[binary]==3.2.11"
 ```
-脚本已在Python 3.13.0下进行测试
 
-## 导入数据
+The scripts have been tested under Python 3.13.0.
 
-### arangodb 3.12.7
+One important exception is HelmDB: due to client-side limitations, the HelmDB query scripts use **Python 3.6.8**.
 
-在main.sh中填写对应的配置信息，执行即可，时间较长，建议挂一晚，建索引时可能超时，重新单独跑建索引即可
+## Data Loading
 
-### helmdb 最新helmdb-develop分支 [地址](https://gitee.com/whudb/HELMDB) 
+Detailed loading instructions are now documented under each system's `load/README.md`. The original high-level notes are kept below.
 
-要求先编译好ldbc插件，修改load_data.sql的数据路径，修改main.sh的配置信息，执行main.sh即可，时间较长，建议挂一晚
+### ArangoDB 3.12.7
 
-### agensgraph 2.16.0 + pgvector 0.6.2
+Fill in the required configuration in `main.sh` and run it. Loading may take a long time, so an overnight run is recommended. Index creation may time out; in that case, rerun the index step separately.
 
-要求安装pgvector插件和file_fdw插件(导数据用) ，修改load_data.sql的数据路径，修改main.sh的配置信息，执行main.sh即可，时间较长，建议挂一晚
+See also: [script/arangodb/load/README.md](script/arangodb/load/README.md)
 
-### duckdb 1.2.2 
+### HelmDB latest `helmdb-develop` branch [link](https://gitee.com/whudb/HELMDB)
 
-会自动安装json、vss、duckpgq插件，修改load_data.sql的数据路径，修改main.sh的配置信息，执行main.sh即可，时间较长，建议挂一晚
+Make sure the ldbc plugin is compiled first, update the data path in `load_data.sql`, adjust the configuration in `main.sh`, then run `main.sh`. This process may also take a long time.
 
-> duckpgq暂时不支持高版本的duckdb，目前最高只支持1.2.2(1.3.2 也支持，但是bug非常多，非常不稳定)
+See also: [script/helmdb/load/README.md](script/helmdb/load/README.md)
+
+### AgensGraph 2.16.0 + pgvector 0.6.2
+
+Install the `pgvector` and `file_fdw` extensions first, update the data path in `load_data.sql`, adjust the configuration in `main.sh`, then run `main.sh`.
+
+See also: [script/agensgraph/load/README.md](script/agensgraph/load/README.md)
+
+### DuckDB 1.2.2
+
+DuckDB installs the `json`, `vss`, and `duckpgq` plugins automatically. Update the data path in `load_data.sql`, adjust the configuration in `main.sh`, then run `main.sh`.
+
+> `duckpgq` does not currently support high DuckDB versions well. The highest stable version for this benchmark is 1.2.2 (1.3.2 is also supported but has many bugs and is unstable).
 >
-> centos7上使用duckdb可能需要自己编译高版本glibc,如下：
+> On CentOS 7, DuckDB may require a newer glibc. One possible workaround is:
 > ```bash
->  patchelf --set-interpreter /path/to/mylibc_2_31/lib/ld-linux-x86-64.so.2 \
->           --set-rpath /path/to/mylibc_2_31/lib \
->           duckdb
+> patchelf --set-interpreter /path/to/mylibc_2_31/lib/ld-linux-x86-64.so.2 \
+         --set-rpath /path/to/mylibc_2_31/lib \
+         duckdb
 > ```
 >
-> 也可自己编译duckdb+各类插件(因为插件仍依赖高版本glibc)
+> You can also build DuckDB and its plugins yourself.
 >
-> 如果不想自己编译,仓库提供dockerfile来生成镜像 
+> If you do not want to compile locally, this repository also provides a Dockerfile-based route.
 
-### polystore系统 关系：PostgresSQL 14.20 文档：MongoDB 6.0.26 图：Neo4j 5.24.2 向量：Milvus 2.3.4
+See also: [script/duckdb/load/README.md](script/duckdb/load/README.md)
 
-在util目录运行如下脚本，使用docker拉取polystore集群
-```bash
-    docker compose up -d
-```
+### Polystore system: relational `PostgreSQL 14.20`, document `MongoDB 6.0.26`, graph `Neo4j 5.24.2`, vector `Milvus 2.3.4`
 
-安装如下依赖：
+Run the following command in the `util/` directory to start the Polystore cluster with Docker:
 
 ```bash
-    pip install pymongo==4.15.4 psycopg[binary]==3.2.11 neo4j==6.0.3 pymilvus==2.6.3 pandas==2.3.3
+docker compose up -d
 ```
 
-执行：
+Install the following Python dependencies:
+
 ```bash
-    python script/polystore/load_data.py
+pip install pymongo==4.15.4 psycopg[binary]==3.2.11 neo4j==6.0.3 pymilvus==2.6.3 pandas==2.3.3
 ```
 
-## 跑查询
+Then run:
 
-### arangodb 3.12.7
+```bash
+python script/polystore/load_data.py
+```
 
-修改bench_arangodb.py中的client和db的配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
+See also: [script/polystore/load/README.md](script/polystore/load/README.md)
 
-### helmdb 最新helmdb-develop分支 [地址](https://gitee.com/whudb/HELMDB) 
+## Running Queries
 
-修改bench_helmdb.py中的DB_CONF配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
+Detailed query instructions are now documented under each system's `query/README.md`. The original high-level notes are kept below.
 
-### agensgraph 2.16.0 + pgvector 0.6.2
+### ArangoDB 3.12.7
 
-修改bench_agensgraph.py中的DB_CONF配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
+Adjust the `client` and `db` configuration in `bench_arangodb.py` and run the script as indicated by the inline comments. The CSV file is updated in real time with per-run latency and running median.
 
-### duckdb 1.2.2 
+See also: [script/arangodb/query/README.md](script/arangodb/query/README.md)
 
-修改bench_duckdb.py中的DB_CONF配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
+### HelmDB latest `helmdb-develop` branch [link](https://gitee.com/whudb/HELMDB)
 
-### polystore系统
+Adjust `DB_CONF` in `bench_helmdb.py` and run the script as indicated by the comments. The CSV file is updated in real time with per-run latency and running median.
 
-修改bench_poly.py中的DB_CONF配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
+See also: [script/helmdb/query/README.md](script/helmdb/query/README.md)
+
+### AgensGraph 2.16.0 + pgvector 0.6.2
+
+Adjust `DB_CONF` in `bench_agensgraph.py` and run the script as indicated by the comments. The CSV file is updated in real time with per-run latency and running median.
+
+See also: [script/agensgraph/query/README.md](script/agensgraph/query/README.md)
+
+### DuckDB 1.2.2
+
+Adjust `DB_CONF` in `bench_duckdb.py` and run the script as indicated by the comments. The CSV file is updated in real time with per-run latency and running median.
+
+See also: [script/duckdb/query/README.md](script/duckdb/query/README.md)
+
+### Polystore system
+
+Adjust `DB_CONF` in `bench_poly.py` and run the script as indicated by the comments. The CSV file is updated in real time with per-run latency and running median.
+
+See also: [script/polystore/query/README.md](script/polystore/query/README.md)

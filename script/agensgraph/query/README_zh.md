@@ -1,13 +1,13 @@
 [English](README.md) | [中文](README_zh.md)
 
-## Usage
+## 运行说明
 
-- Run the following commands inside this directory.
-- All query scripts support dataset switching through `-d mapl|mapm|maps`; the default value is `mapl`.
-- Query parameters are configured in `../../common/benchmark_config.json`.
-- `sp` corresponds to `-t 0`, and `mp` corresponds to `-t 12`.
+- 在当前目录执行以下命令。
+- 所有查询脚本均通过 `-d mapl|mapm|maps` 切换数据集；默认值为 `mapl`。
+- 查询参数统一配置在 `../../common/benchmark_config.json`。
+- `sp` 对应 `-t 0`，`mp` 对应 `-t 12`。
 
-## End-to-End Latency
+## 端到端延迟
 
 `sp`
 
@@ -21,9 +21,9 @@ python bench_agensgraph.py sql/*.sql -d maps -t 0 -n 5 -o "out/maps_sp_$(date +%
 python bench_agensgraph.py sql/*.sql -d maps -t 12 -n 5 -o "out/maps_mp_$(date +%F_%T).csv"
 ```
 
-## Resource Usage
+## 内存和 CPU 占用
 
-Note: the `res` script restarts the `agensgraph` service before each workload, so the full run may take a long time.
+说明：`res` 脚本会在每个 workload 前重启 `agensgraph` 服务，整套测试耗时较长。
 
 `sp`
 
@@ -37,13 +37,13 @@ python bench_agensgraph_res.py sql/*.sql -d maps -p 0 -n 5 -o "out/res_maps_sp_$
 python bench_agensgraph_res.py sql/*.sql -d maps -p 12 -n 5 -o "out/res_maps_mp_$(date +%F_%T).csv"
 ```
 
-## Query Tokens and Plan Node Statistics
+## 查询语句与查询计划节点信息
 
 ```bash
 python bench_agensgraph_info.py sql/*.sql -d maps -o "out/info_maps_$(date +%F_%T).csv"
 ```
 
-## Query Plans and Profile Output
+## 查询计划与 profile 信息
 
 `sp`
 

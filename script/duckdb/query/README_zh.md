@@ -1,14 +1,14 @@
 [English](README.md) | [中文](README_zh.md)
 
-## Usage
+## 运行说明
 
-- Run the following commands inside this directory.
-- All query scripts support dataset switching through `-d mapl|mapm|maps`; the default value is `mapl`.
-- Query parameters are configured in `../../common/benchmark_config.json`.
-- `st` uses the default thread setting; `mt` uses `-t 16`.
-- The following queries are currently excluded: `G1.sql G3.sql V1.sql V2.sql`.
+- 在当前目录执行以下命令。
+- 所有查询脚本均通过 `-d mapl|mapm|maps` 切换数据集；默认值为 `mapl`。
+- 查询参数统一配置在 `../../common/benchmark_config.json`。
+- `st` 使用默认线程配置；`mt` 使用 `-t 16`。
+- 当前查询集排除：`G1.sql G3.sql V1.sql V2.sql`。
 
-## End-to-End Latency
+## 端到端延迟
 
 `st`
 
@@ -22,7 +22,7 @@ python bench_duckdb.py sql/*.sql -d maps -n 5 -x G1.sql G3.sql V1.sql V2.sql -o 
 python bench_duckdb.py sql/*.sql -d maps -t 16 -n 5 -x G1.sql G3.sql V1.sql V2.sql -o "out/maps_mt_$(date +%F_%T).csv"
 ```
 
-## Resource Usage
+## 内存和 CPU 占用
 
 `st`
 
@@ -36,13 +36,13 @@ python bench_duckdb_res.py sql/*.sql -d maps -n 5 -x G1.sql G3.sql V1.sql V2.sql
 python bench_duckdb_res.py sql/*.sql -d maps -t 16 -n 5 -x G1.sql G3.sql V1.sql V2.sql -o "out/res_maps_mt_$(date +%F_%T).csv"
 ```
 
-## Query Tokens and Plan Node Statistics
+## 查询语句与查询计划节点信息
 
 ```bash
 python bench_duckdb_info.py sql/*.sql -d maps -x G1.sql G3.sql V1.sql V2.sql -o "out/info_maps_$(date +%F_%T).csv"
 ```
 
-## Query Plans and Profile Output
+## 查询计划与 profile 信息
 
 `st`
 
