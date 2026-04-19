@@ -57,8 +57,6 @@ One important exception is HelmDB: due to client-side limitations, the HelmDB qu
 
 ## Data Loading
 
-Detailed loading instructions are now documented under each system's `load/README.md`. The original high-level notes are kept below.
-
 ### ArangoDB 3.12.7
 
 Fill in the required configuration in `main.sh` and run it. Loading may take a long time, so an overnight run is recommended. Index creation may time out; in that case, rerun the index step separately.

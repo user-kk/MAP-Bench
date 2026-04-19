@@ -57,8 +57,6 @@ pip install psycopg2-binary==2.9.8 python-arango==7.3.1 duckdb==1.2.2 "psycopg[b
 
 ## 导入数据
 
-各系统的详细导入说明已拆分到对应 `load/README.md` 中。下面保留原有的总览说明。
-
 ### arangodb 3.12.7
 
 在 `main.sh` 中填写对应的配置信息，执行即可，时间较长，建议挂一晚，建索引时可能超时，重新单独跑建索引即可。
