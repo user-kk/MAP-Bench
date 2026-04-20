@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-HelmDB 执行计划获取器：先按轮次完成所有查询的预热，再统一使用 EXPLAIN ANALYZE 执行每个查询。
+GredoDB 执行计划获取器：先按轮次完成所有查询的预热，再统一使用 EXPLAIN ANALYZE 执行每个查询。
 """
 import argparse
 from pathlib import Path
@@ -26,7 +26,7 @@ DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / 'common' / 'benchmar
 
 
 def main():
-    parser = argparse.ArgumentParser(description='获取 HelmDB EXPLAIN ANALYZE 执行计划')
+    parser = argparse.ArgumentParser(description='获取 GredoDB EXPLAIN ANALYZE 执行计划')
     parser.add_argument('-d', '--dataset', choices=['mapl', 'mapm', 'maps'], default='mapl',
                         help='选择数据集（默认 mapl）')
     parser.add_argument('-c', '--config', type=Path, default=DEFAULT_CONFIG_PATH,
@@ -41,7 +41,7 @@ def main():
     args = parser.parse_args()
 
     config = load_benchmark_config(args.config)
-    dataset_conf = get_dataset_conf(config, 'helmdb', args.dataset)
+    dataset_conf = get_dataset_conf(config, 'gredodb', args.dataset)
 
     exclude_set = {Path(f).name for f in args.exclude}
     file_list = sorted([Path(f).resolve() for f in args.files if Path(f).name not in exclude_set], key=lambda p: p.name)
@@ -53,7 +53,7 @@ def main():
     for f in file_list:
         sql = render_query_template(
             f.read_text(encoding='utf-8').strip(),
-            get_query_params(config, 'helmdb', f.stem, args.dataset),
+            get_query_params(config, 'gredodb', f.stem, args.dataset),
         )
         queries.append((f, sql))
 
@@ -83,7 +83,7 @@ def main():
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open('w', encoding='utf-8') as out_f:
-        out_f.write('HelmDB EXPLAIN ANALYZE Results\n')
+        out_f.write('GredoDB EXPLAIN ANALYZE Results\n')
         out_f.write(f'Dataset: {args.dataset}\n')
         out_f.write(f'Warmup rounds: {args.warmup}\n')
         out_f.write(f'{separator}\n\n')

@@ -23,7 +23,7 @@ import pandas as pd
 ROOT_PATH = '/home/hyh/OpenAlex_mini_new/'
 DEFAULT_DBS: "OrderedDict[str, pathlib.Path]" = OrderedDict(
     [
-        ("helmdb", ROOT_PATH + "script/helmdb/query/out/info_2026-03-16_19:09:49.csv"),
+        ("gredodb", ROOT_PATH + "script/gredodb/query/out/info_2026-03-16_19:09:49.csv"),
         ("arangodb", ROOT_PATH + "script/arangodb/query/out/info_2026-03-16_19:07:15.csv"),
         ("agensgraph", ROOT_PATH + "script/agensgraph/query/out/info_2026-03-16_19:06:23.csv"),
         ("duckdb", ROOT_PATH + "script/duckdb/query/out/info_2026-03-16_19:09:19.csv"),

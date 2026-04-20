@@ -11,7 +11,7 @@
 ## End-to-End Latency
 
 ```bash
-python bench_helmdb.py sql/*.sql -d maps -n 5 -x G5.sql G6.sql G7.sql -o "out/maps_$(date +%F_%T).csv"
+python bench_gredodb.py sql/*.sql -d maps -n 5 -x G5.sql G6.sql G7.sql -o "out/maps_$(date +%F_%T).csv"
 ```
 
 ## Resource Usage
@@ -19,17 +19,17 @@ python bench_helmdb.py sql/*.sql -d maps -n 5 -x G5.sql G6.sql G7.sql -o "out/ma
 Note: the `res` script restarts the `openGauss` service before each workload, so the full run may take a long time.
 
 ```bash
-python bench_helmdb_res.py sql/*.sql -d maps -n 5 -x G5.sql G6.sql G7.sql -o "out/res_maps_$(date +%F_%T).csv"
+python bench_gredodb_res.py sql/*.sql -d maps -n 5 -x G5.sql G6.sql G7.sql -o "out/res_maps_$(date +%F_%T).csv"
 ```
 
 ## Query Tokens and Plan Node Statistics
 
 ```bash
-python bench_helmdb_info.py sql/*.sql -d maps -x G5.sql G6.sql G7.sql -o "out/info_maps_$(date +%F_%T).csv"
+python bench_gredodb_info.py sql/*.sql -d maps -x G5.sql G6.sql G7.sql -o "out/info_maps_$(date +%F_%T).csv"
 ```
 
 ## Query Plans and Profile Output
 
 ```bash
-python bench_helmdb_plan.py sql/*.sql -d maps --warmup 1 -x G5.sql G6.sql G7.sql -o "out/plan_maps_$(date +%F_%T).txt"
+python bench_gredodb_plan.py sql/*.sql -d maps --warmup 1 -x G5.sql G6.sql G7.sql -o "out/plan_maps_$(date +%F_%T).txt"
 ```

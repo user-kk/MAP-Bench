@@ -10,7 +10,7 @@
       "duckdb": {
         "db_path": "/duckdb_data/mapl.db"
       },
-      "helmdb": {
+      "gredodb": {
         "db_name": "mapl"
       },
       "polystore": {
@@ -27,7 +27,7 @@
       "duckdb": {
         "db_path": "/duckdb_data/mapm.db"
       },
-      "helmdb": {
+      "gredodb": {
         "db_name": "mapm"
       },
       "polystore": {
@@ -44,7 +44,7 @@
       "duckdb": {
         "db_path": "/duckdb_data/maps.db"
       },
-      "helmdb": {
+      "gredodb": {
         "db_name": "maps"
       },
       "polystore": {
@@ -731,7 +731,7 @@
         }
       }
     },
-    "helmdb": {
+    "gredodb": {
       "A2": {
         "mapl": {
           "author_id": 5015704722

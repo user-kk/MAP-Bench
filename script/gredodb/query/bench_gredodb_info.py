@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-helmdb 单轮扫描：token 数 + JSON 执行计划节点数 + 算子(含次数)
+GredoDB 单轮扫描：token 数 + JSON 执行计划节点数 + 算子(含次数)
 """
 import argparse
 import csv
@@ -63,7 +63,7 @@ def main():
     args = parser.parse_args()
 
     config = load_benchmark_config(args.config)
-    dataset_conf = get_dataset_conf(config, 'helmdb', args.dataset)
+    dataset_conf = get_dataset_conf(config, 'gredodb', args.dataset)
 
     exclude_set = {Path(f).name for f in args.exclude}
     file_list = sorted([Path(f).resolve() for f in args.files if Path(f).name not in exclude_set], key=lambda p: p.name)
@@ -82,7 +82,7 @@ def main():
     for f in file_list:
         sql = render_query_template(
             f.read_text(encoding='utf-8').strip(),
-            get_query_params(config, 'helmdb', f.stem, args.dataset),
+            get_query_params(config, 'gredodb', f.stem, args.dataset),
         )
         tokens, nodes, ops = get_tokens_and_nodes(cur, sql)
         print(f'{f.name}: tokens={len(tokens)}, nodes={nodes}, ops={ops}')

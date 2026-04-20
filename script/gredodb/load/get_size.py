@@ -17,7 +17,7 @@ DB_CONF = dict(
 )
 
 # 图文件存储目录
-GRAPH_DATA_DIR = '/home/hyh/project/HELMDB/gaussdata/mm_graph/'
+GRAPH_DATA_DIR = '/home/hyh/project/GredoDB/gaussdata/mm_graph/'
 
 # 需要特殊处理的图表
 GRAPH_TABLES = {

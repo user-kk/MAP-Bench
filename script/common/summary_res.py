@@ -18,7 +18,7 @@ import sys
 ROOT_PATH = '/home/hyh/OpenAlex_mini_new/'
 
 DEFAULT_DBS = OrderedDict([
-    ('helmdb',        ROOT_PATH + 'script/helmdb/query/out/res_2025-12-13_19:47:45.csv'),
+    ('gredodb',        ROOT_PATH + 'script/gredodb/query/out/res_2025-12-13_19:47:45.csv'),
     ('arangodb',      ROOT_PATH + 'script/arangodb/query/out/res_2025-12-12_20:00:55.csv'),
     ('agensgraph-sp',    ROOT_PATH + 'script/agensgraph/query/out/res_2025-12-12_19:59:51.csv'),
     ('agensgraph-mp',    ROOT_PATH + 'script/agensgraph/query/out/res_2025-12-13_22:10:16.csv'),

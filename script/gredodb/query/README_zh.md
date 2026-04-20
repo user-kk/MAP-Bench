@@ -11,7 +11,7 @@
 ## 端到端延迟
 
 ```bash
-python bench_helmdb.py sql/*.sql -d maps -n 5 -x G5.sql G6.sql G7.sql -o "out/maps_$(date +%F_%T).csv"
+python bench_gredodb.py sql/*.sql -d maps -n 5 -x G5.sql G6.sql G7.sql -o "out/maps_$(date +%F_%T).csv"
 ```
 
 ## 内存和 CPU 占用
@@ -19,17 +19,17 @@ python bench_helmdb.py sql/*.sql -d maps -n 5 -x G5.sql G6.sql G7.sql -o "out/ma
 说明：`res` 脚本会在每个 workload 前重启 `openGauss` 服务，整套测试耗时较长。
 
 ```bash
-python bench_helmdb_res.py sql/*.sql -d maps -n 5 -x G5.sql G6.sql G7.sql -o "out/res_maps_$(date +%F_%T).csv"
+python bench_gredodb_res.py sql/*.sql -d maps -n 5 -x G5.sql G6.sql G7.sql -o "out/res_maps_$(date +%F_%T).csv"
 ```
 
 ## 查询语句与查询计划节点信息
 
 ```bash
-python bench_helmdb_info.py sql/*.sql -d maps -x G5.sql G6.sql G7.sql -o "out/info_maps_$(date +%F_%T).csv"
+python bench_gredodb_info.py sql/*.sql -d maps -x G5.sql G6.sql G7.sql -o "out/info_maps_$(date +%F_%T).csv"
 ```
 
 ## 查询计划与 profile 信息
 
 ```bash
-python bench_helmdb_plan.py sql/*.sql -d maps --warmup 1 -x G5.sql G6.sql G7.sql -o "out/plan_maps_$(date +%F_%T).txt"
+python bench_gredodb_plan.py sql/*.sql -d maps --warmup 1 -x G5.sql G6.sql G7.sql -o "out/plan_maps_$(date +%F_%T).txt"
 ```

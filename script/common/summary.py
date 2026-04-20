@@ -13,17 +13,17 @@
 
 用例 2：命令行显式指定数据库（推荐）
     python3 compare.py \
-        --db helmdb=/home/hyh/helmdb.csv \
+        --db gredodb=/home/hyh/gredodb.csv \
         --db duckdb=/home/hyh/duckdb.csv \
         -o compare_hd.csv
 
 用例 3：遗留兼容模式（直接给 csv 文件）
-    python3 compare.py /tmp/helmdb.csv /tmp/duckdb.csv
+    python3 compare.py /tmp/gredodb.csv /tmp/duckdb.csv
     # 会自动把文件名前缀当数据库名，生成 compare_<时间戳>.csv
 
 用例 4：输出 Markdown 表格
     python3 compare.py \
-        --db helmdb=./helmdb.csv \
+        --db gredodb=./gredodb.csv \
         --db duckdb=./duckdb.csv \
         -f markdown -o compare.md
     # 生成 compare.md，内容可直接渲染为表格
@@ -42,7 +42,7 @@ from collections import OrderedDict
 ROOT_PATH = '/home/hyh/OpenAlex_mini_new/'
 
 DEFAULT_DBS = OrderedDict([
-    ('helmdb',        ROOT_PATH + 'script/helmdb/query/out/2026-03-22_17:02:04.csv'),
+    ('gredodb',        ROOT_PATH + 'script/gredodb/query/out/2026-03-22_17:02:04.csv'),
     ('arangodb',      ROOT_PATH + 'script/arangodb/query/out/2026-03-22_18:54:57.csv'),
     ('agensgraph-sp', ROOT_PATH + 'script/agensgraph/query/out/2026-03-22_19:26:36.csv'),
     ('agensgraph-mp',     ROOT_PATH + 'script/agensgraph/query/out/2026-03-22_17:42:23.csv'),

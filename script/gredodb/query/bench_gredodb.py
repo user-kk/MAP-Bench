@@ -3,7 +3,7 @@
 openGauss MMSQL 性能基准脚本（每单次立即落盘 + 实时中位数 + 中位数第二列）
 
 用法:
-    python bench_helmdb.py *.sql -n 10 -o result.csv -x a.sql b.sql c.sql -d mapm
+    python bench_gredodb.py *.sql -n 10 -o result.csv -x a.sql b.sql c.sql -d mapm
 
 CSV 格式:
     file,median_ms,run1_ms,run2_ms,...,runN_ms
@@ -76,7 +76,7 @@ def main():
     args = parser.parse_args()
 
     config = load_benchmark_config(args.config)
-    dataset_conf = get_dataset_conf(config, 'helmdb', args.dataset)
+    dataset_conf = get_dataset_conf(config, 'gredodb', args.dataset)
 
     exclude_set = {Path(f).name for f in args.exclude}
     file_list = sorted([Path(f).resolve() for f in args.files
@@ -103,7 +103,7 @@ def main():
             for f in file_list:
                 sql = render_query_template(
                     f.read_text(encoding='utf-8').strip(),
-                    get_query_params(config, 'helmdb', f.stem, args.dataset),
+                    get_query_params(config, 'gredodb', f.stem, args.dataset),
                 )
                 t = explain_runtime(cur, sql)
                 data[f.name].append(t)

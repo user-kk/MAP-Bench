@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-openGauss/HelmDB 资源占用采样脚本（Python 3.6.8 兼容版）
+openGauss/GredoDB 资源占用采样脚本（Python 3.6.8 兼容版）
 - 兼容 CentOS 7 / RHEL 7 默认 Python 环境
 - 修正了 subprocess 参数和类型注解
 """
@@ -54,7 +54,7 @@ def run_cmd_get_stdout(cmd: List[str]) -> str:
     except subprocess.CalledProcessError:
         raise RuntimeError(f"命令执行失败: {' '.join(cmd)}")
 
-def find_helmdb_pid() -> int:
+def find_gredodb_pid() -> int:
     """查找 gaussdb 进程 PID"""
     try:
         # split('\n')[0] 确保只取第一行
@@ -71,7 +71,7 @@ def pick_interval(latency_ms: float) -> float:
     return max(MIN_SAMPLE_INTERVAL, min(MAX_SAMPLE_INTERVAL, ideal))
 
 
-def restart_helmdb(host=DB_CONF['host'], port=DB_CONF['port'], max_wait=60):
+def restart_gredodb(host=DB_CONF['host'], port=DB_CONF['port'], max_wait=60):
     """重启 openGauss 服务"""
     print('♻️  restarting openGauss …')
     # Python 3.6 run 也不支持 capture_output，直接调用即可
@@ -101,7 +101,7 @@ def measure_short_query(sql: str, conn_params: dict) -> tuple:
     """
     短查询：cpu_times 差值法
     """
-    pid = find_helmdb_pid()
+    pid = find_gredodb_pid()
     proc = psutil.Process(pid)
     
     conn = psycopg2.connect(**conn_params)
@@ -233,7 +233,7 @@ class LongQuerySampler:
 
 
 def measure_long_query(sql: str, interval: float, conn_params: dict) -> tuple:
-    pid = find_helmdb_pid()
+    pid = find_gredodb_pid()
     
     conn = psycopg2.connect(**conn_params)
     conn.autocommit = True
@@ -314,7 +314,7 @@ def flush_csv(out: Path, data: dict):
 
 # -------------------- 主流程 --------------------
 def main():
-    parser = argparse.ArgumentParser(description='openGauss/HelmDB 资源采样')
+    parser = argparse.ArgumentParser(description='openGauss/GredoDB 资源采样')
     parser.add_argument('-n', '--rounds', type=int, default=5, help='采样轮数')
     parser.add_argument('-d', '--dataset', choices=['mapl', 'mapm', 'maps'], default='mapl',
                         help='选择数据集（默认 mapl）')
@@ -326,7 +326,7 @@ def main():
     args = parser.parse_args()
 
     config = load_benchmark_config(args.config)
-    dataset_conf = get_dataset_conf(config, 'helmdb', args.dataset)
+    dataset_conf = get_dataset_conf(config, 'gredodb', args.dataset)
     conn_params = DB_CONF.copy()
     conn_params['dbname'] = dataset_conf['db_name']
 
@@ -357,11 +357,11 @@ def main():
     print("=" * 60)
     
     for f in file_list:
-        restart_helmdb()
+        restart_gredodb()
         # Path.read_text() 在 3.5+ 可用
         sql = render_query_template(
             f.read_text(encoding='utf-8').strip(),
-            get_query_params(config, 'helmdb', f.stem, args.dataset),
+            get_query_params(config, 'gredodb', f.stem, args.dataset),
         )
         lat_ms = warmup_query(sql, conn_params)
         
@@ -383,10 +383,10 @@ def main():
         print(f"\n----- 第 {rnd} 轮 -----")
         
         for f in file_list:
-            restart_helmdb()
+            restart_gredodb()
             sql = render_query_template(
             f.read_text(encoding='utf-8').strip(),
-            get_query_params(config, 'helmdb', f.stem, args.dataset),
+            get_query_params(config, 'gredodb', f.stem, args.dataset),
         )
             method = data[f.name]['method']
             interval = data[f.name]['interval']

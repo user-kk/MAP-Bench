@@ -21,7 +21,7 @@ ROWS = [
 ]
 
 SYSTEMS = [
-    ('helmdb_ms',        'FleetDB',          '#3A76AF', ''),
+    ('gredodb_ms',        'FleetDB',          '#3A76AF', ''),
     ('arangodb_ms',      'ArangoDB',         '#2D8E4E', ''),
     ('agensgraph-sp_ms', 'AgensGraph (SP)',  '#F4A742', ''),
     ('agensgraph-mp_ms', 'AgensGraph (MP)',  '#D2691E', '//'),

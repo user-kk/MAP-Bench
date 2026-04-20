@@ -23,7 +23,7 @@ SYSTEM_MAP = {
     'agensgraph-mp': 'agensgraph-mp_ms',
     'arangodb':      'arangodb_ms',
     'duckdb-mt':     'duckdb-mt_ms',
-    'helmdb':        'helmdb_ms',
+    'gredodb':        'gredodb_ms',
     'polystore':     'polystore_ms',
 }
 

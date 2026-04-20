@@ -2,7 +2,7 @@
 
 ## Loading Guide
 
-- This directory contains the scripts for schema creation, data import, index creation, graph loading, and storage-size statistics for HelmDB.
+- This directory contains the scripts for schema creation, data import, index creation, graph loading, and storage-size statistics for GredoDB.
 
 ## Files
 
@@ -24,7 +24,7 @@ You also need to update the raw data path inside `load_data.sql`.
 
 ## Prerequisites
 
-- Use the latest `helmdb-develop` branch
+- Use the latest `gredodb-develop` branch
 - Compile the `ldbc` plugin in advance
 
 ## Workflow
@@ -44,5 +44,5 @@ bash main.sh
 
 ## Notes
 
-- HelmDB query scripts use Python 3.6.8 because of client-side limitations, while the loading workflow itself mainly depends on `gsql`.
+- GredoDB query scripts use Python 3.6.8 because of client-side limitations, while the loading workflow itself mainly depends on `gsql`.
 - For multi-dataset imports, update `database` and the paths inside `load_data.sql` for each dataset.

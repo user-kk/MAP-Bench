@@ -7,19 +7,20 @@
 
 ## Introduction
 
-This repository contains the scripts used by MAP-Bench, including data loading scripts and query benchmark scripts.
+This repository contains the reproduction scripts for MAP-Bench, mainly including data loading scripts, query benchmarking scripts, and the data generator.
 
-MAP-Bench stands for **Multi-model Analytical Processing Benchmark**.
+MAP-Bench: Multi-model Analytical Processing Benchmark.
 
-It can also be understood as a **Multi-model Analytics Pipeline**, because each workload is organized as a query-analysis pipeline composed of multiple subqueries.
+It can also be understood as Multi-model Analytics Pipeline, because the workloads are organized as query analysis pipelines composed of different subqueries.
 
-The word *Map* implies connection and navigation. The core idea of the benchmark is to connect different data models and expose their relationships the way a map exposes paths and links.
+Map implies connection and navigation. The core idea of the benchmark is to connect different models and present the relationships among multimodel data in the same way that a map exposes paths and links.
 
 ## Directory Overview
 
-The repository root currently contains the following key items:
+The repository root currently contains or is planned to contain the following key items:
 
-- `script/`: all loading, query, statistics, and helper scripts.
+- `script/`: loading, query, statistics, and helper scripts for each system.
+- `generator/`: the data generator, used to expand the datasets.
 
 The main subdirectories under `script/` are:
 
@@ -27,23 +28,29 @@ The main subdirectories under `script/` are:
 - `script/arangodb/`: loading and query scripts for ArangoDB.
 - `script/agensgraph/`: loading and query scripts for AgensGraph.
 - `script/duckdb/`: loading and query scripts for DuckDB.
-- `script/helmdb/`: loading and query scripts for HelmDB.
+- `script/gredodb/`: loading and query scripts for GredoDB.
 - `script/polystore/`: loading, query, and container helper scripts for the Polystore implementation.
 
 Each system directory typically contains two subdirectories:
 
-- `load/`: create schema/collections, load data, create indexes, and collect storage-size statistics.
-- `query/`: run end-to-end latency benchmarks, resource profiling, complexity analysis, and execution-plan collection.
+- `load/`: create schema/collections, load data, create indexes, and collect storage size statistics.
+- `query/`: run end-to-end latency benchmarks, resource profiling, query complexity analysis, and execution plan collection.
 
-See the detailed system-specific documentation here:
+## Data Source and Data Generation
 
-- [ArangoDB Load](script/arangodb/load/README.md) / [ArangoDB Query](script/arangodb/query/README.md)
-- [AgensGraph Load](script/agensgraph/load/README.md) / [AgensGraph Query](script/agensgraph/query/README.md)
-- [DuckDB Load](script/duckdb/load/README.md) / [DuckDB Query](script/duckdb/query/README.md)
-- [HelmDB Load](script/helmdb/load/README.md) / [HelmDB Query](script/helmdb/query/README.md)
-- [Polystore Load](script/polystore/load/README.md) / [Polystore Query](script/polystore/query/README.md)
+### Original Data Source
 
-## Dependencies
+The original data source repository used by this benchmark is:
+
+- Original data source repository: https://github.com/thriaaaa/openalex-automated-pipeline
+
+### Data Generator
+
+For details about the data generator, see: [Chinese README](generator/README.md) / [English README](generator/README_en.md)
+
+The repository does not include the base datasets, sentence embedding models, or trained trigram model artifacts required by the generator. See the generator README for the expected directory layout and setup notes.
+
+## Environment and Dependencies
 
 The main Python dependencies are:
 
@@ -53,56 +60,60 @@ pip install psycopg2-binary==2.9.8 python-arango==7.3.1 duckdb==1.2.2 "psycopg[b
 
 The scripts have been tested under Python 3.13.0.
 
-One important exception is HelmDB: due to client-side limitations, the HelmDB query scripts use **Python 3.6.8**.
+One important exception is GredoDB: due to client-side limitations, the GredoDB query scripts use **Python 3.6.8**.
+
+Different systems may also have their own environment requirements, plugin dependencies, or compatibility constraints. See the corresponding `load/README.md` and `query/README.md` under each system directory for details.
 
 ## Data Loading
 
+The data loading workflow differs across systems. The main README keeps a high-level overview, while the detailed system-specific steps are documented in each `load/README.md`.
+
 ### ArangoDB 3.12.7
 
-Fill in the required configuration in `main.sh` and run it. Loading may take a long time, so an overnight run is recommended. Index creation may time out; in that case, rerun the index step separately.
+Fill in the required configuration in `main.sh` and run it. The loading process may take a long time, so it is recommended to reserve sufficient running time. Index creation may time out; if that happens, rerun the index creation step separately.
 
 See also: [script/arangodb/load/README.md](script/arangodb/load/README.md)
 
-### HelmDB latest `helmdb-develop` branch [link](https://gitee.com/whudb/HELMDB)
+### GredoDB latest `gredodb-develop` branch [link](https://github.com/whu-totemdb/GredoDB)
 
-Make sure the ldbc plugin is compiled first, update the data path in `load_data.sql`, adjust the configuration in `main.sh`, then run `main.sh`. This process may also take a long time.
+Compile the `ldbc` plugin first, then update the data path in `load_data.sql` and the configuration in `main.sh`, and run `main.sh`. This process may also take a long time, so it is recommended to reserve sufficient running time.
 
-See also: [script/helmdb/load/README.md](script/helmdb/load/README.md)
+See also: [script/gredodb/load/README.md](script/gredodb/load/README.md)
 
 ### AgensGraph 2.16.0 + pgvector 0.6.2
 
-Install the `pgvector` and `file_fdw` extensions first, update the data path in `load_data.sql`, adjust the configuration in `main.sh`, then run `main.sh`.
+Install the `pgvector` and `file_fdw` extensions first, update the data path in `load_data.sql` and the configuration in `main.sh`, and then run `main.sh`. This process may take a long time, so it is recommended to reserve sufficient running time.
 
 See also: [script/agensgraph/load/README.md](script/agensgraph/load/README.md)
 
 ### DuckDB 1.2.2
 
-DuckDB installs the `json`, `vss`, and `duckpgq` plugins automatically. Update the data path in `load_data.sql`, adjust the configuration in `main.sh`, then run `main.sh`.
+DuckDB automatically installs the `json`, `vss`, and `duckpgq` plugins. After updating the data path in `load_data.sql` and the configuration in `main.sh`, run `main.sh`. This process may take a long time, so it is recommended to reserve sufficient running time.
 
-> `duckpgq` does not currently support high DuckDB versions well. The highest stable version for this benchmark is 1.2.2 (1.3.2 is also supported but has many bugs and is unstable).
+> `duckpgq` does not currently support high DuckDB versions well. The highest version currently supported by this benchmark is 1.2.2 (1.3.2 is also supported, but it has many bugs and is highly unstable).
 >
-> On CentOS 7, DuckDB may require a newer glibc. One possible workaround is:
+> On CentOS 7, using DuckDB may require compiling a newer glibc manually, for example:
 > ```bash
 > patchelf --set-interpreter /path/to/mylibc_2_31/lib/ld-linux-x86-64.so.2 \
 >          --set-rpath /path/to/mylibc_2_31/lib \
 >          duckdb
 > ```
 >
-> You can also build DuckDB and its plugins yourself.
+> You can also build DuckDB together with its plugins yourself, since the plugins still depend on a newer glibc.
 >
-> If you do not want to compile locally, this repository also provides a Dockerfile-based route.
+> If you do not want to compile it locally, the repository also provides a Dockerfile-based way to build the image.
 
 See also: [script/duckdb/load/README.md](script/duckdb/load/README.md)
 
 ### Polystore system: relational `PostgreSQL 14.20`, document `MongoDB 6.0.26`, graph `Neo4j 5.24.2`, vector `Milvus 2.3.4`
 
-Run the following command in the `util/` directory to start the Polystore cluster with Docker:
+Run the following command in the `util` directory to start the Polystore cluster with Docker:
 
 ```bash
 docker compose up -d
 ```
 
-Install the following Python dependencies:
+Install the following dependencies:
 
 ```bash
 pip install pymongo==4.15.4 psycopg[binary]==3.2.11 neo4j==6.0.3 pymilvus==2.6.3 pandas==2.3.3
@@ -116,36 +127,36 @@ python script/polystore/load_data.py
 
 See also: [script/polystore/load/README.md](script/polystore/load/README.md)
 
-## Running Queries
+## Query Benchmarking
 
-Detailed query instructions are now documented under each system's `query/README.md`. The original high-level notes are kept below.
+The detailed query instructions for each system have been moved to the corresponding `query/README.md`. The high-level overview is kept below.
 
 ### ArangoDB 3.12.7
 
-Adjust the `client` and `db` configuration in `bench_arangodb.py` and run the script as indicated by the inline comments. The CSV file is updated in real time with per-run latency and running median.
+Modify the `client` and `db` configuration in `bench_arangodb.py` and run the script as indicated by the inline comments. The script updates the median time and the latency of each run in the CSV file in real time.
 
 See also: [script/arangodb/query/README.md](script/arangodb/query/README.md)
 
-### HelmDB latest `helmdb-develop` branch [link](https://gitee.com/whudb/HELMDB)
+### GredoDB latest `gredodb-develop` branch [link](https://github.com/whu-totemdb/GredoDB)
 
-Adjust `DB_CONF` in `bench_helmdb.py` and run the script as indicated by the comments. The CSV file is updated in real time with per-run latency and running median.
+Modify `DB_CONF` in `bench_gredodb.py` and run the script as indicated by the comments. The script updates the median time and the latency of each run in the CSV file in real time.
 
-See also: [script/helmdb/query/README.md](script/helmdb/query/README.md)
+See also: [script/gredodb/query/README.md](script/gredodb/query/README.md)
 
 ### AgensGraph 2.16.0 + pgvector 0.6.2
 
-Adjust `DB_CONF` in `bench_agensgraph.py` and run the script as indicated by the comments. The CSV file is updated in real time with per-run latency and running median.
+Modify `DB_CONF` in `bench_agensgraph.py` and run the script as indicated by the comments. The script updates the median time and the latency of each run in the CSV file in real time.
 
 See also: [script/agensgraph/query/README.md](script/agensgraph/query/README.md)
 
 ### DuckDB 1.2.2
 
-Adjust `DB_CONF` in `bench_duckdb.py` and run the script as indicated by the comments. The CSV file is updated in real time with per-run latency and running median.
+Modify `DB_CONF` in `bench_duckdb.py` and run the script as indicated by the comments. The script updates the median time and the latency of each run in the CSV file in real time.
 
 See also: [script/duckdb/query/README.md](script/duckdb/query/README.md)
 
 ### Polystore system
 
-Adjust `DB_CONF` in `bench_poly.py` and run the script as indicated by the comments. The CSV file is updated in real time with per-run latency and running median.
+Modify `DB_CONF` in `bench_poly.py` and run the script as indicated by the comments. The script updates the median time and the latency of each run in the CSV file in real time.
 
 See also: [script/polystore/query/README.md](script/polystore/query/README.md)
