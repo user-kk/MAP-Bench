@@ -46,9 +46,9 @@ The original data source repository used by this benchmark is:
 
 ### Data Generator
 
-For details about the data generator, see: [Chinese README](generator/README.md) / [English README](generator/README_en.md)
+For details about the data generator, see: [English README](generator/README.md) / [中文说明](generator/README_zh.md)
 
-The repository does not include the base datasets, sentence embedding models, or trained trigram model artifacts required by the generator. See the generator README for the expected directory layout and setup notes.
+The repository does not include the base datasets, the vector model, or the trained trigram model required by the generator.
 
 ## Environment and Dependencies
 

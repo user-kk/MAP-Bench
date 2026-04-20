@@ -47,9 +47,9 @@ Map（地图/映射）暗示了连接和导航。Benchmark 的核心是将不同
 
 ### 数据生成器
 
-数据生成器相关内容详见：[中文说明](generator/README.md) / [English README](generator/README_en.md)
+数据生成器相关内容详见：[English README](generator/README.md) / [中文说明](generator/README_zh.md)
 
-仓库中不包含数据生成器依赖的基础数据集、句向量模型以及训练后的 trigram 模型产物。具体目录约定和准备方式见生成器 README。
+仓库中不包含数据生成器依赖的基础数据集、向量模型以及训练后的 trigram 模型。
 
 ## 环境与依赖
 
