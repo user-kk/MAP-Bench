@@ -2,11 +2,14 @@
 set -euo pipefail
 
 # ------ 配置 ------
+
 # 设置文本生成模式
 # 1 = 使用 KenLM 模型生成 (高质量，有统计规律，稍慢)
 # 0 = 使用 Faker 随机填充 (低质量，无实际意义，极快)
 TEXT_GEN_MODE="${TEXT_GEN_MODE:-1}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
+
+
 # ------ 路径和环境设置 ------
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 DATA_GEN_DIR="$SCRIPT_DIR/data_gen"

@@ -18,3 +18,4 @@ generator/generated_output/
 generator/TRIGRAM_TRAIN/corpus/
 generator/TRIGRAM_TRAIN/models/
 generator/TRIGRAM_TRAIN/vocab.txt
+

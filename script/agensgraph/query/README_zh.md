@@ -5,7 +5,7 @@
 - 在当前目录执行以下命令。
 - 所有查询脚本均通过 `-d mapl|mapm|maps` 切换数据集；默认值为 `mapl`。
 - 查询参数统一配置在 `../../common/benchmark_config.json`。
-- `sp` 对应 `-t 0`，`mp` 对应 `-t 12`。
+- `sp` 对应 `-t 0`，`mp` 对应 `-t 16`。
 
 ## 端到端延迟
 
@@ -18,7 +18,7 @@ python bench_agensgraph.py sql/*.sql -d maps -t 0 -n 5 -o "out/maps_sp_$(date +%
 `mp`
 
 ```bash
-python bench_agensgraph.py sql/*.sql -d maps -t 12 -n 5 -o "out/maps_mp_$(date +%F_%T).csv"
+python bench_agensgraph.py sql/*.sql -d maps -t 16 -n 5 -o "out/maps_mp_$(date +%F_%T).csv"
 ```
 
 ## 内存和 CPU 占用
@@ -34,7 +34,7 @@ python bench_agensgraph_res.py sql/*.sql -d maps -p 0 -n 5 -o "out/res_maps_sp_$
 `mp`
 
 ```bash
-python bench_agensgraph_res.py sql/*.sql -d maps -p 12 -n 5 -o "out/res_maps_mp_$(date +%F_%T).csv"
+python bench_agensgraph_res.py sql/*.sql -d maps -p 16 -n 5 -o "out/res_maps_mp_$(date +%F_%T).csv"
 ```
 
 ## 查询语句与查询计划节点信息
@@ -54,5 +54,5 @@ python bench_agensgraph_plan.py sql/*.sql -d maps -t 0 --warmup 1 -o "out/plan_m
 `mp`
 
 ```bash
-python bench_agensgraph_plan.py sql/*.sql -d maps -t 12 --warmup 1 -o "out/plan_maps_mp_$(date +%F_%T).txt"
+python bench_agensgraph_plan.py sql/*.sql -d maps -t 16 --warmup 1 -o "out/plan_maps_mp_$(date +%F_%T).txt"
 ```

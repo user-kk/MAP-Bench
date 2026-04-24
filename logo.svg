@@ -51,7 +51,6 @@
 
   <!-- 6. The Compass Rose / Star (Top Right Target) -->
   <g transform="translate(380, 120) scale(0.8)">
-     <!-- The 4 points star -->
      <path d="M 0 -40 L 15 -15 L 40 0 L 15 15 L 0 40 L -15 15 L -40 0 L -15 -15 Z" fill="#ffffff" stroke="#003366" stroke-width="4" />
      <path d="M 0 -40 L 0 40 M -40 0 L 40 0" stroke="#003366" stroke-width="2" />
      <circle cx="0" cy="0" r="10" fill="#003366" />

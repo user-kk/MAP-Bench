@@ -29,7 +29,7 @@ The main subdirectories under `script/` are:
 - `script/agensgraph/`: loading and query scripts for AgensGraph.
 - `script/duckdb/`: loading and query scripts for DuckDB.
 - `script/gredodb/`: loading and query scripts for GredoDB.
-- `script/polystore/`: loading, query, and container helper scripts for the Polystore implementation.
+- `script/polystore/`: loading, query, and container helper scripts for the Polyglot implementation.
 
 Each system directory typically contains two subdirectories:
 
@@ -38,11 +38,13 @@ Each system directory typically contains two subdirectories:
 
 ## Data Source and Data Generation
 
-### Original Data Source
+### Datasets
 
-The original data source repository used by this benchmark is:
+The pre-built MAP-Bench datasets (MAP-S / MAP-M / MAP-L) are available for download from Baidu Netdisk:
 
-- Original data source repository: https://github.com/thriaaaa/openalex-automated-pipeline
+- https://pan.baidu.com/s/1Jc7W_h4a-6iTLi2EnUUuOw?pwd=gerd (password: `gerd`)
+
+Alternatively, you can download raw OpenAlex snapshots and generate the datasets yourself using the scripts in [openalex-automated-pipeline](https://github.com/thriaaaa/openalex-automated-pipeline).
 
 ### Data Generator
 
@@ -109,9 +111,9 @@ DuckDB automatically installs the `json`, `vss`, and `duckpgq` plugins. After up
 
 See also: [script/duckdb/load/README.md](script/duckdb/load/README.md)
 
-### Polystore system: relational `PostgreSQL 14.20`, document `MongoDB 6.0.26`, graph `Neo4j 5.24.2`, vector `Milvus 2.3.4`
+### Polyglot system: relational `PostgreSQL 14.20`, document `MongoDB 6.0.26`, graph `Neo4j 5.24.2`, vector `Milvus 2.3.4`
 
-Run the following command in the `util` directory to start the Polystore cluster with Docker:
+Run the following command in the `util` directory to start the Polyglot cluster with Docker:
 
 ```bash
 docker compose up -d
@@ -159,7 +161,7 @@ Modify `DB_CONF` in `bench_duckdb.py` and run the script as indicated by the com
 
 See also: [script/duckdb/query/README.md](script/duckdb/query/README.md)
 
-### Polystore system
+### Polyglot system
 
 Modify `DB_CONF` in `bench_poly.py` and run the script as indicated by the comments. The script updates the median time and the latency of each run in the CSV file in real time.
 

@@ -29,7 +29,7 @@ Map（地图/映射）暗示了连接和导航。Benchmark 的核心是将不同
 - `script/agensgraph/`：AgensGraph 的导入脚本与查询脚本。
 - `script/duckdb/`：DuckDB 的导入脚本与查询脚本。
 - `script/gredodb/`：GredoDB 的导入脚本与查询脚本。
-- `script/polystore/`：Polystore 的导入、查询与容器辅助脚本。
+- `script/polystore/`：Polyglot 的导入、查询与容器辅助脚本。
 
 各系统目录通常包含两个子目录：
 
@@ -39,11 +39,13 @@ Map（地图/映射）暗示了连接和导航。Benchmark 的核心是将不同
 
 ## 数据来源与数据生成
 
-### 原始数据来源
+### 数据集
 
-本 benchmark 使用的原始数据来源仓库如下：
+预先构建好的 MAP-Bench 数据集（MAP-S / MAP-M / MAP-L）可从百度网盘下载获取：
 
-- 原始数据来源仓库：https://github.com/thriaaaa/openalex-automated-pipeline
+- https://pan.baidu.com/s/1Jc7W_h4a-6iTLi2EnUUuOw?pwd=gerd (提取码：`gerd` )
+
+另外，也可以下载原始的 OpenAlex 快照，并使用 [openalex-automated-pipeline](https://github.com/thriaaaa/openalex-automated-pipeline) 中的脚本自行生成数据集。
 
 ### 数据生成器
 
@@ -110,9 +112,9 @@ DuckDB 会自动安装 `json`、`vss`、`duckpgq` 插件。完成 `load_data.sql
 
 更详细说明见：[script/duckdb/load/README.md](script/duckdb/load/README.md)
 
-### Polystore 系统：关系 `PostgreSQL 14.20`，文档 `MongoDB 6.0.26`，图 `Neo4j 5.24.2`，向量 `Milvus 2.3.4`
+### Polyglot 系统：关系 `PostgreSQL 14.20`，文档 `MongoDB 6.0.26`，图 `Neo4j 5.24.2`，向量 `Milvus 2.3.4`
 
-在 `util/` 目录下执行如下命令，可使用 Docker 启动 Polystore 集群：
+在 `util/` 目录下执行如下命令，可使用 Docker 启动 Polyglot 集群：
 
 ```bash
 docker compose up -d
@@ -160,7 +162,7 @@ python script/polystore/load_data.py
 
 更详细说明见：[script/duckdb/query/README.md](script/duckdb/query/README.md)
 
-### Polystore 系统
+### Polyglot 系统
 
 修改 `bench_poly.py` 中的 `DB_CONF` 配置信息后，按脚本内注释执行即可。脚本会实时将每次运行时间以及当前中位数写入 CSV 文件。
 
