@@ -76,11 +76,11 @@ See also: [script/arangodb/load/README.md](script/arangodb/load/README.md)
 
 ### GredoDB
 
-Source code: https://github.com/whu-totemdb/GredoDB
+Repository URL: https://github.com/whu-totemdb/GredoDB
 
-Package download: https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/Gredo.zip
+Download URL: https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/Gredo.zip
 
-Compile the `ldbc` plugin first, then update the data path in `load_data.sql` and the configuration in `main.sh`, and run `main.sh`. This process may also take a long time, so it is recommended to reserve sufficient running time.
+Update the data path in `load_data.sql` and the configuration in `main.sh`, and run `main.sh`. This process may also take a long time, so it is recommended to reserve sufficient running time.
 
 See also: [script/gredodb/load/README.md](script/gredodb/load/README.md)
 
@@ -143,9 +143,9 @@ See also: [script/arangodb/query/README.md](script/arangodb/query/README.md)
 
 ### GredoDB
 
-Source code: https://github.com/whu-totemdb/GredoDB
+Repository URL: https://github.com/whu-totemdb/GredoDB
 
-Package download: https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/Gredo.zip
+Download URL: https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/Gredo.zip
 
 Modify `DB_CONF` in `bench_gredodb.py` and run the script as indicated by the comments. The script updates the median time and the latency of each run in the CSV file in real time.
 
