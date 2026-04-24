@@ -1,24 +1,24 @@
 WITH ids AS (
-    -- 第一步：选择 2018-2023 年间，并且包含 "multi-model database" 关键字的论文
+    -- 第一步：选择 2018-2023 年间，并且包含 "multi-__MB_required_keyword_2__ database" 关键字的论文
     SELECT w.id AS id
     FROM work w
     JOIN work_doc wc ON w.id = wc.id
     WHERE w.publication_year >= 2018 AND w.publication_year <= 2023
       AND json_contains(
             json_extract(wc.doc, '$.topics'),
-            json_object('display_name', 'Neural Network Fundamentals and Applications')
+            json_object('display_name', '__MB_topic_name__')
           )
-      AND (wc.doc->'abstract_inverted_index'->'network') is not null
-      AND (wc.doc->'abstract_inverted_index'->'model') is not null
+      AND (wc.doc->'abstract_inverted_index'->'__MB_required_keyword_1__') is not null
+      AND (wc.doc->'abstract_inverted_index'->'__MB_required_keyword_2__') is not null
 ),
 ids2 AS (
     -- 第二步：计算与给定论文的主题向量相似度，取出相似度最高的 20 篇论文 不包含自己
     SELECT work_vec.id,
            array_distance(work_vec.vec, (
-               select vec from work_vec where id = 3183282730
+               select vec from work_vec where id = __MB_seed_work_id__
            )) as dis
     FROM work_vec
-    WHERE id IN (SELECT id FROM ids) and id != 3183282730
+    WHERE id IN (SELECT id FROM ids) and id != __MB_seed_work_id__
     ORDER BY dis ASC
     LIMIT 20
 )

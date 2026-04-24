@@ -5,7 +5,7 @@ SELECT
 FROM
     GRAPH_TABLE (academic_net
         MATCH (p1: work_v)-[e :work_referenced_work_e]->(p2: work_v)
-        WHERE  p1.id = 4395661325
+        WHERE  p1.id = __MB_work_id__
         COLUMNS (p2.id AS ref_work_id,p2.title AS ref_work_title,p2.publication_year AS ref_work_publication_year)
     ) r
 JOIN

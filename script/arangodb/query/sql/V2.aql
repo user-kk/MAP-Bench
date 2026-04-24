@@ -1,4 +1,4 @@
-LET seed_id = 4395661325
+LET seed_id = __MB_seed_work_id__
 
 LET context_ids = (
     FOR v, e IN 1..1 OUTBOUND CONCAT("work_v/", seed_id) work_referenced_work_e

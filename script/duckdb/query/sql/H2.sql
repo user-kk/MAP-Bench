@@ -4,7 +4,7 @@ SELECT
     i.display_name AS institution_name
 FROM GRAPH_TABLE (academic_net
         MATCH (a:author_v)-[e:author_author_e]-(b:author_v)
-        WHERE a.id = 5040670721
+        WHERE a.id = __MB_author_id__
         COLUMNS (b.id AS coauthor_id)
     ) ca
 JOIN author       a ON a.id = ca.coauthor_id

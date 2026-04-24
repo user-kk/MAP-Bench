@@ -1,6 +1,6 @@
 let topic_ids = (
     for t in topic
-        filter t.subfield_display_name == 'Artificial Intelligence'
+        filter t.subfield_display_name == '__MB_topic_name__'
         RETURN t.id
 )
 

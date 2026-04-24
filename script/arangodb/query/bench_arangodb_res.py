@@ -18,6 +18,15 @@ import subprocess
 import threading
 import time
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'common'))
+from benchmark_config import (
+    get_dataset_conf,
+    get_query_params,
+    load_benchmark_config,
+    render_query_template,
+)
 
 import psutil
 from arango import ArangoClient
@@ -38,6 +47,7 @@ DB_CONF = dict(
     ip='127.0.0.1',
     port=8529
 )
+DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / 'common' / 'benchmark_config.json'
 
 SHORT_QUERY_THRESHOLD_MS = 500
 MIN_SAMPLE_INTERVAL = 0.05   # 50ms
@@ -310,6 +320,10 @@ def main():
     parser = argparse.ArgumentParser(description='ArangoDB AQL 资源采样脚本')
     parser.add_argument('-n', '--rounds', type=int, default=5,
                         help='采样轮数 (默认: 5)')
+    parser.add_argument('-d', '--dataset', choices=['mapl', 'mapm', 'maps'], default='mapl',
+                        help='选择数据集（默认 mapl）')
+    parser.add_argument('-c', '--config', type=Path, default=DEFAULT_CONFIG_PATH,
+                        help='配置文件路径（默认 script/common/benchmark_config.json）')
     parser.add_argument('-o', '--out', type=Path, default=Path('result.csv'),
                         help='输出CSV路径 (默认: result.csv)')
     parser.add_argument('-x', '--exclude', nargs='*', default=[],
@@ -317,6 +331,10 @@ def main():
     parser.add_argument('files', nargs='+',
                         help='AQL文件列表')
     args = parser.parse_args()
+
+    config = load_benchmark_config(args.config)
+    dataset_conf = get_dataset_conf(config, 'arangodb', args.dataset)
+    DB_CONF['dbname'] = dataset_conf['db_name']
 
     # 打印配置
     print("=" * 60)
@@ -345,7 +363,10 @@ def main():
     
     for f in file_list:
         restart_arangod()
-        aql = f.read_text().strip()
+        aql = render_query_template(
+            f.read_text(encoding='utf-8').strip(),
+            get_query_params(config, 'arangodb', f.stem, args.dataset),
+        )
         lat_ms = warmup_query(aql)
         
         is_short = lat_ms < SHORT_QUERY_THRESHOLD_MS
@@ -367,7 +388,10 @@ def main():
         
         for f in file_list:
             restart_arangod()
-            aql = f.read_text().strip()
+            aql = render_query_template(
+            f.read_text(encoding='utf-8').strip(),
+            get_query_params(config, 'arangodb', f.stem, args.dataset),
+        )
             method = data[f.name]['method']
             interval = data[f.name]['interval']
             

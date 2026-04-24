@@ -3,15 +3,15 @@ WITH topic_info AS (
     SELECT t.id AS topic_id, tv.vec AS topic_vec
     FROM topic t
     JOIN topic_vec tv ON t.id = tv.id
-    WHERE t.display_name = 'RNA Methylation and Modification in Gene Expression'
+    WHERE t.display_name = '__MB_topic_name__'
     LIMIT 1
 ),
 
--- 第二步：获取目标作者 ID（Zupei Liu）
+-- 第二步：获取目标作者 ID（__MB_author_name__）
 target_author AS (
     SELECT au.id AS author_id
     FROM author au
-    WHERE au.display_name = 'Zupei Liu'
+    WHERE au.display_name = '__MB_author_name__'
     LIMIT 1
 ),
 
@@ -22,7 +22,7 @@ Potential AS (
     FROM GRAPH_TABLE (
         academic_net
         MATCH (me:author_v)-[e:author_author_e]->{2,4}(cand:author_v)
-        WHERE me.id = 5042849120 and cand.id != me.id
+        WHERE me.id = __MB_target_author_id__ and cand.id != me.id
           AND cand.cited_by_count >= 10000
         COLUMNS (cand.id as id)
     ) g

@@ -2,10 +2,10 @@ WITH t AS (
     select work_v.id
     from GRAPH_TABLE(
         academic_net
-        MATCH p = ANY SHORTEST (p1:work_v where p1.id = 4377013841)-[e:work_referenced_work_e]->*(p2:work_v where p2.id = 3155434940)
+        MATCH p = ANY SHORTEST (p1:work_v where p1.id = __MB_a_id__)-[e:work_referenced_work_e]->*(p2:work_v where p2.id = __MB_b_id__)
         COLUMNS (vertices(p) as node_ids)
     ) g cross join unnest(g.node_ids) as n(rowid) join work_v on n.rowid = work_v.rowid
-    where work_v.id <> 4377013841 and work_v.id <> 3155434940
+    where work_v.id <> __MB_a_id__ and work_v.id <> __MB_b_id__
 ),
 PaperDetails AS (
     -- 第二步：获取路径论文的被引量和 authorships 数组

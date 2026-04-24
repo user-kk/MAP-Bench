@@ -1,7 +1,7 @@
 with t as MATERIALIZED ( -- 需要加物化提示，告诉agensgraph id 很少 否则 au.id IN (SELECT to_jsonb(id) FROM t) 不会走索引
     SELECT id as id
     FROM   author_doc
-    WHERE  doc -> 'display_name_alternatives' @> '"Li Hongbo"'
+    WHERE  doc -> 'display_name_alternatives' @> '"__MB_author_name__"'
 )
 
 SELECT a.id,

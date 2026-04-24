@@ -10,3 +10,11 @@ __pycache__/
 .vscode
 script/common/demo
 tmp/
+generator/map-s/
+generator/map-l/
+generator/all-MiniLM-L6-v2/
+generator/collect_output/
+generator/generated_output/
+generator/TRIGRAM_TRAIN/corpus/
+generator/TRIGRAM_TRAIN/models/
+generator/TRIGRAM_TRAIN/vocab.txt

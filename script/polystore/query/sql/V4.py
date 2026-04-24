@@ -12,14 +12,17 @@ from pymilvus import Collection
 def V4(ctx: "Context",
        seed_work_id: int = 3183282730,
        top_k: int = 20,
+       topic_name: str = "Neural Network Fundamentals and Applications",
+       required_keyword_1: str = "network",
+       required_keyword_2: str = "model",
        timer: Optional[MDTimer] = None) -> pd.DataFrame:
 
     # 1. MongoDB：关键词 + 年份范围
     mongo_pipeline = [
         {"$match": {
-            "doc.abstract_inverted_index.network": {"$exists": True},
-            "doc.abstract_inverted_index.model": {"$exists": True},
-            "doc.topics.display_name": "Neural Network Fundamentals and Applications"
+            f"doc.abstract_inverted_index.{required_keyword_1}": {"$exists": True},
+            f"doc.abstract_inverted_index.{required_keyword_2}": {"$exists": True},
+            "doc.topics.display_name": topic_name
         }},
         {"$project": {"_id": 1}}
     ]

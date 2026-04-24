@@ -1,22 +1,57 @@
-## 端到端延迟
+[English](README.md) | [中文](README_zh.md)
+
+## Usage
+
+- Run the following commands inside this directory.
+- All query scripts support dataset switching through `-d mapl|mapm|maps`; the default value is `mapl`.
+- Query parameters are configured in `../../common/benchmark_config.json`.
+- `st` uses the default thread setting; `mt` uses `-t 16`.
+- The following queries are currently excluded: `G1.sql G3.sql V1.sql V2.sql`.
+
+## End-to-End Latency
+
+`st`
 
 ```bash
-python3 bench_duckdb.py sql/*.sql -x G1.sql G3.sql V1.sql V2.sql -t 16 -o "out/$(date +%F_%T).csv"
+python bench_duckdb.py sql/*.sql -d maps -n 5 -x G1.sql G3.sql V1.sql V2.sql -o "out/maps_st_$(date +%F_%T).csv"
 ```
 
-## 内存和cpu占用
+`mt`
 
 ```bash
-python bench_duckdb_res.py sql/*.sql -x G1.sql G3.sql V1.sql V2.sql -o "out/res_$(date +%F_%T).csv" -t 16
-```
-## 查询语句与查询计划节点信息
-
-```bash
-python bench_duckdb_info.py sql/*.sql -o "out/info_$(date +%F_%T).csv"
+python bench_duckdb.py sql/*.sql -d maps -t 16 -n 5 -x G1.sql G3.sql V1.sql V2.sql -o "out/maps_mt_$(date +%F_%T).csv"
 ```
 
-## 查询计划与profile信息
+## Resource Usage
+
+`st`
 
 ```bash
-python bench_duckdb_plan.py sql/*.sql --warmup 1 -t 12 -x G1.sql G3.sql V1.sql  -o "out/plan_$(date +%F_%T).txt"
+python bench_duckdb_res.py sql/*.sql -d maps -n 5 -x G1.sql G3.sql V1.sql V2.sql -o "out/res_maps_st_$(date +%F_%T).csv"
+```
+
+`mt`
+
+```bash
+python bench_duckdb_res.py sql/*.sql -d maps -t 16 -n 5 -x G1.sql G3.sql V1.sql V2.sql -o "out/res_maps_mt_$(date +%F_%T).csv"
+```
+
+## Query Tokens and Plan Node Statistics
+
+```bash
+python bench_duckdb_info.py sql/*.sql -d maps -x G1.sql G3.sql V1.sql V2.sql -o "out/info_maps_$(date +%F_%T).csv"
+```
+
+## Query Plans and Profile Output
+
+`st`
+
+```bash
+python bench_duckdb_plan.py sql/*.sql -d maps -x G1.sql G3.sql V1.sql V2.sql --warmup 1 -o "out/plan_maps_st_$(date +%F_%T).txt"
+```
+
+`mt`
+
+```bash
+python bench_duckdb_plan.py sql/*.sql -d maps -t 16 -x G1.sql G3.sql V1.sql V2.sql --warmup 1 -o "out/plan_maps_mt_$(date +%F_%T).txt"
 ```

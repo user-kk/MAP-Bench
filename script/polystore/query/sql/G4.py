@@ -9,8 +9,8 @@ from common.context import Context
 from common.timer import MultiDatabaseTimer as MDTimer, TimerPhase
 
 def G4(ctx: "Context",
-       topic1:str = 'Education',
-       topic2:str = 'Computer Vision and Pattern Recognition',
+       topic1_name:str = 'Education',
+       topic2_name:str = 'Computer Vision and Pattern Recognition',
        timer: Optional[MDTimer] = None) -> pd.DataFrame:
     """
     返回同时属于'Education'和'Computer Vision and Pattern Recognition'两个子领域、
@@ -23,13 +23,13 @@ def G4(ctx: "Context",
         with TimerPhase(timer, "r"):
             cur.execute(f"""
                 SELECT id FROM topic 
-                WHERE subfield_display_name = '{topic1}'
+                WHERE subfield_display_name = '{topic1_name}'
             """)
             topic_id1s = [int(row[0]) for row in cur.fetchall()]
             
             cur.execute(f"""
                 SELECT id FROM topic 
-                WHERE subfield_display_name = '{topic2}'
+                WHERE subfield_display_name = '{topic2_name}'
             """)
             topic_id2s = [int(row[0]) for row in cur.fetchall()]
         if not topic_id1s or not topic_id2s:

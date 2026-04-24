@@ -1,6 +1,6 @@
 LET TopCitedPaper = (
     for wc in work_doc
-        filter 'Graph Neural Network Models and Applications' in wc.doc.topics[*].display_name 
+        filter '__MB_topic_name__' in wc.doc.topics[*].display_name 
         FOR w IN work
             FILTER w.id == wc.id and w.publication_year >= 2023 
                 SORT w.cited_by_count DESC, w.id ASC

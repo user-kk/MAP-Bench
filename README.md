@@ -1,94 +1,166 @@
 # MAP-Bench
+[English](README.md) | [中文](README_zh.md)
 
 <div align="center">
     <img src="logo.svg" width="300" alt="Logo" />
 </div>
 
-## 介绍
+## Introduction
 
-这是MAP-Bench的脚本仓库，包括导入脚本和测试sql脚本
+This repository contains the reproduction scripts for MAP-Bench, mainly including data loading scripts, query benchmarking scripts, and the data generator.
 
-MAP-Bench：Multi-model Analytical Processing Benchmark
+MAP-Bench: Multi-model Analytical Processing Benchmark.
 
-也可以理解成Multi-model Analytics Pipeline，因为负载是通过不同子查询的查询分析流水线组织起来的
+It can also be understood as Multi-model Analytics Pipeline, because the workloads are organized as query analysis pipelines composed of different subqueries.
 
-Map(地图/映射) 暗示了连接和导航。 Benchmark 的核心是将不同模型连接起来，像地图一样展示多模数据之间的关联
+Map implies connection and navigation. The core idea of the benchmark is to connect different models and present the relationships among multimodel data in the same way that a map exposes paths and links.
 
-### 依赖
-当前脚本的依赖如下：
+## Directory Overview
+
+The repository root currently contains or is planned to contain the following key items:
+
+- `script/`: loading, query, statistics, and helper scripts for each system.
+- `generator/`: the data generator, used to expand the datasets.
+
+The main subdirectories under `script/` are:
+
+- `script/common/`: shared utilities, statistics scripts, plotting scripts, and multi-dataset benchmark configuration files.
+- `script/arangodb/`: loading and query scripts for ArangoDB.
+- `script/agensgraph/`: loading and query scripts for AgensGraph.
+- `script/duckdb/`: loading and query scripts for DuckDB.
+- `script/gredodb/`: loading and query scripts for GredoDB.
+- `script/polystore/`: loading, query, and container helper scripts for the Polystore implementation.
+
+Each system directory typically contains two subdirectories:
+
+- `load/`: create schema/collections, load data, create indexes, and collect storage size statistics.
+- `query/`: run end-to-end latency benchmarks, resource profiling, query complexity analysis, and execution plan collection.
+
+## Data Source and Data Generation
+
+### Original Data Source
+
+The original data source repository used by this benchmark is:
+
+- Original data source repository: https://github.com/thriaaaa/openalex-automated-pipeline
+
+### Data Generator
+
+For details about the data generator, see: [English README](generator/README.md) / [中文说明](generator/README_zh.md)
+
+The repository does not include the base datasets, the vector model, or the trained trigram model required by the generator.
+
+## Environment and Dependencies
+
+The main Python dependencies are:
 
 ```bash
 pip install psycopg2-binary==2.9.8 python-arango==7.3.1 duckdb==1.2.2 "psycopg[binary]==3.2.11"
 ```
-脚本已在Python 3.13.0下进行测试
 
-## 导入数据
+The scripts have been tested under Python 3.13.0.
 
-### arangodb 3.12.7
+One important exception is GredoDB: due to client-side limitations, the GredoDB query scripts use **Python 3.6.8**.
 
-在main.sh中填写对应的配置信息，执行即可，时间较长，建议挂一晚，建索引时可能超时，重新单独跑建索引即可
+Different systems may also have their own environment requirements, plugin dependencies, or compatibility constraints. See the corresponding `load/README.md` and `query/README.md` under each system directory for details.
 
-### helmdb 最新helmdb-develop分支 [地址](https://gitee.com/whudb/HELMDB) 
+## Data Loading
 
-要求先编译好ldbc插件，修改load_data.sql的数据路径，修改main.sh的配置信息，执行main.sh即可，时间较长，建议挂一晚
+The data loading workflow differs across systems. The main README keeps a high-level overview, while the detailed system-specific steps are documented in each `load/README.md`.
 
-### agensgraph 2.16.0 + pgvector 0.6.2
+### ArangoDB 3.12.7
 
-要求安装pgvector插件和file_fdw插件(导数据用) ，修改load_data.sql的数据路径，修改main.sh的配置信息，执行main.sh即可，时间较长，建议挂一晚
+Fill in the required configuration in `main.sh` and run it. The loading process may take a long time, so it is recommended to reserve sufficient running time. Index creation may time out; if that happens, rerun the index creation step separately.
 
-### duckdb 1.2.2 
+See also: [script/arangodb/load/README.md](script/arangodb/load/README.md)
 
-会自动安装json、vss、duckpgq插件，修改load_data.sql的数据路径，修改main.sh的配置信息，执行main.sh即可，时间较长，建议挂一晚
+### GredoDB
 
-> duckpgq暂时不支持高版本的duckdb，目前最高只支持1.2.2(1.3.2 也支持，但是bug非常多，非常不稳定)
+Repository URL: https://github.com/whu-totemdb/GredoDB
+
+Download URL: https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/Gredo.zip
+
+Update the data path in `load_data.sql` and the configuration in `main.sh`, and run `main.sh`. This process may also take a long time, so it is recommended to reserve sufficient running time.
+
+See also: [script/gredodb/load/README.md](script/gredodb/load/README.md)
+
+### AgensGraph 2.16.0 + pgvector 0.6.2
+
+Install the `pgvector` and `file_fdw` extensions first, update the data path in `load_data.sql` and the configuration in `main.sh`, and then run `main.sh`. This process may take a long time, so it is recommended to reserve sufficient running time.
+
+See also: [script/agensgraph/load/README.md](script/agensgraph/load/README.md)
+
+### DuckDB 1.2.2
+
+DuckDB automatically installs the `json`, `vss`, and `duckpgq` plugins. After updating the data path in `load_data.sql` and the configuration in `main.sh`, run `main.sh`. This process may take a long time, so it is recommended to reserve sufficient running time.
+
+> `duckpgq` does not currently support high DuckDB versions well. The highest version currently supported by this benchmark is 1.2.2 (1.3.2 is also supported, but it has many bugs and is highly unstable).
 >
-> centos7上使用duckdb可能需要自己编译高版本glibc,如下：
+> On CentOS 7, using DuckDB may require compiling a newer glibc manually, for example:
 > ```bash
->  patchelf --set-interpreter /path/to/mylibc_2_31/lib/ld-linux-x86-64.so.2 \
->           --set-rpath /path/to/mylibc_2_31/lib \
->           duckdb
+> patchelf --set-interpreter /path/to/mylibc_2_31/lib/ld-linux-x86-64.so.2 \
+>          --set-rpath /path/to/mylibc_2_31/lib \
+>          duckdb
 > ```
 >
-> 也可自己编译duckdb+各类插件(因为插件仍依赖高版本glibc)
+> You can also build DuckDB together with its plugins yourself, since the plugins still depend on a newer glibc.
 >
-> 如果不想自己编译,仓库提供dockerfile来生成镜像 
+> If you do not want to compile it locally, the repository also provides a Dockerfile-based way to build the image.
 
-### polystore系统 关系：PostgresSQL 14.20 文档：MongoDB 6.0.26 图：Neo4j 5.24.2 向量：Milvus 2.3.4
+See also: [script/duckdb/load/README.md](script/duckdb/load/README.md)
 
-在util目录运行如下脚本，使用docker拉取polystore集群
-```bash
-    docker compose up -d
-```
+### Polystore system: relational `PostgreSQL 14.20`, document `MongoDB 6.0.26`, graph `Neo4j 5.24.2`, vector `Milvus 2.3.4`
 
-安装如下依赖：
+Run the following command in the `util` directory to start the Polystore cluster with Docker:
 
 ```bash
-    pip install pymongo==4.15.4 psycopg[binary]==3.2.11 neo4j==6.0.3 pymilvus==2.6.3 pandas==2.3.3
+docker compose up -d
 ```
 
-执行：
+Install the following dependencies:
+
 ```bash
-    python script/polystore/load_data.py
+pip install pymongo==4.15.4 psycopg[binary]==3.2.11 neo4j==6.0.3 pymilvus==2.6.3 pandas==2.3.3
 ```
 
-## 跑查询
+Then run:
 
-### arangodb 3.12.7
+```bash
+python script/polystore/load_data.py
+```
 
-修改bench_arangodb.py中的client和db的配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
+See also: [script/polystore/load/README.md](script/polystore/load/README.md)
 
-### helmdb 最新helmdb-develop分支 [地址](https://gitee.com/whudb/HELMDB) 
+## Query Benchmarking
 
-修改bench_helmdb.py中的DB_CONF配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
+The detailed query instructions for each system have been moved to the corresponding `query/README.md`. The high-level overview is kept below.
 
-### agensgraph 2.16.0 + pgvector 0.6.2
+### ArangoDB 3.12.7
 
-修改bench_agensgraph.py中的DB_CONF配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
+Modify the `client` and `db` configuration in `bench_arangodb.py` and run the script as indicated by the inline comments. The script updates the median time and the latency of each run in the CSV file in real time.
 
-### duckdb 1.2.2 
+See also: [script/arangodb/query/README.md](script/arangodb/query/README.md)
 
-修改bench_duckdb.py中的DB_CONF配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
+### GredoDB
 
-### polystore系统
+Modify `DB_CONF` in `bench_gredodb.py` and run the script as indicated by the comments. The script updates the median time and the latency of each run in the CSV file in real time.
 
-修改bench_poly.py中的DB_CONF配置信息，按注释执行即可，会实时刷新中位数时间和每次运行时间到csv文件中
+See also: [script/gredodb/query/README.md](script/gredodb/query/README.md)
+
+### AgensGraph 2.16.0 + pgvector 0.6.2
+
+Modify `DB_CONF` in `bench_agensgraph.py` and run the script as indicated by the comments. The script updates the median time and the latency of each run in the CSV file in real time.
+
+See also: [script/agensgraph/query/README.md](script/agensgraph/query/README.md)
+
+### DuckDB 1.2.2
+
+Modify `DB_CONF` in `bench_duckdb.py` and run the script as indicated by the comments. The script updates the median time and the latency of each run in the CSV file in real time.
+
+See also: [script/duckdb/query/README.md](script/duckdb/query/README.md)
+
+### Polystore system
+
+Modify `DB_CONF` in `bench_poly.py` and run the script as indicated by the comments. The script updates the median time and the latency of each run in the CSV file in real time.
+
+See also: [script/polystore/query/README.md](script/polystore/query/README.md)

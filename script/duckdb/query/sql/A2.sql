@@ -3,7 +3,7 @@ WITH t AS (
 select g.id AS id, g.list AS list
 from GRAPH_TABLE(
     academic_net
-    MATCH (a:author_v where a.id = 5015704722)-[e:author_author_e]->(b:author_v)
+    MATCH (a:author_v where a.id = __MB_author_id__)-[e:author_author_e]->(b:author_v)
     COLUMNS (b.id,e.list)
 ) g
 

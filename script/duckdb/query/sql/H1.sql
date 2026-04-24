@@ -3,7 +3,7 @@ TargetAuthors AS MATERIALIZED (
     SELECT a.id, a.display_name
     FROM author_doc ad
     JOIN author a ON ad.id = a.id
-    WHERE json_contains(ad.doc->'display_name_alternatives', '"Li Hongbo"')
+    WHERE json_contains(ad.doc->'display_name_alternatives', '"__MB_author_name__"')
 ),
 
 -- 2. 再通过 GRAPH_TABLE 找出这些作者的论文

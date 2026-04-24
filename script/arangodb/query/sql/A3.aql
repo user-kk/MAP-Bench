@@ -1,4 +1,4 @@
-LET target_institution_name = 'Universität Hamburg'
+LET target_institution_name = '__MB_institution_name__'
 LET topic_paper_pairs = (
     FOR inst IN institution
         FILTER inst.display_name == target_institution_name

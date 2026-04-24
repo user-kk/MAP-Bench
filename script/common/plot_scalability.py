@@ -9,7 +9,7 @@ from pathlib import Path
 
 # 颜色配置 - 与条形图对应
 SYSTEMS = [
-    ('helmdb',        'GredoDB',          '#3A76AF'),
+    ('gredodb',        'GredoDB',          '#3A76AF'),
     ('arangodb',      'ArangoDB',         '#2D8E4E'),
     ('agensgraph-sp', 'AgensGraph (SP)',  '#F4A742'),
     ('agensgraph-mp', 'AgensGraph (MP)',  '#D2691E'),
@@ -20,7 +20,7 @@ SYSTEMS = [
 
 # 线型配置 - 区分SP/MP和ST/MT
 LINE_STYLES = {
-    'helmdb':        '-',
+    'gredodb':        '-',
     'arangodb':      '-',
     'agensgraph-sp': '--',
     'agensgraph-mp': '-',
@@ -30,7 +30,7 @@ LINE_STYLES = {
 }
 
 MARKERS = {
-    'helmdb':        'o',
+    'gredodb':        'o',
     'arangodb':      's',
     'agensgraph-sp': '^',
     'agensgraph-mp': '^',

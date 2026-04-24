@@ -1,37 +1,71 @@
-## 端到端延迟
+[English](README.md) | [中文](README_zh.md)
+
+## Usage
+
+- Run the following commands inside this directory.
+- Query parameters are configured in `../../common/benchmark_config.json`.
+- The `-d mapl|mapm|maps` option only switches the query parameters and the `db_name` used by PostgreSQL, MongoDB, and Milvus; the default value is `mapl`.
+- The Neo4j dataset is **not** switched automatically by `-d`; you must switch the underlying data volume or container stack manually before running the benchmarks.
+- If your local proxy interferes with requests to `127.0.0.1/localhost`, prepend the following environment prefix to the command:
 
 ```bash
-python bench_poly.py sql/*.py -o "out/$(date +%F_%T).csv"
+env NO_PROXY=127.0.0.1,localhost no_proxy=127.0.0.1,localhost HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy=
 ```
 
-## 资源占用
+## Manually Switching the Polystore Dataset
+
+The following example switches the stack to `maps`:
 
 ```bash
-python bench_poly_res.py sql/*.py -o "out/res_$(date +%F_%T).csv" -f ../util/docker-compose.yml
+cd ../util
+sudo docker compose -p polystore -f docker/<current-dataset>/docker-compose.yml down
+sudo docker compose -p polystore -f docker/maps/docker-compose.yml up -d
 ```
 
-## 各模型时间占比
+You can verify whether Neo4j has switched to the target dataset with:
 
 ```bash
-python bench_poly_info.py sql/*.py -o "out/info_$(date +%F_%T).csv"
+sudo docker inspect neo4j --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Name}}{{end}}{{end}}'
 ```
 
-## polyglot persistent实现策略：模拟高效的polyglot persistent系统，最大化的减少网络通信的开销
-- 跨系统物化与下推：
-    - 当中间临时结果较大时，不适合放在内存中计算，把中间临时结果物化到某一模型的数据库中(作为临时表/文档/图节点)，让该模型数据库自身来通过join完成计算 
-	    - 例如：A1、A4 需要在pg中过滤结果，同时插入到mongodb的临时集合中，mongodb在通过$lookup（类似于join）查临时表与自身数据join后做聚集操作
-	    - 性能较差，主要由于跨系统数据传输与转换开销较大。
-    - 当中间结果涉及特定模型的操作时，把中间临时结果物化到某一模型的数据库中，利用指定数据库的能力完成计算
-	    - 例如：A2 neo4j不好处理深层嵌套数据，把结果物化到mongodb来做 
-	    - H3 milvus只能计算向量距离，但H3需要一个包含向量距离的综合评分，所以把结果物化到pg来做
-	    - 性能中等，取决于目标系统的处理能力与数据迁移成本。
-- 应用层半连接:
-    - 当中间结果较小或一般时且为单列时（一般为id列表）
-        - 直接内嵌到查询语句的in子句中，发给对应数据库，获得所涉及模型的结果后根据查询要求做简单处理或不做处理 
-        - 例如：A3 A6 H2 V1 V2 V3 
-        - 性能优秀，充分利用各系统的查询优化能力，避免不必要的数据传输。
-    - 当中间结果较小或一般时且为多列时，拆分出join要用到的列（一般为id列表），发给对应数据库(内嵌到查询语句的in子句中)，
-		获得查询结果后直接在中间层完成完整的join操作或进行其他复杂处理（类似于分布式的半连接操作）
-        - 例如：A5 G1 G2 G3 H1 H4 H5 V4 
-        - 性能中等，取决于中间层的处理效率与数据规模。
+If the output contains `neo4j_data_maps` or `util_neo4j_data_maps`, Neo4j is using the `maps` dataset.
 
+## End-to-End Latency
+
+```bash
+python bench_poly.py sql/*.py -d maps -n 5 -o "out/maps_$(date +%F_%T).csv"
+```
+
+## Resource Usage
+
+Note: the `res` script calls `docker compose restart`, so `-f` must explicitly point to the compose file for the current dataset.
+
+```bash
+python bench_poly_res.py sql/*.py -d maps -n 5 -f ../util/docker/maps/docker-compose.yml -o "out/res_maps_$(date +%F_%T).csv"
+```
+
+## Per-Model Time Breakdown
+
+```bash
+python bench_poly_info.py sql/*.py -d maps -o "out/info_maps_$(date +%F_%T).csv"
+```
+
+## Polyglot Persistent Execution Strategy
+
+This implementation simulates an efficient polyglot persistent system and tries to minimize network communication overhead as much as possible.
+
+- Cross-system materialization and pushdown:
+    - When an intermediate result is large, it may be inefficient to keep the computation in memory. In this case, the intermediate result is materialized into the target model database (for example as a temporary table, document, or graph node), and that database completes the remaining join locally.
+        - For example, A1 and A4 first filter results in PostgreSQL, then insert the intermediate result into a temporary MongoDB collection, and finally use `$lookup`-style joins inside MongoDB.
+        - This approach is usually slower because cross-system transfer and format conversion costs are high.
+    - When the intermediate result requires model-specific functionality, the result is materialized into the database that is best suited for the remaining operation.
+        - For example, A2 materializes into MongoDB because Neo4j is not ideal for the required deeply nested processing.
+        - H3 materializes into PostgreSQL because Milvus can only compute vector distance, while H3 needs a final score that combines distance with additional logic.
+        - Performance is moderate and depends on both the target system capability and the migration cost.
+- Application-level semi-join:
+    - When the intermediate result is small or moderate and consists of a single column (typically an id list), the ids are embedded directly into the downstream query, and the application only performs light post-processing if needed.
+        - Examples: A3, A6, H2, V1, V2, V3.
+        - This approach is usually efficient because it makes good use of each system's optimizer while avoiding unnecessary data transfer.
+    - When the intermediate result is small or moderate but contains multiple columns, the join keys (typically ids) are extracted and pushed down to downstream systems, while the application layer performs the final join or higher-level combination logic.
+        - Examples: A5, G1, G2, G3, H1, H4, H5, V4.
+        - Performance is moderate and depends on the middleware processing cost and the size of intermediate results.

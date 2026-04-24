@@ -1,6 +1,6 @@
 let topic_info = (
     for t in topic
-        filter t.display_name == 'Chemistry and Applications of Metal-Organic Frameworks'
+        filter t.display_name == '__MB_topic_name__'
         for tv in topic_vec
             FILTER t.id == tv.id
             return {id:t.id,vec:tv.vec}

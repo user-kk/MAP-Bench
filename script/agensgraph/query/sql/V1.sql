@@ -4,7 +4,7 @@ SELECT w.id AS work_id
 FROM work w, work_doc wc 
 WHERE w.publication_year >= 2023
     and w.id = wc.id
-    and wc.doc->'topics' @> '[{"display_name":"Graph Neural Network Models and Applications"}]' 
+    and wc.doc->'topics' @> '[{"display_name":"__MB_topic_name__"}]' 
 ORDER BY w.cited_by_count DESC,w.id asc
 LIMIT 1
 ),

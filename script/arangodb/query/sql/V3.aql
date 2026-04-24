@@ -1,4 +1,4 @@
-let target_vec = FIRST(FOR t IN work_vec FILTER t.id == 4321448324 RETURN t.vec)
+let target_vec = FIRST(FOR t IN work_vec FILTER t.id == __MB_seed_work_id__ RETURN t.vec)
 
 let ids = (
     FOR wv IN work_vec
@@ -9,14 +9,14 @@ let ids = (
 )
 
 FOR t in ids
-    FILTER t.id != 4321448324
+    FILTER t.id != __MB_seed_work_id__
     FOR w IN work
         FILTER t.id == w.id and w.publication_year >= 2018 && w.publication_year <= 2023
         FOR wc IN work_doc 
             FILTER wc.id == w.id 
-                and has(wc.doc.abstract_inverted_index,'benchmark')
-                and has(wc.doc.abstract_inverted_index,'database')
-                and not has(wc.doc.abstract_inverted_index,'survey')
-                and not has(wc.doc.abstract_inverted_index,'review')
+                and has(wc.doc.abstract_inverted_index,'__MB_required_keyword_1__')
+                and has(wc.doc.abstract_inverted_index,'__MB_required_keyword_2__')
+                and not has(wc.doc.abstract_inverted_index,'__MB_excluded_keyword_1__')
+                and not has(wc.doc.abstract_inverted_index,'__MB_excluded_keyword_2__')
             sort t.dis asc
             RETURN {work_id: wc.id,title:w.title}

@@ -1,4 +1,4 @@
-let target_vec = FIRST(FOR t IN topic_vec FILTER t.id == 10862 RETURN t.vec)
+let target_vec = FIRST(FOR t IN topic_vec FILTER t.id == __MB_seed_topic_id__ RETURN t.vec)
 
 let tids = (
     FOR tv IN topic_vec

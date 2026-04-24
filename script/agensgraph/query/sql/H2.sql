@@ -5,7 +5,7 @@ SELECT
 FROM
     (
     MATCH (a:author_v)-[:author_author_e]-(b:author_v)
-    WHERE a.id = 5040670721
+    WHERE a.id = __MB_author_id__
     RETURN b.id AS coauthor_id 
     )  ca
 JOIN
