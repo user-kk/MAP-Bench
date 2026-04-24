@@ -144,10 +144,6 @@ python script/polystore/load_data.py
 
 ### GredoDB
 
-仓库地址：https://github.com/whu-totemdb/GredoDB
-
-下载包地址：https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/Gredo.zip
-
 修改 `bench_gredodb.py` 中的 `DB_CONF` 配置信息后，按脚本内注释执行即可。脚本会实时将每次运行时间以及当前中位数写入 CSV 文件。
 
 更详细说明见：[script/gredodb/query/README.md](script/gredodb/query/README.md)

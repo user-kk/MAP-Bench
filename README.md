@@ -143,10 +143,6 @@ See also: [script/arangodb/query/README.md](script/arangodb/query/README.md)
 
 ### GredoDB
 
-Repository URL: https://github.com/whu-totemdb/GredoDB
-
-Download URL: https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/Gredo.zip
-
 Modify `DB_CONF` in `bench_gredodb.py` and run the script as indicated by the comments. The script updates the median time and the latency of each run in the CSV file in real time.
 
 See also: [script/gredodb/query/README.md](script/gredodb/query/README.md)
