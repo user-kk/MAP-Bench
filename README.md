@@ -74,7 +74,7 @@ Fill in the required configuration in `main.sh` and run it. The loading process 
 
 See also: [script/arangodb/load/README.md](script/arangodb/load/README.md)
 
-### GredoDB latest `gredodb-develop` branch [link](https://github.com/whu-totemdb/GredoDB)
+### GredoDB Download Package [link](https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/Gredo.zip)
 
 Compile the `ldbc` plugin first, then update the data path in `load_data.sql` and the configuration in `main.sh`, and run `main.sh`. This process may also take a long time, so it is recommended to reserve sufficient running time.
 
@@ -137,7 +137,7 @@ Modify the `client` and `db` configuration in `bench_arangodb.py` and run the sc
 
 See also: [script/arangodb/query/README.md](script/arangodb/query/README.md)
 
-### GredoDB latest `gredodb-develop` branch [link](https://github.com/whu-totemdb/GredoDB)
+### GredoDB Download Package [link](https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/Gredo.zip)
 
 Modify `DB_CONF` in `bench_gredodb.py` and run the script as indicated by the comments. The script updates the median time and the latency of each run in the CSV file in real time.
 

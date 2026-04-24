@@ -75,7 +75,7 @@ pip install psycopg2-binary==2.9.8 python-arango==7.3.1 duckdb==1.2.2 "psycopg[b
 
 更详细说明见：[script/arangodb/load/README.md](script/arangodb/load/README.md)
 
-### GredoDB latest `gredodb-develop` branch [link](https://github.com/whu-totemdb/GredoDB)
+### GredoDB 下载包 [地址](https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/Gredo.zip)
 
 需要先编译好 `ldbc` 插件，并修改 `load_data.sql` 中的数据路径以及 `main.sh` 中的配置信息，然后执行 `main.sh`。该过程同样可能持续较长时间，建议预留充足运行时间。
 
@@ -138,7 +138,7 @@ python script/polystore/load_data.py
 
 更详细说明见：[script/arangodb/query/README.md](script/arangodb/query/README.md)
 
-### GredoDB latest `gredodb-develop` branch [link](https://github.com/whu-totemdb/GredoDB)
+### GredoDB 下载包 [地址](https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/Gredo.zip)
 
 修改 `bench_gredodb.py` 中的 `DB_CONF` 配置信息后，按脚本内注释执行即可。脚本会实时将每次运行时间以及当前中位数写入 CSV 文件。
 
