@@ -5,10 +5,11 @@
 
 该目录包含基于 OpenAlex 子集的 MAP-Bench 数据生成器。
 
-当前生成器包含两部分代码：
+当前生成器包含三部分代码：
 
 - `data_gen/`：主数据生成流程。
 - `TRIGRAM_TRAIN/`：非结构化文本生成模型训练脚本。
+- `quality_eval/`: 生成数据的分布评估
 
 
 ## 生成模式
@@ -53,7 +54,7 @@ generator/
 
 - `map-s/`：用于生成的基础数据集。
 - `map-l/`：用于训练 trigram 模型的数据集。
-- 数据集目录必须按照上述结构对齐，数据来源：<https://github.com/thriaaaa/openalex-automated-pipeline>
+- 数据集目录必须按照上述结构对齐，数据来源：<https://pan.baidu.com/s/1Jc7W_h4a-6iTLi2EnUUuOw?pwd=gerd>
 - `all-MiniLM-L6-v2/`：向量词嵌入模型下载自<https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2>
 - `corpus/`：从 `map-l` 中提取得到的训练语料目录。
 - `models/`：训练完成后的 KenLM 模型目录。

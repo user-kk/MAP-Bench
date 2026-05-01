@@ -51,7 +51,13 @@ Map（地图/映射）暗示了连接和导航。Benchmark 的核心是将不同
 
 数据生成器相关内容详见：[English README](generator/README.md) / [中文说明](generator/README_zh.md)
 
-仓库中不包含数据生成器依赖的基础数据集、向量模型以及训练后的 trigram 模型。
+> **Recommended usage.** MAP-Bench 的主要性能评估建议优先使用 **真实数据集**（MAP-S / MAP-M / MAP-L），以保证跨模型语义一致性与真实世界分布特征。
+>
+> **Data Generator** 主要用于以下场景：
+> 1) 当 ETL 得到的真实数据集规模是离散档位，无法满足你需要的“中间规模/细粒度 scale”时，用生成器在真实数据统计特征的引导下进行扩展；  
+> 2) 当你希望进行压力测试或鲁棒性分析，需要构造非真实的极端分布时，用生成器进行受控的分布调整。  
+>
+> 生成器并不旨在替代从 OpenAlex snapshot 直接 ETL 得到的更大规模真实数据；如果需要更大规模的真实数据，推荐使用同样的 ETL pipeline 从 OpenAlex 获取。
 
 ## 环境与依赖
 
@@ -167,3 +173,98 @@ python script/polystore/load_data.py
 修改 `bench_poly.py` 中的 `DB_CONF` 配置信息后，按脚本内注释执行即可。脚本会实时将每次运行时间以及当前中位数写入 CSV 文件。
 
 更详细说明见：[script/polystore/query/README.md](script/polystore/query/README.md)
+
+
+## 工作负载套件（查询）
+
+MAP-Bench 包含 **19 条只读分析型查询**，以 **多阶段（multi-stage）、跨模型（cross-model）pipeline** 的形式组织。每条查询按其主导 **execution pattern** 归类为：
+
+- **H (Hybrid-Lookup)**：高选择性、交互式跨模型检索
+- **A (Attribute-Aggregation)**：以 scan / unnest / group-by / rank 为主的重聚合分析
+- **V (Vector-Similarity)**：将 semantic retrieval（ANN / distance ranking）嵌入跨模型 pipeline
+- **G (Graph-Traversal)**：multi-hop traversal / shortest-path / pattern matching，并结合跨模型 filtering
+
+### 数据模型缩写（Data Model Legend）
+
+- **R**：relational
+- **D**：document
+- **G**：graph
+- **V**：vector
+
+### 查询目录（Query Catalog）
+
+下表概述了工作负载查询。“Models” 按查询 pipeline 各 stage 中 **首次出现的顺序**列出。
+
+| Query | Description | Models |
+|------:|-------------|:------:|
+| H1 | Find authors by name variants and list their publications | D-G-R |
+| H2 | Find co-authors of a given author with their affiliations | G-R |
+| H3 | Find papers belonging to a given topic, ranked by structural and semantic relevance | R-G-V |
+| H4 | Find references of a paper with authors | G-D |
+| H5 | Find intermediate papers on the citation path between two works, ranked by topic relevance | G-D-V |
+| A1 | Analyze top publishing institutions and their primary research fields | R-D-G |
+| A2 | Analyze collaboration frequency for a given author, grouped by year | G-D-R |
+| A3 | Analyze topic distribution for researchers at a given institution | R-G |
+| A4 | Analyze which institutions lead in the most active research topic | R-D-G |
+| A5 | Analyze prolific authors in a given topic whose papers contain specific keywords | R-D |
+| A6 | Analyze top papers across related research areas | V-G-R |
+| V1 | Recommend papers similar to a highly-cited seed paper within its citation network | R-D-G-V |
+| V2 | Recommend novel papers beyond a paper’s existing references | G-V |
+| V3 | Recommend semantically similar papers, filtered by keywords and time range | V-R-D |
+| V4 | Recommend papers similar to a given paper in a specified topic, with bibliographic details | R-D-V |
+| G1 | Explore potential collaborators in a specific research field | R-G-D-V |
+| G2 | Explore the influence of papers along the shortest citation path between two works | G-R-D |
+| G3 | Explore the citation neighborhood of a paper with author details | G-R-D |
+| G4 | Explore interdisciplinary papers bridging two research fields | R-G-D |
+
+### 算子覆盖（Operator Coverage by Query）
+
+下表总结了每条查询在 pipeline 各 stage 中主要覆盖的 **operators** 以及涉及的 **data models**。  
+注意：该表为 **高层抽象**；不同系统的物理算子与具体实现可能存在差异。
+
+<details>
+<summary><b>点击展开：Model coverage & key operators per query</b></summary>
+
+<br/>
+
+| Query | Key Operators (in Stage Order) | R | D | G | V |
+|:-----:|--------------------------------|:-:|:-:|:-:|:-:|
+| H1 | Document containment predicate → graph pattern matching → group-by aggregation | ✓ | ✓ | ✓ |  |
+| H2 | Graph pattern matching → relational join | ✓ |  | ✓ |  |
+| H3 | Relational join → graph pattern matching → vector distance computation | ✓ |  | ✓ | ✓ |
+| H4 | Graph pattern matching → document join → nested document extraction |  | ✓ | ✓ |  |
+| H5 | Shortest-path search → nested document path access → vector distance computation |  | ✓ | ✓ | ✓ |
+| A1 | Nested document unnesting → group-by aggregation → graph pattern matching → window aggregation | ✓ | ✓ | ✓ |  |
+| A2 | Graph pattern matching → nested document unnesting → group-by aggregation → window aggregation → nested document construction | ✓ | ✓ | ✓ |  |
+| A3 | Relational join → graph pattern matching → group-by aggregation | ✓ |  | ✓ |  |
+| A4 | Nested document unnesting → group-by aggregation → graph pattern matching → group-by aggregation | ✓ | ✓ | ✓ |  |
+| A5 | Document field-existence predicate → nested document unnesting → group-by aggregation → relational join/filter | ✓ | ✓ |  |  |
+| A6 | Vector ANN search → graph pattern matching → window aggregation | ✓ |  | ✓ | ✓ |
+| V1 | Relational-document filtering → multi-hop graph search → vector ANN search → relational join | ✓ | ✓ | ✓ | ✓ |
+| V2 | Graph pattern matching → vector ANN search with exclusion |  |  | ✓ | ✓ |
+| V3 | Vector ANN search → relational filtering → document field-existence predicate | ✓ | ✓ |  | ✓ |
+| V4 | Relational-document filtering → vector ANN search → nested document construction | ✓ | ✓ |  | ✓ |
+| G1 | Relational lookup → multi-hop graph search → document containment predicate → vector distance computation → group-by aggregation | ✓ | ✓ | ✓ | ✓ |
+| G2 | Shortest-path search → relational join → nested document unnesting → group-by aggregation | ✓ | ✓ | ✓ |  |
+| G3 | Multi-hop graph search → relational join → nested document path access | ✓ | ✓ | ✓ |  |
+| G4 | Relational filtering → graph pattern matching → relational join → nested document path access | ✓ | ✓ | ✓ |  |
+
+</details>
+
+### 应用视角分类（Application-oriented View）
+
+虽然 MAP-Bench 在论文与主 README 中按 execution patterns（H/A/V/G）组织，但下表提供一个 **application-oriented** 的视角，便于读者按场景语义理解查询用途。
+
+<details>
+<summary><b>点击展开：Application-oriented categorization of MAP-Bench queries</b></summary>
+
+<br/>
+
+| Application Scenario | Description | Queries |
+|---|---|---|
+| Similar-paper retrieval and recommendation | Retrieve papers semantically related to a given paper or topic for recommendation and literature exploration. | H3, H5, V1, V2, V3, V4 |
+| Collaboration and author-relationship analysis | Identify co-authors or potential collaborators and characterize collaboration dynamics. | H1, H2, A2, G1 |
+| Impact and trend analysis | Measure the influence of institutions, authors, or topics and analyze research trends. | A1, A3, A4, A5, A6 |
+| Citation exploration and path analysis | Explore citation neighborhoods and shortest-path-based knowledge propagation. | H4, G2, G3, G4 |
+
+</details>

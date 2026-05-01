@@ -5,10 +5,11 @@
 
 This directory contains the MAP-Bench data generator based on an OpenAlex subset.
 
-The current generator contains two code parts:
+The current generator contains three code parts:
 
 - `data_gen/`: the main data generation pipeline.
 - `TRIGRAM_TRAIN/`: unstructured text generation model training scripts.
+- `quality_eval/`: evaluation of the distribution of generated data
 
 
 ## Generation Modes
@@ -53,7 +54,7 @@ Where:
 
 - `map-s/`: the base dataset used for generation.
 - `map-l/`: the dataset used to train the trigram model.
-- The dataset directories must follow the layout above. Data source: <https://github.com/thriaaaa/openalex-automated-pipeline>
+- The dataset directories must follow the layout above. Data source: <https://pan.baidu.com/s/1Jc7W_h4a-6iTLi2EnUUuOw?pwd=gerd>
 - `all-MiniLM-L6-v2/`: the vector word embedding model, downloaded from <https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2>
 - `corpus/`: the training corpus extracted from `map-l`.
 - `models/`: the trained KenLM model directory.

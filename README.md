@@ -50,7 +50,15 @@ Alternatively, you can download raw OpenAlex snapshots and generate the datasets
 
 For details about the data generator, see: [English README](generator/README.md) / [中文说明](generator/README_zh.md)
 
-The repository does not include the base datasets, the vector model, or the trained trigram model required by the generator.
+> **Recommended usage.** For MAP-Bench, we recommend using the **real datasets** (MAP-S / MAP-M / MAP-L) for primary performance evaluation, as they preserve cross-model semantic consistency and real-world data characteristics.
+> 
+> The **Data Generator** is mainly intended for:
+> 
+> - Filling scale gaps when ETL-derived real datasets are only available at discrete sizes and you need an intermediate / fine-grained scale. In this case, the generator extends the seed dataset guided by statistics learned from real data.
+> - Stress testing / robustness analysis when you want to produce controlled non-realistic extreme distributions for targeted what-if experiments.
+> 
+> The generator is not meant to replace large-scale real datasets obtained directly via ETL from OpenAlex snapshots. If you need larger real datasets, we recommend running the same ETL pipeline on the OpenAlex snapshot to extract them.
+
 
 ## Environment and Dependencies
 
@@ -166,3 +174,92 @@ See also: [script/duckdb/query/README.md](script/duckdb/query/README.md)
 Modify `DB_CONF` in `bench_poly.py` and run the script as indicated by the comments. The script updates the median time and the latency of each run in the CSV file in real time.
 
 See also: [script/polystore/query/README.md](script/polystore/query/README.md)
+
+## Workload Suite (Queries)
+
+MAP-Bench includes **19 read-only analytical queries** organized as **multi-stage, cross-model pipelines**. Each query is labeled by an execution pattern:
+
+- **H (Hybrid-Lookup)**: highly selective, interactive lookups across models
+- **A (Attribute-Aggregation)**: scan / unnest / group-by / rank heavy analytics
+- **V (Vector-Similarity)**: semantic retrieval (ANN / distance ranking) inside cross-model pipelines
+- **G (Graph-Traversal)**: multi-hop traversal / shortest-path / pattern matching with cross-model filtering
+
+
+### Query Catalog
+
+The table below summarizes the workload queries. “Models” are listed in the order of first appearance across query stages.
+
+| Query | Description | Models |
+|------:|-------------|:------:|
+| H1 | Find authors by name variants and list their publications | D-G-R |
+| H2 | Find co-authors of a given author with their affiliations | G-R |
+| H3 | Find papers belonging to a given topic, ranked by structural and semantic relevance | R-G-V |
+| H4 | Find references of a paper with authors | G-D |
+| H5 | Find intermediate papers on the citation path between two works, ranked by topic relevance | G-D-V |
+| A1 | Analyze top publishing institutions and their primary research fields | R-D-G |
+| A2 | Analyze collaboration frequency for a given author, grouped by year | G-D-R |
+| A3 | Analyze topic distribution for researchers at a given institution | R-G |
+| A4 | Analyze which institutions lead in the most active research topic | R-D-G |
+| A5 | Analyze prolific authors in a given topic whose papers contain specific keywords | R-D |
+| A6 | Analyze top papers across related research areas | V-G-R |
+| V1 | Recommend papers similar to a highly-cited seed paper within its citation network | R-D-G-V |
+| V2 | Recommend novel papers beyond a paper’s existing references | G-V |
+| V3 | Recommend semantically similar papers, filtered by keywords and time range | V-R-D |
+| V4 | Recommend papers similar to a given paper in a specified topic, with bibliographic details | R-D-V |
+| G1 | Explore potential collaborators in a specific research field | R-G-D-V |
+| G2 | Explore the influence of papers along the shortest citation path between two works | G-R-D |
+| G3 | Explore the citation neighborhood of a paper with author details | G-R-D |
+| G4 | Explore interdisciplinary papers bridging two research fields | R-G-D |
+
+
+### Operator Coverage (by Query)
+
+The following table summarizes the **main operators** exercised by each query (in stage order) and the **data models** involved.
+Note that this is a **high-level** characterization; exact physical operators and implementations may vary across systems.
+
+<details>
+<summary><b>Click to expand: Model coverage & key operators per query</b></summary>
+
+<br/>
+
+| Query | Key Operators (in Stage Order) | R | D | G | V |
+|:-----:|--------------------------------|:-:|:-:|:-:|:-:|
+| H1 | Document containment predicate → graph pattern matching → group-by aggregation | ✓ | ✓ | ✓ |  |
+| H2 | Graph pattern matching → relational join | ✓ |  | ✓ |  |
+| H3 | Relational join → graph pattern matching → vector distance computation | ✓ |  | ✓ | ✓ |
+| H4 | Graph pattern matching → document join → nested document extraction |  | ✓ | ✓ |  |
+| H5 | Shortest-path search → nested document path access → vector distance computation |  | ✓ | ✓ | ✓ |
+| A1 | Nested document unnesting → group-by aggregation → graph pattern matching → window aggregation | ✓ | ✓ | ✓ |  |
+| A2 | Graph pattern matching → nested document unnesting → group-by aggregation → window aggregation → nested document construction | ✓ | ✓ | ✓ |  |
+| A3 | Relational join → graph pattern matching → group-by aggregation | ✓ |  | ✓ |  |
+| A4 | Nested document unnesting → group-by aggregation → graph pattern matching → group-by aggregation | ✓ | ✓ | ✓ |  |
+| A5 | Document field-existence predicate → nested document unnesting → group-by aggregation → relational join/filter | ✓ | ✓ |  |  |
+| A6 | Vector ANN search → graph pattern matching → window aggregation | ✓ |  | ✓ | ✓ |
+| V1 | Relational-document filtering → multi-hop graph search → vector ANN search → relational join | ✓ | ✓ | ✓ | ✓ |
+| V2 | Graph pattern matching → vector ANN search with exclusion |  |  | ✓ | ✓ |
+| V3 | Vector ANN search → relational filtering → document field-existence predicate | ✓ | ✓ |  | ✓ |
+| V4 | Relational-document filtering → vector ANN search → nested document construction | ✓ | ✓ |  | ✓ |
+| G1 | Relational lookup → multi-hop graph search → document containment predicate → vector distance computation → group-by aggregation | ✓ | ✓ | ✓ | ✓ |
+| G2 | Shortest-path search → relational join → nested document unnesting → group-by aggregation | ✓ | ✓ | ✓ |  |
+| G3 | Multi-hop graph search → relational join → nested document path access | ✓ | ✓ | ✓ |  |
+| G4 | Relational filtering → graph pattern matching → relational join → nested document path access | ✓ | ✓ | ✓ |  |
+
+</details>
+
+### Application-oriented View
+
+While MAP-Bench is primarily organized by execution patterns (H/A/V/G), the table below provides an **application-oriented** categorization for readers who prefer to understand the workloads by scenario semantics.
+
+<details>
+<summary><b>Click to expand: Application-oriented categorization of MAP-Bench queries</b></summary>
+
+<br/>
+
+| Application Scenario | Description | Queries |
+|---|---|---|
+| Similar-paper retrieval and recommendation | Retrieve papers semantically related to a given paper or topic for recommendation and literature exploration. | H3, H5, V1, V2, V3, V4 |
+| Collaboration and author-relationship analysis | Identify co-authors or potential collaborators and characterize collaboration dynamics. | H1, H2, A2, G1 |
+| Impact and trend analysis | Measure the influence of institutions, authors, or topics and analyze research trends. | A1, A3, A4, A5, A6 |
+| Citation exploration and path analysis | Explore citation neighborhoods and shortest-path-based knowledge propagation. | H4, G2, G3, G4 |
+
+</details>
