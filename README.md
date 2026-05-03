@@ -88,7 +88,7 @@ See also: [script/arangodb/load/README.md](script/arangodb/load/README.md)
 
 Repository URL: https://github.com/whu-totemdb/GredoDB
 
-Download URL: https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/Gredo.zip
+Download URL: https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/GredoDB.zip
 
 Update the data path in `load_data.sql` and the configuration in `main.sh`, and run `main.sh`. This process may also take a long time, so it is recommended to reserve sufficient running time.
 
