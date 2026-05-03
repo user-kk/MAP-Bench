@@ -87,7 +87,7 @@ pip install psycopg2-binary==2.9.8 python-arango==7.3.1 duckdb==1.2.2 "psycopg[b
 
 仓库地址：https://github.com/whu-totemdb/GredoDB
 
-下载地址：https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/Gredo.zip
+下载地址：https://gredodb-1382773346.cos.ap-singapore.myqcloud.com/GredoDB.zip
 
 修改 `load_data.sql` 中的数据路径以及 `main.sh` 中的配置信息，然后执行 `main.sh`。该过程同样可能持续较长时间，建议预留充足运行时间。
 
