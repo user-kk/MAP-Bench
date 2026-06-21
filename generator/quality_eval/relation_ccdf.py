@@ -26,10 +26,11 @@ logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 set_paper_style()
 csv.field_size_limit(sys.maxsize)
 
-REAL_DATA_ROOT = "/home/wzh/openalex_gen/openalex_sf1/csv-files"
-GEN_DATA_ROOT = "/home/wzh/openalex_gen/generated_output/sf_2_mode_1/csv-files"
-RANDOM_DATA_ROOT = "/home/wzh/openalex_gen/random_gen/output/csv-files"
-OUTPUT_DIR = "/home/wzh/openalex_gen/quality_eval/output/relation_result"
+GENERATOR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REAL_DATA_ROOT = os.environ.get("MAP_BENCH_EVAL_REAL_CSV_DIR", os.path.join(GENERATOR_ROOT, "map-s", "csv-files"))
+GEN_DATA_ROOT = os.environ.get("MAP_BENCH_EVAL_GENERATED_CSV_DIR", os.path.join(GENERATOR_ROOT, "generated_output", "sf_2_mode_1", "csv-files"))
+RANDOM_DATA_ROOT = os.environ.get("MAP_BENCH_EVAL_RANDOM_CSV_DIR", os.path.join(GENERATOR_ROOT, "random_gen", "output", "csv-files"))
+OUTPUT_DIR = os.environ.get("MAP_BENCH_EVAL_RELATION_OUTPUT_DIR", os.path.join(GENERATOR_ROOT, "quality_eval", "output", "relation_result"))
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 

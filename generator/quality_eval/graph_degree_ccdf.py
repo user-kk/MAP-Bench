@@ -29,10 +29,11 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 set_paper_style()
 csv.field_size_limit(sys.maxsize)
 
-REAL_DATA_ROOT = "/home/wzh/openalex_gen/openalex_sf1/graph_edges"
-GEN_DATA_ROOT = "/home/wzh/openalex_gen/generated_output/sf_2_mode_1/graph_edges"
-RANDOM_DATA_ROOT = "/home/wzh/openalex_gen/random_gen/output/graph_edges"
-OUTPUT_DIR = "/home/wzh/openalex_gen/quality_eval/output/graph_result"
+GENERATOR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REAL_DATA_ROOT = os.environ.get("MAP_BENCH_EVAL_REAL_GRAPH_DIR", os.path.join(GENERATOR_ROOT, "map-s", "graph_edges"))
+GEN_DATA_ROOT = os.environ.get("MAP_BENCH_EVAL_GENERATED_GRAPH_DIR", os.path.join(GENERATOR_ROOT, "generated_output", "sf_2_mode_1", "graph_edges"))
+RANDOM_DATA_ROOT = os.environ.get("MAP_BENCH_EVAL_RANDOM_GRAPH_DIR", os.path.join(GENERATOR_ROOT, "random_gen", "output", "graph_edges"))
+OUTPUT_DIR = os.environ.get("MAP_BENCH_EVAL_GRAPH_OUTPUT_DIR", os.path.join(GENERATOR_ROOT, "quality_eval", "output", "graph_result"))
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 TASKS = [

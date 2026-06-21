@@ -86,6 +86,17 @@ The following environment variables can override the default paths:
 - `MAP_BENCH_BUILD_BINARY_PATH`
 - `PYTHON_BIN`
 
+The following variables control generation throughput:
+
+- `MAP_BENCH_PROCESS_NUM`: number of worker processes.
+- `MAP_BENCH_TASK_BATCH_SIZE`: task batch size submitted to workers.
+- `MAP_BENCH_PRELOAD_KENLM_TOP_N`: number of KenLM models preloaded by each worker.
+- `MAP_BENCH_P2_CACHE`: enable the top-k candidate cache.
+- `MAP_BENCH_P2_CACHE_SIZE`: maximum top-k cache entries per worker.
+- `MAP_BENCH_P4_SCORE_CACHE`: enable the KenLM word-score cache.
+- `MAP_BENCH_P4_SCORE_CACHE_SIZE`: maximum score-cache entries per worker.
+- `MAP_BENCH_CACHE_STATS`: print cache statistics when enabled.
+
 ## Usage
 
 ### 1. Precompute statistics for the base dataset
@@ -106,6 +117,24 @@ Example:
 
 - `./main.sh 1.5 2`
 
+High-throughput example:
+
+```bash
+cd generator
+./main.sh --recompute
+taskset -c 0-71 env \
+  MAP_BENCH_PROCESS_NUM=72 \
+  MAP_BENCH_TASK_BATCH_SIZE=1 \
+  MAP_BENCH_PRELOAD_KENLM_TOP_N=0 \
+  MAP_BENCH_P2_CACHE=1 \
+  MAP_BENCH_P2_CACHE_SIZE=200000 \
+  MAP_BENCH_P4_SCORE_CACHE=1 \
+  MAP_BENCH_P4_SCORE_CACHE_SIZE=64 \
+  ./main.sh 1.05 1
+```
+
+Adjust the CPU range and worker count to the local machine.
+
 ## TRIGRAM_TRAIN
 
 The trigram model is used to generate unstructured text. Before running the generator, execute:
@@ -119,8 +148,8 @@ python3 02_train_models.py
 
 ## Tested Environment
 
-Python 3.12.3  
-Faker==37.12.0  
-numpy==2.3.4  
-pandas==2.3.3  
-tqdm==4.67.1  
+Python 3.12.3
+Faker==37.12.0
+numpy==2.3.4
+pandas==2.3.3
+tqdm==4.67.1

@@ -86,6 +86,17 @@ generator/
 - `MAP_BENCH_BUILD_BINARY_PATH`
 - `PYTHON_BIN`
 
+以下环境变量用于控制生成吞吐：
+
+- `MAP_BENCH_PROCESS_NUM`：Worker 进程数。
+- `MAP_BENCH_TASK_BATCH_SIZE`：提交给 Worker 的任务批大小。
+- `MAP_BENCH_PRELOAD_KENLM_TOP_N`：每个 Worker 预加载的 KenLM 模型数量。
+- `MAP_BENCH_P2_CACHE`：是否启用 Top-K 候选缓存。
+- `MAP_BENCH_P2_CACHE_SIZE`：每个 Worker 的 Top-K 缓存上限。
+- `MAP_BENCH_P4_SCORE_CACHE`：是否启用 KenLM 词分数缓存。
+- `MAP_BENCH_P4_SCORE_CACHE_SIZE`：每个 Worker 的分数缓存上限。
+- `MAP_BENCH_CACHE_STATS`：启用后输出缓存统计。
+
 ## 使用说明
 
 ### 1. 预计算基础数据集统计信息
@@ -106,6 +117,24 @@ cd generator
 
 - `./main.sh 1.5 2`
 
+高吞吐运行示例：
+
+```bash
+cd generator
+./main.sh --recompute
+taskset -c 0-71 env \
+  MAP_BENCH_PROCESS_NUM=72 \
+  MAP_BENCH_TASK_BATCH_SIZE=1 \
+  MAP_BENCH_PRELOAD_KENLM_TOP_N=0 \
+  MAP_BENCH_P2_CACHE=1 \
+  MAP_BENCH_P2_CACHE_SIZE=200000 \
+  MAP_BENCH_P4_SCORE_CACHE=1 \
+  MAP_BENCH_P4_SCORE_CACHE_SIZE=64 \
+  ./main.sh 1.05 1
+```
+
+CPU 核范围和 Worker 数量可按本机配置调整。
+
 ## TRIGRAM_TRAIN 使用方式
 
 trigram模型用于生成非结构化文本，在执行生成器前需执行：
@@ -119,8 +148,8 @@ python3 02_train_models.py
 
 ## 测试环境
 
-Python 3.12.3  
-Faker==37.12.0  
-numpy==2.3.4  
-pandas==2.3.3  
-tqdm==4.67.1  
+Python 3.12.3
+Faker==37.12.0
+numpy==2.3.4
+pandas==2.3.3
+tqdm==4.67.1
