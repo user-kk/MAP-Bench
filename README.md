@@ -44,7 +44,7 @@ The pre-built MAP-Bench datasets (MAP-S / MAP-M / MAP-L) are available for downl
 
 - https://pan.baidu.com/s/1ypordpefzTG0HzhcwyFXiQ?pwd=sd6b (password: `sd6b`)
 
-Alternatively, you can download raw OpenAlex snapshots and generate the datasets yourself using the scripts in [openalex-automated-pipeline](https://github.com/thriaaaa/openalex-automated-pipeline).
+Alternatively, you can download raw OpenAlex snapshots and generate the datasets yourself using the scripts in [openalex-automated-pipeline](https://anonymous.4open.science/r/openalex-automated-pipeline-C372/).
 
 ### Data Generator
 
