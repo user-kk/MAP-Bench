@@ -42,7 +42,7 @@ Each system directory typically contains two subdirectories:
 
 The pre-built MAP-Bench datasets (MAP-S / MAP-M / MAP-L) are available for download from Baidu Netdisk:
 
-- https://pan.baidu.com/s/1Jc7W_h4a-6iTLi2EnUUuOw?pwd=gerd (password: `gerd`)
+- https://pan.baidu.com/s/1ypordpefzTG0HzhcwyFXiQ?pwd=sd6b (password: `sd6b`)
 
 Alternatively, you can download raw OpenAlex snapshots and generate the datasets yourself using the scripts in [openalex-automated-pipeline](https://github.com/thriaaaa/openalex-automated-pipeline).
 
