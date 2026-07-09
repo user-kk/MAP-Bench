@@ -45,7 +45,7 @@ Map（地图/映射）暗示了连接和导航。Benchmark 的核心是将不同
 
 - https://pan.baidu.com/s/1ypordpefzTG0HzhcwyFXiQ?pwd=sd6b (提取码: `sd6b`)
 
-另外，也可以下载原始的 OpenAlex 快照，并使用 [openalex-automated-pipeline](https://github.com/thriaaaa/openalex-automated-pipeline) 中的脚本自行生成数据集。
+另外，也可以下载原始的 OpenAlex 快照，并使用 [openalex-automated-pipeline](https://anonymous.4open.science/r/openalex-automated-pipeline-C372/) 中的脚本自行生成数据集。
 
 ### 数据生成器
 
