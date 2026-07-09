@@ -43,7 +43,7 @@ Map（地图/映射）暗示了连接和导航。Benchmark 的核心是将不同
 
 预先构建好的 MAP-Bench 数据集（MAP-S / MAP-M / MAP-L）可从百度网盘下载获取：
 
-- https://pan.baidu.com/s/1Jc7W_h4a-6iTLi2EnUUuOw?pwd=gerd (提取码：`gerd` )
+- https://pan.baidu.com/s/1ypordpefzTG0HzhcwyFXiQ?pwd=sd6b (提取码: `sd6b`)
 
 另外，也可以下载原始的 OpenAlex 快照，并使用 [openalex-automated-pipeline](https://github.com/thriaaaa/openalex-automated-pipeline) 中的脚本自行生成数据集。
 
