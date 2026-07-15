@@ -541,6 +541,11 @@ if __name__ == "__main__":
                          edge_data["startid"] = real_work_id
                 for edge in work_package["work_ref_edges"]:
                     edge["startid"] = real_work_id
+                for edge in work_package.get("author_author_edges", []):
+                    props = edge.get("properties", {})
+                    for item in props.get("list", []):
+                        if item.get("work_id") is None:
+                            item["work_id"] = real_work_id
 
 
                 # if new_author_package:

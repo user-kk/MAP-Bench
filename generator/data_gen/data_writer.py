@@ -73,7 +73,7 @@ class DataWriter:
         self.file_handles["work_relation"] = f_work_rel
 
         path_work_doc = os.path.join(self.doc_dir, "works_doc_new.csv")
-        headers_work_doc = ["id", "doc"]
+        headers_work_doc = ["id", "doi", "doc"]
         f_work_doc = open(path_work_doc, 'w', encoding='utf-8', newline='', buffering=IO_BUF)
         writer_work_doc = csv.writer(f_work_doc)
         writer_work_doc.writerow(headers_work_doc)
@@ -81,7 +81,7 @@ class DataWriter:
         self.file_handles["work_doc"] = f_work_doc
 
         path_work_vec = os.path.join(self.vec_dir, "works_vec_new.csv")
-        headers_work_vec = ["id", "doi"]
+        headers_work_vec = ["id", "doi", "vec"]
         f_work_vec = open(path_work_vec, 'w', encoding='utf-8', newline='', buffering=IO_BUF)
         writer_work_vec = csv.writer(f_work_vec)
         writer_work_vec.writerow(headers_work_vec)
@@ -234,7 +234,7 @@ class DataWriter:
             
             doc_data = pkg["work_doc"]
             self.csv_writers["work_doc"].writerow([
-                doc_data["id"], json.dumps(doc_data["doc"])
+                doc_data["id"], doc_data.get("doi") or rel_data.get("doi", ""), json.dumps(doc_data["doc"])
             ])
             
             vtx_data = pkg["work_vertex"]

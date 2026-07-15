@@ -1,4 +1,5 @@
 import pandas as pd
+import csv
 import os
 import json
 from tqdm import tqdm
@@ -176,43 +177,118 @@ def _calculate_all_increments(tmp_csv_dir, tmp_edg_dir, output_csv_dir,output_ed
 
     return increments
 
+INTEGER_FORMAT_COLUMNS = ("cited_by_count", "works_count", "institution_id")
+
+
+def _to_int(value, default=0):
+    try:
+        if pd.isna(value):
+            return default
+    except (TypeError, ValueError):
+        pass
+    if value == "":
+        return default
+    try:
+        return int(float(value))
+    except (TypeError, ValueError, OverflowError):
+        return default
+
+
+def _format_optional_int(value):
+    try:
+        if pd.isna(value):
+            return ""
+    except (TypeError, ValueError):
+        pass
+    if value == "":
+        return ""
+    try:
+        return str(int(float(value)))
+    except (TypeError, ValueError, OverflowError):
+        return value
+
+
 # --- 更新逻辑 (拆分为：更新旧数据 + 追加新数据) ---
 def _update_and_append(output_path, tmp_path, id_col, counts_increments):
     """
     1. 如果有增量：读取主文件 -> 更新计数 -> 写回主文件 (只涉及旧数据，速度快)
     2. 如果有新文件：直接二进制追加到主文件
     """
-    # [Phase 1] 更新旧数据的计数
     has_updates = any(bool(v) for v in counts_increments.values())
 
     if has_updates and os.path.exists(output_path):
         try:
-            # 读取主文件
             df_main = pd.read_csv(output_path)
             if not df_main.empty:
                 if df_main[id_col].duplicated().any():
                     df_main = df_main.drop_duplicates(subset=[id_col], keep='first')
                 df_main = df_main.set_index(id_col)
 
-                # 应用增量
                 for count_name, inc_dict in counts_increments.items():
-                    if not inc_dict: continue
+                    if not inc_dict:
+                        continue
                     inc_series = pd.Series(inc_dict, name=count_name).fillna(0).astype(int)
 
                     if count_name not in df_main.columns:
                         df_main[count_name] = 0
 
-                    # 使用 add 更新，fill_value=0 保证对齐
-                    df_main[count_name] = df_main[count_name].add(inc_series, fill_value=0)
+                    base_series = pd.to_numeric(df_main[count_name], errors='coerce').fillna(0)
+                    df_main[count_name] = base_series.add(inc_series, fill_value=0).fillna(0).round().astype('int64')
 
                 df_main = df_main.reset_index()
-                # 覆盖写入 (注意：此时还没有追加新数据，只更新了旧数据)
+                for column_name in INTEGER_FORMAT_COLUMNS:
+                    if column_name in df_main.columns:
+                        df_main[column_name] = df_main[column_name].map(_format_optional_int)
                 df_main.to_csv(output_path, index=False)
         except Exception as e:
             print(f"ERROR: 更新统计值失败 {output_path}: {e}")
 
-    # [Phase 2] 追加新数据
-    # 修复：增加了对 tmp_path 的 None 检查
+    if tmp_path and os.path.exists(tmp_path):
+        _fast_append_csv(output_path, tmp_path)
+
+
+def _update_vertex_properties_and_append(output_path, tmp_path, id_col, counts_increments):
+    has_updates = any(bool(v) for v in counts_increments.values())
+
+    if has_updates and os.path.exists(output_path):
+        temp_path = f"{output_path}.tmp_vertex_update"
+        try:
+            with open(output_path, 'r', encoding='utf-8', newline='', buffering=IO_BUF) as f_in, \
+                 open(temp_path, 'w', encoding='utf-8', newline='', buffering=IO_BUF) as f_out:
+                reader = csv.DictReader(f_in)
+                writer = csv.DictWriter(f_out, fieldnames=[id_col, "properties"])
+                writer.writeheader()
+                for row in reader:
+                    row_id_raw = row.get(id_col, "")
+                    row_id = _to_int(row_id_raw, default=None)
+                    props_str = row.get("properties", "")
+                    try:
+                        props = json.loads(props_str) if props_str else {}
+                    except (json.JSONDecodeError, TypeError):
+                        writer.writerow({id_col: row_id_raw, "properties": props_str})
+                        continue
+                    if not isinstance(props, dict):
+                        writer.writerow({id_col: row_id_raw, "properties": props_str})
+                        continue
+
+                    if row_id is not None:
+                        for count_name, inc_dict in counts_increments.items():
+                            if not inc_dict:
+                                continue
+                            inc_value = inc_dict.get(row_id, inc_dict.get(str(row_id), 0))
+                            if inc_value:
+                                props[count_name] = _to_int(props.get(count_name), 0) + _to_int(inc_value, 0)
+
+                    writer.writerow({
+                        id_col: row_id_raw,
+                        "properties": json.dumps(props, ensure_ascii=False)
+                    })
+            os.replace(temp_path, output_path)
+        except Exception as e:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            print(f"ERROR: 更新顶点属性失败 {output_path}: {e}")
+
     if tmp_path and os.path.exists(tmp_path):
         _fast_append_csv(output_path, tmp_path)
 
@@ -282,7 +358,7 @@ def run_annual_update(output_path, tmp_path):
         id_col='id',
         counts_increments={"cited_by_count": increments["work_cites"]}
     )
-    _update_and_append(
+    _update_vertex_properties_and_append(
         output_path=os.path.join(output_vtx_dir, "works_v.csv"),
         tmp_path=os.path.join(tmp_vtx_dir, "works_v_new.csv"),
         id_col='id',
@@ -299,7 +375,7 @@ def run_annual_update(output_path, tmp_path):
             "cited_by_count": increments["author_cites"]
         }
     )
-    _update_and_append(
+    _update_vertex_properties_and_append(
         output_path=os.path.join(output_vtx_dir, "authors_v.csv"),
         tmp_path=os.path.join(tmp_vtx_dir, "authors_v_new.csv"),
         id_col='id',
@@ -319,7 +395,7 @@ def run_annual_update(output_path, tmp_path):
             "cited_by_count": increments["topic_cites"]
         }
     )
-    _update_and_append(
+    _update_vertex_properties_and_append(
         output_path=os.path.join(output_vtx_dir, "topics_v.csv"),
         tmp_path=os.path.join(tmp_vtx_dir, "topics_v_new.csv"),
         id_col='id',

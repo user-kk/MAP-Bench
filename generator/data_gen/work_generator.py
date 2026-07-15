@@ -626,7 +626,7 @@ def _build_author_author_edges(author_team, new_work_id, current_year):
     for author_a, author_b in combinations(author_team, 2):
         id_a = author_a["id"]
         id_b = author_b["id"]
-        if id_a is None or id_b is None:
+        if id_a is None or id_b is None or str(id_a) == str(id_b):
             continue
 
         # 强制转换为字符串比较大小，避免 str 和 int 报错
