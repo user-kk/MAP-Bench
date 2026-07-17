@@ -31,10 +31,11 @@ os.environ["OMP_NUM_THREADS"] = "1"
 set_paper_style()
 csv.field_size_limit(sys.maxsize)
 
-REAL_DATA_ROOT = "/home/wzh/openalex_gen/openalex_sf1/vector"
-GEN_DATA_ROOT = "/home/wzh/openalex_gen/generated_output/sf_2_mode_1/vector"
-RANDOM_DATA_ROOT = "/home/wzh/openalex_gen/random_gen/output/vector"
-OUTPUT_DIR = "/home/wzh/openalex_gen/quality_eval/output/vector_result"
+GENERATOR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REAL_DATA_ROOT = os.environ.get("MAP_BENCH_EVAL_REAL_VECTOR_DIR", os.path.join(GENERATOR_ROOT, "map-s", "vector"))
+GEN_DATA_ROOT = os.environ.get("MAP_BENCH_EVAL_GENERATED_VECTOR_DIR", os.path.join(GENERATOR_ROOT, "generated_output", "sf_2_mode_1", "vector"))
+RANDOM_DATA_ROOT = os.environ.get("MAP_BENCH_EVAL_RANDOM_VECTOR_DIR", os.path.join(GENERATOR_ROOT, "random_gen", "output", "vector"))
+OUTPUT_DIR = os.environ.get("MAP_BENCH_EVAL_VECTOR_OUTPUT_DIR", os.path.join(GENERATOR_ROOT, "quality_eval", "output", "vector_result"))
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 VECTOR_FILE_NAME = "works_vec.csv"

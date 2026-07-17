@@ -43,8 +43,9 @@ random.seed(SEED)
 np.random.seed(SEED)
 set_paper_style()
 
-PANEL_OUTPUT_DIR = "/home/wzh/openalex_gen/quality_eval_optimized/output/panel_result"
-SUMMARY_OUTPUT_DIR = "/home/wzh/openalex_gen/quality_eval_optimized/output/summary_result"
+GENERATOR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PANEL_OUTPUT_DIR = os.environ.get("MAP_BENCH_EVAL_PANEL_OUTPUT_DIR", os.path.join(GENERATOR_ROOT, "quality_eval", "output", "panel_result"))
+SUMMARY_OUTPUT_DIR = os.environ.get("MAP_BENCH_EVAL_SUMMARY_OUTPUT_DIR", os.path.join(GENERATOR_ROOT, "quality_eval", "output", "summary_result"))
 SEED_LOG_PATH = os.path.join(SUMMARY_OUTPUT_DIR, "run_seeds.log")
 CROSS_SEED_CANDIDATE_PATH = os.path.join(SUMMARY_OUTPUT_DIR, "last_cross_seeds.txt")
 OVERVIEW_CACHE_PATH = os.path.join(SUMMARY_OUTPUT_DIR, "overview_payload.pkl")

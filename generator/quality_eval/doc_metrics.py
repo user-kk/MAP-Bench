@@ -32,10 +32,11 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 set_paper_style()
 csv.field_size_limit(sys.maxsize)
 
-REAL_DATA_ROOT = "/home/wzh/openalex_gen/openalex_sf1/document"
-GEN_DATA_ROOT = "/home/wzh/openalex_gen/generated_output/sf_2_mode_1/document"
-RANDOM_DATA_ROOT = "/home/wzh/openalex_gen/random_gen/output/document"
-OUTPUT_DIR = "/home/wzh/openalex_gen/quality_eval/output/document_result"
+GENERATOR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REAL_DATA_ROOT = os.environ.get("MAP_BENCH_EVAL_REAL_DOCUMENT_DIR", os.path.join(GENERATOR_ROOT, "map-s", "document"))
+GEN_DATA_ROOT = os.environ.get("MAP_BENCH_EVAL_GENERATED_DOCUMENT_DIR", os.path.join(GENERATOR_ROOT, "generated_output", "sf_2_mode_1", "document"))
+RANDOM_DATA_ROOT = os.environ.get("MAP_BENCH_EVAL_RANDOM_DOCUMENT_DIR", os.path.join(GENERATOR_ROOT, "random_gen", "output", "document"))
+OUTPUT_DIR = os.environ.get("MAP_BENCH_EVAL_DOCUMENT_OUTPUT_DIR", os.path.join(GENERATOR_ROOT, "quality_eval", "output", "document_result"))
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 TARGET_SAMPLE_SIZE = 20000
