@@ -217,8 +217,8 @@ The table below summarizes the workload queries. “Models” are listed in the 
 The following table summarizes the **main operators** exercised by each query (in stage order) and the **data models** involved.
 Note that this is a **high-level** characterization; exact physical operators and implementations may vary across systems.
 
-<details>
-<summary><b>Click to expand: Model coverage & key operators per query</b></summary>
+<details open>
+<summary><b>Model coverage & key operators per query</b></summary>
 
 <br/>
 
@@ -250,16 +250,16 @@ Note that this is a **high-level** characterization; exact physical operators an
 
 While MAP-Bench is primarily organized by execution patterns (H/A/V/G), the table below provides an **application-oriented** categorization for readers who prefer to understand the workloads by scenario semantics.
 
-<details>
-<summary><b>Click to expand: Application-oriented categorization of MAP-Bench queries</b></summary>
+<details open>
+<summary><b>Application-oriented categorization of MAP-Bench queries</b></summary>
 
 <br/>
 
 | Application Scenario | Description | Queries |
 |---|---|---|
 | Similar-paper retrieval and recommendation | Retrieve papers semantically related to a given paper or topic for recommendation and literature exploration. | H3, H5, V1, V2, V3, V4 |
-| Collaboration and author-relationship analysis | Identify co-authors or potential collaborators and characterize collaboration dynamics. | H1, H2, A2, G1 |
+| Author lookup and collaboration analysis | Identify co-authors or potential collaborators and characterize collaboration dynamics. | H1, H2, A2, G1 |
 | Impact and trend analysis | Measure the influence of institutions, authors, or topics and analyze research trends. | A1, A3, A4, A5, A6 |
-| Citation exploration and path analysis | Explore citation neighborhoods and shortest-path-based knowledge propagation. | H4, G2, G3, G4 |
+| Citation and structural path exploration | Explore citation neighborhoods and knowledge propagation along shortest paths. | H4, G2, G3, G4 |
 
 </details>

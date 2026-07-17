@@ -222,8 +222,8 @@ MAP-Bench 包含 **19 条只读分析型查询**，以 **多阶段（multi-stage
 下表总结了每条查询在 pipeline 各 stage 中主要覆盖的 **operators** 以及涉及的 **data models**。  
 注意：该表为 **高层抽象**；不同系统的物理算子与具体实现可能存在差异。
 
-<details>
-<summary><b>点击展开：Model coverage & key operators per query</b></summary>
+<details open>
+<summary><b>Model coverage & key operators per query</b></summary>
 
 <br/>
 
@@ -255,16 +255,16 @@ MAP-Bench 包含 **19 条只读分析型查询**，以 **多阶段（multi-stage
 
 虽然 MAP-Bench 在论文与主 README 中按 execution patterns（H/A/V/G）组织，但下表提供一个 **application-oriented** 的视角，便于读者按场景语义理解查询用途。
 
-<details>
-<summary><b>点击展开：Application-oriented categorization of MAP-Bench queries</b></summary>
+<details open>
+<summary><b>Application-oriented categorization of MAP-Bench queries</b></summary>
 
 <br/>
 
 | Application Scenario | Description | Queries |
 |---|---|---|
 | Similar-paper retrieval and recommendation | Retrieve papers semantically related to a given paper or topic for recommendation and literature exploration. | H3, H5, V1, V2, V3, V4 |
-| Collaboration and author-relationship analysis | Identify co-authors or potential collaborators and characterize collaboration dynamics. | H1, H2, A2, G1 |
+| Author lookup and collaboration analysis | Identify co-authors or potential collaborators and characterize collaboration dynamics. | H1, H2, A2, G1 |
 | Impact and trend analysis | Measure the influence of institutions, authors, or topics and analyze research trends. | A1, A3, A4, A5, A6 |
-| Citation exploration and path analysis | Explore citation neighborhoods and shortest-path-based knowledge propagation. | H4, G2, G3, G4 |
+| Citation and structural path exploration | Explore citation neighborhoods and knowledge propagation along shortest paths. | H4, G2, G3, G4 |
 
 </details>
